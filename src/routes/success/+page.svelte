@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import type { Transaction } from '$lib/types/types';
 
-	let transaction: { status: string; amount: number } | null = null;
+	let transaction: Pick<Transaction, 'status' | 'amount'> | null = null;
 	let loading = true;
 
 	onMount(async () => {
@@ -13,13 +14,18 @@
 			return;
 		}
 
-		const res = await fetch(`/api/transaction/${orderId}`);
-		const data = await res.json();
+		try {
+			const res = await fetch(`/api/transaction/${orderId}`);
+			const data = await res.json();
 
-		if (res.ok) {
-			transaction = data;
+			if (res.ok) {
+				transaction = data;
+			}
+		} catch (error) {
+			console.error('Failed to fetch transaction:', error);
+		} finally {
+			loading = false;
 		}
-		loading = false;
 	});
 </script>
 
@@ -27,10 +33,10 @@
 	{#if loading}
 		<p>Memverifikasi pembayaran...</p>
 	{:else if transaction && transaction.status === 'completed'}
-		<h1>✅ Pembayaran Berhasil!</h1>
+		<h1>Pembayaran Berhasil</h1>
 		<p>Total: Rp{transaction.amount.toLocaleString('id-ID')}</p>
 	{:else}
-		<h1>❌ Pembayaran belum berhasil</h1>
+		<h1>Pembayaran belum berhasil</h1>
 		<p>Silakan coba lagi atau hubungi kami.</p>
 	{/if}
 </main>

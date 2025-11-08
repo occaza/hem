@@ -1,11 +1,11 @@
+// src/routes/api/transaction/[order_id]/+server.ts
 import { json } from '@sveltejs/kit';
 import { getSupabaseAdmin } from '$lib/server/supabase';
+import type { RequestHandler } from './$types';
 
-// This is a GET request, not POST
-export async function GET({ params }) {
+export const GET: RequestHandler = async ({ params }) => {
 	const supabaseAdmin = getSupabaseAdmin();
-
-	const { order_id } = params; // ← comes from [order_id] in the route
+	const { order_id } = params;
 
 	if (!order_id) {
 		return json({ error: 'Missing order_id' }, { status: 400 });
@@ -22,4 +22,4 @@ export async function GET({ params }) {
 	}
 
 	return json(data);
-}
+};

@@ -1,18 +1,17 @@
+// src/routes/api/webhook/+server.ts
 import { json } from '@sveltejs/kit';
 import { getSupabaseAdmin } from '$lib/server/supabase';
+import type { RequestHandler } from './$types';
 
-export async function POST({ request, url }) {
-	const supabaseAdmin = getSupabaseAdmin(); // ← call it here (at request time)
+export const POST: RequestHandler = async ({ request }) => {
+	const supabaseAdmin = getSupabaseAdmin();
 	const body = await request.json();
-
 	const { order_id, amount, status, payment_method } = body;
 
-	// Only act on "completed"
 	if (status !== 'completed') {
 		return json({ received: true });
 	}
 
-	// 1. Fetch existing transaction
 	const { data: trans, error: fetchErr } = await supabaseAdmin
 		.from('transactions')
 		.select('amount, status')
@@ -24,14 +23,15 @@ export async function POST({ request, url }) {
 		return json({ received: true });
 	}
 
-	// 2. Prevent replay or fraud
-	if (trans.status === 'completed') return json({ received: true });
+	if (trans.status === 'completed') {
+		return json({ received: true });
+	}
+
 	if (trans.amount !== amount) {
 		console.error('Amount mismatch!', { order_id, expected: trans.amount, got: amount });
 		return json({ received: true });
 	}
 
-	// 3. Mark as completed
 	const { error: updateErr } = await supabaseAdmin
 		.from('transactions')
 		.update({
@@ -45,7 +45,5 @@ export async function POST({ request, url }) {
 		console.error('Failed to update transaction', updateErr);
 	}
 
-	// 🔔 Optional: Trigger fulfillment (email, unlock content, etc.)
-
 	return json({ received: true });
-}
+};
