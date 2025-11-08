@@ -1,8 +1,9 @@
 import { json } from '@sveltejs/kit';
-import { supabaseAdmin } from '$lib/server/supabase';
+import { getSupabaseAdmin } from '$lib/server/supabase';
 import { pakasir } from '$lib/server/pakasir';
 
 export async function POST({ request, url }) {
+	const supabaseAdmin = getSupabaseAdmin(); // ← call it here (at request time)
 	const { product_id, order_id } = await request.json();
 
 	if (!product_id || !order_id) {
