@@ -29,14 +29,42 @@
 	});
 </script>
 
-<main>
-	{#if loading}
-		<p>Memverifikasi pembayaran...</p>
-	{:else if transaction && transaction.status === 'completed'}
-		<h1>Pembayaran Berhasil</h1>
-		<p>Total: Rp{transaction.amount.toLocaleString('id-ID')}</p>
-	{:else}
-		<h1>Pembayaran belum berhasil</h1>
-		<p>Silakan coba lagi atau hubungi kami.</p>
-	{/if}
-</main>
+<div class="container mx-auto px-4 py-8">
+	<div class="mx-auto max-w-md">
+		{#if loading}
+			<div class="card bg-base-100 shadow-xl">
+				<div class="card-body items-center text-center">
+					<span class="loading loading-lg loading-spinner"></span>
+					<p>Memverifikasi pembayaran...</p>
+				</div>
+			</div>
+		{:else if transaction && transaction.status === 'completed'}
+			<div class="card bg-base-100 shadow-xl">
+				<div class="card-body items-center text-center">
+					<div class="mb-4 text-6xl">✅</div>
+					<h1 class="card-title text-2xl">Pembayaran Berhasil</h1>
+					<div class="divider"></div>
+					<div class="text-3xl font-bold text-primary">
+						Rp{transaction.amount.toLocaleString('id-ID')}
+					</div>
+					<div class="mt-6 card-actions">
+						<a href="/" class="btn btn-primary">Kembali ke Beranda</a>
+					</div>
+				</div>
+			</div>
+		{:else}
+			<div class="card bg-base-100 shadow-xl">
+				<div class="card-body items-center text-center">
+					<div class="mb-4 text-6xl">❌</div>
+					<h1 class="card-title text-2xl">Pembayaran Belum Berhasil</h1>
+					<p class="mt-2 text-base-content/70">
+						Silakan coba lagi atau hubungi kami jika ada masalah.
+					</p>
+					<div class="mt-6 card-actions">
+						<a href="/" class="btn btn-primary">Coba Lagi</a>
+					</div>
+				</div>
+			</div>
+		{/if}
+	</div>
+</div>

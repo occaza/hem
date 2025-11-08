@@ -1,16 +1,21 @@
 // src/lib/server/supabase.ts
 import { createClient } from '@supabase/supabase-js';
+import { VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE } from '$env/static/private';
 
-// ✅ Lazy initializer — only runs when called (at request time)
 export function getSupabaseAdmin() {
-	const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-	const supabaseServiceRole = import.meta.env.SUPABASE_SERVICE_ROLE;
-
-	if (!supabaseUrl || !supabaseServiceRole) {
+	if (!VITE_SUPABASE_URL || !SUPABASE_SERVICE_ROLE) {
 		throw new Error(
-			'Missing Supabase environment variables. Make sure they are set in Cloudflare Pages > Environment Variables.'
+			'❌ Missing Supabase credentials!\n\n' +
+				'Create .env file with:\n' +
+				'VITE_SUPABASE_URL=https://xxxxx.supabase.co\n' +
+				'SUPABASE_SERVICE_ROLE=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
 		);
 	}
 
-	return createClient(supabaseUrl, supabaseServiceRole);
+	return createClient(VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE, {
+		auth: {
+			autoRefreshToken: false,
+			persistSession: false
+		}
+	});
 }
