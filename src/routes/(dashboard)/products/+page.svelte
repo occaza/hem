@@ -75,7 +75,7 @@
 							</a>
 							<button
 								class="btn btn-sm btn-error"
-								on:click={() => deleteProduct(product.id)}
+								onclick={() => deleteProduct(product.id)}
 								disabled={deleteLoading === product.id}
 							>
 								{#if deleteLoading === product.id}

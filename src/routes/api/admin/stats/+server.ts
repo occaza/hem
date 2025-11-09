@@ -1,9 +1,8 @@
 // src/routes/api/admin/stats/+server.ts
 import { json } from '@sveltejs/kit';
 import { getSupabaseAdmin } from '$lib/server/supabase';
-import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = async () => {
+export async function GET() {
 	try {
 		const supabaseAdmin = getSupabaseAdmin();
 
@@ -43,4 +42,4 @@ export const GET: RequestHandler = async () => {
 		console.error('Failed to fetch stats:', error);
 		return json({ error: 'Internal server error' }, { status: 500 });
 	}
-};
+}
