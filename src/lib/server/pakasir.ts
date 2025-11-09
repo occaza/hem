@@ -31,10 +31,9 @@ function getEnv() {
 export const pakasir = {
 	async createTransaction(orderId: string, amount: number, paymentMethod: PaymentMethod) {
 		const { SLUG, API_KEY } = getEnv();
-
 		const endpoint = `${PAKASIR_BASE}/api/transactioncreate/${paymentMethod}`;
 
-		console.log('Creating transaction:', { endpoint, orderId, amount, paymentMethod });
+		// console.log('Creating transaction:', { endpoint, orderId, amount, paymentMethod });
 
 		const res = await fetch(endpoint, {
 			method: 'POST',
@@ -56,7 +55,7 @@ export const pakasir = {
 		}
 
 		const data = await res.json();
-		console.log('Pakasir response:', data);
+		// console.log('Pakasir response:', data);
 
 		return data.payment;
 	},
@@ -92,7 +91,7 @@ export const pakasir = {
 			return;
 		}
 
-		console.log('Simulating payment for:', orderId);
+		// console.log('Simulating payment for:', orderId);
 
 		const res = await fetch(`${PAKASIR_BASE}/api/paymentsimulation`, {
 			method: 'POST',
@@ -110,6 +109,6 @@ export const pakasir = {
 			throw new Error(`Pakasir simulation failed: ${res.status} ${text}`);
 		}
 
-		console.log('Payment simulation successful');
+		// console.log('Payment simulation successful');
 	}
 };

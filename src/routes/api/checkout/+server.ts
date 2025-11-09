@@ -9,7 +9,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		const body = await request.json();
 		const { product_id, order_id, payment_method = 'qris' } = body;
 
-		console.log('Checkout request:', { product_id, order_id, payment_method });
+		// console.log('Checkout request:', { product_id, order_id, payment_method });
 
 		if (!product_id || typeof product_id !== 'string') {
 			return json({ error: 'Invalid or missing product_id' }, { status: 400 });

@@ -1,6 +1,9 @@
+<!-- src/routes/(dashboard)/transaction/[order_id]/+page.svelte -->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import { formatCurrency, formatDate } from '$lib/utils/format.utils';
+	import { getStatusBadge, getStatusText } from '$lib/utils/status.utils';
 
 	type TransactionDetail = {
 		order_id: string;
@@ -32,45 +35,6 @@
 			loading = false;
 		}
 	});
-
-	function getStatusBadge(status: string) {
-		switch (status) {
-			case 'completed':
-				return 'badge-success';
-			case 'pending':
-				return 'badge-warning';
-			case 'failed':
-				return 'badge-error';
-			default:
-				return 'badge-ghost';
-		}
-	}
-
-	function getStatusText(status: string) {
-		switch (status) {
-			case 'completed':
-				return 'Selesai';
-			case 'pending':
-				return 'Menunggu';
-			case 'failed':
-				return 'Gagal';
-			case 'expired':
-				return 'Kadaluarsa';
-			default:
-				return status;
-		}
-	}
-
-	function formatDate(dateString: string | undefined) {
-		if (!dateString) return '-';
-		return new Date(dateString).toLocaleString('id-ID', {
-			day: '2-digit',
-			month: 'long',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		});
-	}
 </script>
 
 <div class="mx-auto max-w-3xl">
@@ -118,7 +82,7 @@
 								<div class="font-semibold">{transaction.products.name}</div>
 								<div class="text-sm text-base-content/70">{transaction.products.description}</div>
 								<div class="mt-2 text-lg font-bold text-primary">
-									Rp{transaction.products.price.toLocaleString('id-ID')}
+									{formatCurrency(transaction.products.price)}
 								</div>
 							</div>
 						{:else}
@@ -131,7 +95,7 @@
 					<div class="flex justify-between">
 						<span class="text-base-content/70">Total Pembayaran:</span>
 						<span class="text-2xl font-bold text-primary">
-							Rp{transaction.amount.toLocaleString('id-ID')}
+							{formatCurrency(transaction.amount)}
 						</span>
 					</div>
 

@@ -1,5 +1,8 @@
+<!-- src/routes/(dashboard)/transaction/+page.svelte -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { formatCurrency, formatShortDate } from '$lib/utils/format.utils';
+	import { getStatusBadge } from '$lib/utils/status.utils';
 
 	type TransactionWithProduct = {
 		order_id: string;
@@ -37,26 +40,6 @@
 	const filteredTransactions = $derived(
 		filter === 'all' ? transactions : transactions.filter((t) => t.status === filter)
 	);
-
-	function getStatusBadge(status: string) {
-		const badges = {
-			completed: 'badge-success',
-			pending: 'badge-warning',
-			failed: 'badge-error',
-			expired: 'badge-ghost'
-		};
-		return badges[status as keyof typeof badges] || 'badge-ghost';
-	}
-
-	function formatDate(date: string) {
-		return new Date(date).toLocaleString('id-ID', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		});
-	}
 </script>
 
 <div>
@@ -122,7 +105,7 @@
 						<tr class="hover">
 							<td class="font-mono text-sm">{transaction.order_id}</td>
 							<td>{transaction.product.name}</td>
-							<td class="font-semibold">Rp{transaction.amount.toLocaleString('id-ID')}</td>
+							<td class="font-semibold">{formatCurrency(transaction.amount)}</td>
 							<td>
 								<span class="badge {getStatusBadge(transaction.status)}">
 									{transaction.status}
@@ -132,7 +115,7 @@
 								{transaction.payment_method || '-'}
 							</td>
 							<td class="text-sm">
-								{formatDate(transaction.completed_at || transaction.created_at)}
+								{formatShortDate(transaction.completed_at || transaction.created_at)}
 							</td>
 							<td>
 								<a href="/transaction/{transaction.order_id}" class="btn btn-ghost btn-xs">

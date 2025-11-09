@@ -1,6 +1,8 @@
+<!-- src/routes/(dashboard)/products/+page.svelte -->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Product } from '$lib/types/types';
+	import { formatCurrency } from '$lib/utils/format.utils';
 
 	let products = $state<Product[]>([]);
 	let loading = $state(true);
@@ -66,7 +68,7 @@
 						<h2 class="card-title">{product.name}</h2>
 						<p class="text-base-content/70">{product.description}</p>
 						<div class="my-2 text-2xl font-bold text-primary">
-							Rp{product.price.toLocaleString('id-ID')}
+							{formatCurrency(product.price)}
 						</div>
 						<div class="card-actions justify-end">
 							<a href="/products/{product.id}" class="btn btn-outline btn-sm">

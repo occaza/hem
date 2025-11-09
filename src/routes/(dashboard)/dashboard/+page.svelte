@@ -1,5 +1,7 @@
+<!-- src/routes/(dashboard)/dashboard/+page.svelte -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { formatCurrency } from '$lib/utils/format.utils';
 
 	let stats = $state({
 		totalProducts: 0,
@@ -79,7 +81,7 @@
 					</div>
 					<div class="stat-title">Total Pendapatan</div>
 					<div class="stat-value text-accent">
-						Rp{stats.totalRevenue.toLocaleString('id-ID')}
+						{formatCurrency(stats.totalRevenue)}
 					</div>
 					<div class="stat-desc">Dari transaksi yang selesai</div>
 				</div>
