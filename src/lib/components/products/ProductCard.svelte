@@ -18,10 +18,12 @@
 	const hasDiscount = $derived(isDiscountActive(product));
 	const finalPrice = $derived(calculateDiscountedPrice(product));
 	const inStock = $derived(isInStock(product));
+
+	// Fix: Handle undefined images array
 	const productImage = $derived(
-		product.images && product.images.length > 0
+		product.images && Array.isArray(product.images) && product.images.length > 0
 			? product.images[0]
-			: 'https://via.placeholder.com/400x300?text=No+Image'
+			: 'https://placehold.co/400x300?text=No+Image'
 	);
 
 	async function handleAddToCart() {
@@ -45,7 +47,15 @@
 <div class="card bg-base-100 shadow-xl transition-transform hover:scale-105">
 	<!-- Product Image -->
 	<figure class="relative h-48 overflow-hidden">
-		<img src={productImage} alt={product.name} class="h-full w-full object-cover" />
+		<img
+			src={productImage}
+			alt={product.name}
+			class="h-full w-full object-cover"
+			onerror={(e) => {
+				const img = e.currentTarget as HTMLImageElement;
+				img.src = 'https://placehold.co/400x300?text=Image+Not+Found';
+			}}
+		/>
 
 		<!-- Discount Badge -->
 		{#if hasDiscount && product.discount_percentage}
@@ -66,7 +76,7 @@
 	<div class="card-body">
 		<h2 class="card-title">
 			{product.name}
-			{#if product.stock < 10 && product.stock > 0}
+			{#if product.stock > 0 && product.stock < 10}
 				<span class="badge badge-sm badge-warning">Terbatas!</span>
 			{/if}
 		</h2>

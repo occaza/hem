@@ -28,14 +28,26 @@ export function formatShortDate(dateString: string | undefined): string {
 	});
 }
 
-// ✨ Tambahkan ini
 export function formatDiscount(percentage: number): string {
 	return `${percentage}%`;
 }
 
-export function formatStock(stock: number): string {
-	if (stock === 0) return 'Stok Habis';
-	if (stock < 10) return `Tersisa ${stock}`;
-	if (stock > 999999) return 'Unlimited';
-	return `${stock} tersedia`;
+export function formatStock(stock: number | undefined | null): string {
+	// Handle undefined/null
+	if (stock === undefined || stock === null) {
+		return 'Stok tidak tersedia';
+	}
+
+	// Convert to number jika string
+	const stockNum = typeof stock === 'string' ? parseInt(stock) : stock;
+
+	// Check if valid number
+	if (isNaN(stockNum)) {
+		return 'Stok tidak valid';
+	}
+
+	if (stockNum === 0) return 'Stok Habis';
+	if (stockNum < 10) return `Tersisa ${stockNum}`;
+	if (stockNum > 999999) return 'Unlimited';
+	return `${stockNum} tersedia`;
 }

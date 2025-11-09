@@ -16,7 +16,7 @@ export function calculateDiscountedPrice(product: Product): number {
 	}
 
 	const discount = (product.price * product.discount_percentage) / 100;
-	return product.price - discount;
+	return Math.floor(product.price - discount); // Round down
 }
 
 export function getDiscountAmount(product: Product): number {
@@ -38,5 +38,17 @@ export function isDiscountActive(product: Product): boolean {
 }
 
 export function isInStock(product: Product, quantity: number = 1): boolean {
-	return product.stock >= quantity;
+	// Pastikan stock adalah number dan bukan undefined/null
+	const stock = product.stock ?? 0;
+
+	// Log untuk debug
+	console.log('Checking stock:', {
+		productName: product.name,
+		stock: stock,
+		stockType: typeof stock,
+		quantity: quantity,
+		inStock: stock >= quantity
+	});
+
+	return stock >= quantity;
 }
