@@ -13,11 +13,6 @@ export { default as Navbar } from './components/shared/Navbar.svelte';
 // CONSTANTS
 export * from './constants/payment.constants';
 
-// SERVER
-export * from './server/auth';
-export * from './server/pakasir';
-export * from './server/supabase';
-
 // STORES
 export * from './stores/cart.store';
 
