@@ -2,6 +2,7 @@
 import { json } from '@sveltejs/kit';
 import { getSupabaseAdmin } from '$lib/server/supabase';
 import { requireRole } from '$lib/server/auth';
+import { generateUniqueSlug } from '$lib/utils/slug.utils';
 import type { RequestHandler } from './$types';
 
 // Handler untuk menambah produk baru
@@ -11,7 +12,16 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		await requireRole(cookies, ['admin', 'superadmin']);
 
 		const body = await request.json();
-		const { name, description, price } = body;
+		const {
+			name,
+			description,
+			price,
+			detail_description,
+			images,
+			stock,
+			discount_percentage,
+			discount_end_date
+		} = body;
 
 		console.log('Received POST request:', { name, description, price });
 
@@ -38,15 +48,20 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		// Generate ID unik
 		const id = `PROD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-		console.log('Inserting product with ID:', id);
+		// console.log('Inserting product with ID:', id);
+		const slug = generateUniqueSlug(name, id);
 
 		const { data, error } = await supabaseAdmin
 			.from('products')
 			.insert({
 				id,
+				slug, // Tambah ini
 				name: name.trim(),
 				description: description.trim(),
-				price: priceNumber
+				detail_description: detail_description?.trim() || description.trim(),
+				price: priceNumber,
+				images: images || [],
+				stock: stock !== undefined ? parseInt(stock.toString()) : 0
 			})
 			.select()
 			.single();

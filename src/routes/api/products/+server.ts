@@ -18,7 +18,7 @@ export async function GET() {
 			return json({ error: 'Failed to fetch products' }, { status: 500 });
 		}
 
-		console.log('✅ Products fetched:', data?.length || 0);
+		// console.log('✅ Products fetched:', data?.length || 0);
 
 		// Log detail untuk debug
 		if (data && data.length > 0) {

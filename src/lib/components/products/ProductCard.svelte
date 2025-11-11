@@ -1,5 +1,6 @@
 <!-- src/lib/components/products/ProductCard.svelte -->
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import type { Product } from '$lib/types/types';
 	import { formatCurrency, formatStock } from '$lib/utils/format.utils';
 	import { calculateDiscountedPrice, isDiscountActive, isInStock } from '$lib/utils/product.utils';
@@ -36,15 +37,31 @@
 		}
 		addingToCart = false;
 	}
-
 	function handleBuyNow() {
-		if (onBuy) {
-			onBuy(product);
-		}
+		// Gunakan slug jika ada, fallback ke id
+		const identifier = product.slug || product.id;
+		goto(`/shop/${identifier}`);
+	}
+
+	function handleCardClick() {
+		const identifier = product.slug || product.id;
+		goto(`/shop/${identifier}`);
 	}
 </script>
 
-<div class="card bg-base-100 shadow-xl transition-transform hover:scale-105">
+<div
+	class="card cursor-pointer bg-base-100 shadow-xl transition-transform hover:scale-105"
+	onclick={handleCardClick}
+	role="button"
+	tabindex="0"
+	aria-label={'View ' + product.name + ' details'}
+	onkeydown={(e) => {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			handleCardClick();
+		}
+	}}
+>
 	<!-- Product Image -->
 	<figure class="relative h-48 overflow-hidden">
 		<img
@@ -110,7 +127,14 @@
 		<div class="card-actions justify-end">
 			{#if inStock}
 				{#if showAddToCart}
-					<button class="btn btn-outline btn-sm" onclick={handleAddToCart} disabled={addingToCart}>
+					<button
+						class="btn btn-outline btn-sm"
+						onclick={(e) => {
+							e.stopPropagation();
+							handleAddToCart();
+						}}
+						disabled={addingToCart}
+					>
 						{#if addingToCart}
 							<span class="loading loading-xs loading-spinner"></span>
 						{:else}
@@ -120,7 +144,13 @@
 					</button>
 				{/if}
 
-				<button class="btn flex-1 btn-sm btn-primary" onclick={handleBuyNow}>
+				<button
+					class="btn flex-1 btn-sm btn-primary"
+					onclick={(e) => {
+						e.stopPropagation(); // Prevent card click
+						handleBuyNow();
+					}}
+				>
 					<span>⚡</span>
 					Beli Sekarang
 				</button>

@@ -193,10 +193,9 @@
 				<span class="loading loading-lg loading-spinner"></span>
 			</div>
 		{:else if products.length}
-			<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+			<div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 				{#each products as product}
-					<!-- ✨ Tambahkan showAddToCart -->
-					<ProductCard {product} onBuy={showMethodSelection} showAddToCart={true} />
+					<ProductCard {product} showAddToCart={true} />
 				{/each}
 			</div>
 		{:else}

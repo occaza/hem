@@ -2,14 +2,18 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { cartStore, cartCount, cartTotal } from '$lib/stores/cart.store';
+	import { cartStore, cartCount } from '$lib/stores/cart.store';
+	import { appliedCoupon } from '$lib/stores/coupon.store';
 	import { formatCurrency } from '$lib/utils/format.utils';
 	import { calculateDiscountedPrice } from '$lib/utils/product.utils';
+	import Navbar from '$lib/components/shared/Navbar.svelte';
 	import type { CartItem } from '$lib/types/types';
 
 	let cart = $state<CartItem[]>([]);
 	let loading = $state(true);
 	let checkoutLoading = $state(false);
+	let couponCode = $state('');
+	let applyingCoupon = $state(false);
 
 	$effect(() => {
 		cart = $cartStore;
@@ -38,14 +42,44 @@
 		}
 	}
 
+	async function handleApplyCoupon() {
+		if (!couponCode.trim()) {
+			alert('Masukkan kode kupon');
+			return;
+		}
+
+		applyingCoupon = true;
+
+		// Get user ID dari localStorage
+		let userId = localStorage.getItem('cart_user_id');
+		if (!userId) {
+			userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+			localStorage.setItem('cart_user_id', userId);
+		}
+
+		const success = await appliedCoupon.apply(
+			couponCode.trim().toUpperCase(),
+			subtotalAmount,
+			userId
+		);
+
+		if (success) {
+			couponCode = '';
+		}
+
+		applyingCoupon = false;
+	}
+
+	function handleRemoveCoupon() {
+		appliedCoupon.remove();
+	}
+
 	async function handleCheckout() {
 		if (cart.length === 0) return;
 
 		checkoutLoading = true;
 
 		try {
-			// TODO: Implementasi checkout multi-product nanti
-			// Untuk sekarang, checkout item pertama
 			alert(
 				'Fitur checkout multi-product sedang dalam pengembangan. Silakan beli satu per satu untuk sementara.'
 			);
@@ -63,33 +97,22 @@
 		return price * item.quantity;
 	}
 
-	const totalAmount = $derived(cart.reduce((sum, item) => sum + getItemSubtotal(item), 0));
+	const subtotalAmount = $derived(cart.reduce((sum, item) => sum + getItemSubtotal(item), 0));
+
+	const discountAmount = $derived($appliedCoupon ? $appliedCoupon.discount_amount : 0);
+
+	const totalAmount = $derived(subtotalAmount - discountAmount);
 </script>
 
 <div class="min-h-screen bg-base-200">
 	<!-- Header/Navbar -->
-	<div class="navbar bg-base-100 shadow-lg">
-		<div class="container mx-auto">
-			<div class="flex-1">
-				<a href="/" class="btn text-xl btn-ghost">
-					<span class="text-2xl">🛒</span>
-					Toko Digital
-				</a>
-			</div>
-			<div class="flex-none gap-2">
-				<a href="/shop" class="btn btn-ghost">Belanja</a>
-				<a href="/" class="btn btn-ghost">Beranda</a>
-			</div>
-		</div>
-	</div>
+	<Navbar />
 
 	<!-- Main Content -->
 	<div class="container mx-auto px-4 py-8">
 		<div class="mb-8">
 			<h1 class="text-3xl font-bold">Keranjang Belanja</h1>
-			<p class="text-base-content/70">
-				{$cartCount} item dalam keranjang
-			</p>
+			<p class="text-base-content/70">{$cartCount} item dalam keranjang</p>
 		</div>
 
 		{#if loading}
@@ -119,7 +142,6 @@
 							<div class="card bg-base-100 shadow-xl">
 								<div class="card-body">
 									<div class="flex gap-4">
-										<!-- Product Image -->
 										<figure class="h-24 w-24 shrink-0 overflow-hidden rounded-lg">
 											<img
 												src={item.product.images?.[0] || 'https://via.placeholder.com/200'}
@@ -128,7 +150,6 @@
 											/>
 										</figure>
 
-										<!-- Product Info -->
 										<div class="flex-1">
 											<h3 class="text-lg font-bold">{item.product.name}</h3>
 											<p class="line-clamp-1 text-sm text-base-content/70">
@@ -136,7 +157,6 @@
 											</p>
 
 											<div class="mt-2 flex items-center gap-4">
-												<!-- Price -->
 												<div>
 													{#if item.product.discount_percentage}
 														<div class="flex items-center gap-2">
@@ -154,7 +174,6 @@
 													{/if}
 												</div>
 
-												<!-- Quantity Control -->
 												<div class="flex items-center gap-2">
 													<button
 														class="btn btn-circle btn-sm"
@@ -174,7 +193,6 @@
 												</div>
 											</div>
 
-											<!-- Stock Warning -->
 											{#if item.product.stock < item.quantity}
 												<div class="mt-2 alert py-2 alert-warning">
 													<span class="text-xs">Stok tidak cukup! Tersisa {item.product.stock}</span
@@ -183,7 +201,6 @@
 											{/if}
 										</div>
 
-										<!-- Actions -->
 										<div class="flex flex-col justify-between">
 											<button
 												class="btn btn-circle btn-ghost btn-sm"
@@ -210,13 +227,75 @@
 
 							<div class="divider"></div>
 
+							<!-- Coupon Input -->
+							<div class="form-control">
+								<label class="label" for="coupon">
+									<span class="label-text">Punya Kode Kupon?</span>
+								</label>
+								<div class="join">
+									<input
+										type="text"
+										placeholder="KODE KUPON"
+										class="input-bordered input join-item w-full uppercase"
+										bind:value={couponCode}
+										disabled={$appliedCoupon !== null}
+									/>
+									{#if $appliedCoupon}
+										<button class="btn join-item btn-error" onclick={handleRemoveCoupon}>
+											Hapus
+										</button>
+									{:else}
+										<button
+											class="btn join-item btn-primary"
+											onclick={handleApplyCoupon}
+											disabled={applyingCoupon || !couponCode.trim()}
+										>
+											{#if applyingCoupon}
+												<span class="loading loading-sm loading-spinner"></span>
+											{:else}
+												Pakai
+											{/if}
+										</button>
+									{/if}
+								</div>
+							</div>
+
+							{#if $appliedCoupon}
+								<div class="mt-2 alert alert-success">
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										class="h-6 w-6 shrink-0 stroke-current"
+										fill="none"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+										/>
+									</svg>
+									<div class="text-sm">
+										<div class="font-semibold">{$appliedCoupon.coupon.name}</div>
+										<div>Hemat {formatCurrency($appliedCoupon.discount_amount)}</div>
+									</div>
+								</div>
+							{/if}
+
+							<div class="divider"></div>
+
 							<div class="space-y-2">
 								<div class="flex justify-between text-sm">
 									<span>Subtotal ({$cartCount} item)</span>
-									<span>{formatCurrency(totalAmount)}</span>
+									<span>{formatCurrency(subtotalAmount)}</span>
 								</div>
 
-								<!-- Add shipping/admin fee here if needed -->
+								{#if $appliedCoupon}
+									<div class="flex justify-between text-sm text-success">
+										<span>Diskon ({$appliedCoupon.coupon.code})</span>
+										<span>- {formatCurrency(discountAmount)}</span>
+									</div>
+								{/if}
 							</div>
 
 							<div class="divider"></div>
