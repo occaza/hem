@@ -13,11 +13,18 @@ export const GET: RequestHandler = async ({ params }) => {
 
 		const supabaseAdmin = getSupabaseAdmin();
 
-		const { data, error } = await supabaseAdmin
+		let { data, error } = await supabaseAdmin
 			.from('products')
 			.select('*')
-			.eq('id', slug)
+			.eq('slug', slug)
 			.single();
+
+		// Jika tidak ketemu by slug, coba by id
+		if (error || !data) {
+			const result = await supabaseAdmin.from('products').select('*').eq('id', slug).single();
+			data = result.data;
+			error = result.error;
+		}
 
 		if (error || !data) {
 			return json({ error: 'Product not found' }, { status: 404 });
