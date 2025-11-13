@@ -1,4 +1,3 @@
-<!-- src/lib/components/payment/MethodSelectorModal.svelte -->
 <script lang="ts">
 	import type { Product } from '$lib/types/types';
 	import { formatCurrency } from '$lib/utils/format.utils';
@@ -12,12 +11,22 @@
 	type Props = {
 		product: Product;
 		paymentMethods: PaymentMethod[];
+		isCartCheckout?: boolean;
+		itemCount?: number;
 		onClose: () => void;
 		onSelectQRIS: () => void;
 		onSelectOther: (method: string) => void;
 	};
 
-	let { product, paymentMethods, onClose, onSelectQRIS, onSelectOther }: Props = $props();
+	let {
+		product,
+		paymentMethods,
+		isCartCheckout = false,
+		itemCount = 1,
+		onClose,
+		onSelectQRIS,
+		onSelectOther
+	}: Props = $props();
 
 	let selectedMethod = $state('');
 
@@ -42,14 +51,18 @@
 
 		<!-- Product Summary -->
 		<div class="mb-6 rounded-lg bg-base-200 p-4">
-			<div class="text-sm text-base-content/70">Produk:</div>
-			<div class="font-semibold">{product.name}</div>
+			<div class="text-sm text-base-content/70">
+				{isCartCheckout ? `Total Belanja (${itemCount} item)` : 'Produk'}:
+			</div>
+			{#if !isCartCheckout}
+				<div class="font-semibold">{product.name}</div>
+			{/if}
 			<div class="mt-2 text-xl font-bold text-primary">
 				{formatCurrency(product.price)}
 			</div>
 		</div>
 
-		<!-- QRIS Primary Button -->
+		<!-- Rest of the component stays the same -->
 		<button class="btn mb-4 btn-block btn-lg btn-primary" onclick={onSelectQRIS}>
 			<span class="text-2xl">📱</span>
 			<div class="text-left">
@@ -60,7 +73,6 @@
 
 		<div class="divider text-sm">Atau pilih metode lain</div>
 
-		<!-- Other Payment Methods Dropdown -->
 		<select class="select-bordered select mb-4 w-full" bind:value={selectedMethod}>
 			<option value="" disabled selected>Pilih Virtual Account atau Retail</option>
 			{#each otherMethods as method}
@@ -71,7 +83,6 @@
 			{/each}
 		</select>
 
-		<!-- Continue Button -->
 		<button
 			class="btn btn-block btn-outline"
 			onclick={handleContinue}

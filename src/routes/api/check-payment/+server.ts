@@ -13,7 +13,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		const supabaseAdmin = getSupabaseAdmin();
 
-		// Get all transactions with this order_id
 		const { data: transactions, error } = await supabaseAdmin
 			.from('transactions')
 			.select('status, amount, completed_at')
@@ -23,11 +22,9 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ error: 'Transaction not found' }, { status: 404 });
 		}
 
-		// Check if all transactions are completed
 		const allCompleted = transactions.every((t) => t.status === 'completed');
 		const totalAmount = transactions.reduce((sum, t) => sum + t.amount, 0);
 
-		// Return status completed if all transactions are completed
 		return json({
 			status: allCompleted ? 'completed' : transactions[0].status,
 			amount: totalAmount,

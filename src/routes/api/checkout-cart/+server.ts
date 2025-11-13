@@ -52,14 +52,10 @@ export const POST: RequestHandler = async ({ request }) => {
 		const transactionInserts = cart_items.map((item: any) => {
 			const product = products.find((p) => p.id === item.product_id);
 			return {
-				order_id: order_id, // Gunakan order_id yang sama untuk semua
+				order_id: order_id,
 				product_id: item.product_id,
 				amount: product!.price * item.quantity,
-				status: 'pending',
-				metadata: {
-					quantity: item.quantity,
-					is_cart_purchase: true
-				}
+				status: 'pending'
 			};
 		});
 

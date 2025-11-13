@@ -52,7 +52,7 @@
 			</div>
 
 			<div class="mb-1 flex justify-between text-sm text-base-content/70">
-				<span>{isCartCheckout ? 'Total Belanja:' : 'Harga Produk:'}</span>
+				<span>{isCartCheckout ? 'Total Belanja' : 'Harga Produk'}:</span>
 				<span>{formatCurrency(paymentData.amount)}</span>
 			</div>
 			<div class="mb-1 flex justify-between text-sm text-base-content/70">

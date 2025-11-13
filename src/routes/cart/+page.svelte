@@ -242,7 +242,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					order_id: paymentData.order_id,
-					amount: paymentData.total_payment // Ubah dari paymentData.amount ke total_payment
+					amount: paymentData.amount // Gunakan amount, bukan total_payment
 				})
 			});
 
@@ -274,18 +274,16 @@
 
 	const discountAmount = $derived($appliedCoupon ? $appliedCoupon.discount_amount : 0);
 	const totalAmount = $derived(subtotalAmount - discountAmount);
-
-	const dummyProduct = $derived(
-		cart.length > 0 && cart[0].product
-			? cart[0].product
-			: {
-					id: '',
-					name: 'Multi Product',
-					price: totalAmount,
-					description: `${selectedItems.size} produk dipilih`,
-					stock: 999
-				}
-	);
+	const dummyProduct = $derived({
+		id: 'CART_CHECKOUT',
+		name:
+			selectedItems.size > 1
+				? 'Multi Product'
+				: cart.find((item) => selectedItems.has(item.id))?.product?.name || 'Product',
+		price: totalAmount, // Gunakan totalAmount, bukan subtotalAmount
+		description: `${selectedItems.size} produk dipilih`,
+		stock: 999
+	});
 </script>
 
 <div class="min-h-screen bg-base-200">
@@ -551,12 +549,13 @@
 	<MethodSelectorModal
 		product={dummyProduct}
 		paymentMethods={[...PAYMENT_METHODS]}
+		isCartCheckout={true}
+		itemCount={selectedItems.size}
 		onClose={closeMethodSelector}
 		onSelectQRIS={handleSelectQRIS}
 		onSelectOther={handleSelectOther}
 	/>
 {/if}
-
 {#if showPayment && paymentData && dummyProduct}
 	<PaymentModal
 		product={dummyProduct}
