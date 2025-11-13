@@ -3,12 +3,16 @@
 	import { onMount } from 'svelte';
 	import type { Product } from '$lib/types/types';
 	import QRCode from 'qrcode';
-	import PaymentModal from '$lib/components/payment/PaymentModal.svelte';
-	import MethodSelectorModal from '$lib/components/payment/MethodSelectorModal.svelte';
-	import ProductCard from '$lib/components/products/ProductCard.svelte';
-	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
-	import Navbar from '$lib/components/shared/Navbar.svelte';
-	import { cartStore, cartCount } from '$lib/stores/cart.store'; // ✨ Tambah ini
+
+	import {
+		cartStore,
+		cartCount,
+		Navbar,
+		PAYMENT_METHODS,
+		ProductCard,
+		MethodSelectorModal,
+		PaymentModal
+	} from '$lib'; // ✨ Tambah ini
 
 	let products = $state<Product[]>([]);
 	let loading = $state(true);
