@@ -3,7 +3,6 @@
 	import { onMount } from 'svelte';
 	import type { Product } from '$lib/types/types';
 	import QRCode from 'qrcode';
-
 	import {
 		cartStore,
 		cartCount,
