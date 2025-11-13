@@ -1,4 +1,3 @@
-<!-- src/lib/components/payment/PaymentModal.svelte -->
 <script lang="ts">
 	import type { Product } from '$lib/types/types';
 	import { formatCurrency, formatShortDate } from '$lib/utils/format.utils';
@@ -8,11 +7,20 @@
 		paymentData: any;
 		qrImageUrl: string;
 		isSimulating: boolean;
+		isCartCheckout?: boolean;
 		onClose: () => void;
 		onSimulate: () => void;
 	};
 
-	let { product, paymentData, qrImageUrl, isSimulating, onClose, onSimulate }: Props = $props();
+	let {
+		product,
+		paymentData,
+		qrImageUrl,
+		isSimulating,
+		isCartCheckout = false,
+		onClose,
+		onSimulate
+	}: Props = $props();
 
 	function copyToClipboard(text: string) {
 		navigator.clipboard.writeText(text);
@@ -44,8 +52,8 @@
 			</div>
 
 			<div class="mb-1 flex justify-between text-sm text-base-content/70">
-				<span>Harga Produk:</span>
-				<span>{formatCurrency(product.price)}</span>
+				<span>{isCartCheckout ? 'Total Belanja:' : 'Harga Produk:'}</span>
+				<span>{formatCurrency(paymentData.amount)}</span>
 			</div>
 			<div class="mb-1 flex justify-between text-sm text-base-content/70">
 				<span>Biaya Admin:</span>

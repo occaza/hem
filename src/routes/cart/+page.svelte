@@ -33,7 +33,9 @@
 	onMount(async () => {
 		await cartStore.load();
 		loading = false;
+	});
 
+	$effect(() => {
 		return () => {
 			if (pollingInterval) clearInterval(pollingInterval);
 		};
@@ -240,7 +242,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					order_id: paymentData.order_id,
-					amount: paymentData.amount
+					amount: paymentData.total_payment // Ubah dari paymentData.amount ke total_payment
 				})
 			});
 
@@ -402,8 +404,11 @@
 												</div>
 
 												<button
+													type="button"
 													class="btn text-error btn-ghost btn-sm"
 													onclick={() => removeItem(item)}
+													aria-label={'Hapus ' + (item.product?.name ?? 'item')}
+													title={'Hapus ' + (item.product?.name ?? 'item')}
 												>
 													<svg
 														xmlns="http://www.w3.org/2000/svg"
@@ -558,6 +563,7 @@
 		{paymentData}
 		{qrImageUrl}
 		{isSimulating}
+		isCartCheckout={true}
 		onClose={closePayment}
 		onSimulate={simulatePayment}
 	/>

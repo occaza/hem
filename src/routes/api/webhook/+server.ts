@@ -7,59 +7,60 @@ export const POST: RequestHandler = async ({ request }) => {
 	const body = await request.json();
 	const { order_id, amount, status, payment_method } = body;
 
+	console.log('Webhook received:', { order_id, amount, status, payment_method });
+
 	if (status !== 'completed') {
 		return json({ received: true });
 	}
 
-	// Check if this is a cart order (contains CART prefix)
-	if (order_id.startsWith('CART')) {
-		// Update all related transactions
-		const { error: updateErr } = await supabaseAdmin
-			.from('transactions')
-			.update({
-				status: 'completed',
-				payment_method,
-				completed_at: new Date().toISOString()
-			})
-			.like('order_id', `${order_id}%`);
+	// Check if this is a cart order
+	const { data: transactions, error: fetchErr } = await supabaseAdmin
+		.from('transactions')
+		.select('order_id, amount, status')
+		.eq('order_id', order_id);
 
-		if (updateErr) {
-			console.error('Failed to update cart transactions', updateErr);
-		}
+	if (fetchErr || !transactions || transactions.length === 0) {
+		console.warn('Webhook: Transactions not found', order_id);
+		return json({ received: true });
+	}
+
+	// Check if already completed
+	if (transactions.every((t) => t.status === 'completed')) {
+		console.log('Webhook: All transactions already completed');
+		return json({ received: true });
+	}
+
+	// Verify total amount
+	const totalAmount = transactions.reduce((sum, t) => sum + t.amount, 0);
+
+	// Amount bisa berbeda sedikit karena fee, jadi kita toleransi
+	// Payment amount = totalAmount + fee
+	// Jadi amount dari webhook seharusnya >= totalAmount
+	if (amount < totalAmount) {
+		console.error('Amount mismatch!', {
+			order_id,
+			expected: totalAmount,
+			got: amount,
+			transactions_count: transactions.length
+		});
+		return json({ received: true });
+	}
+
+	// Update all transactions with this order_id
+	const { error: updateErr } = await supabaseAdmin
+		.from('transactions')
+		.update({
+			status: 'completed',
+			payment_method,
+			completed_at: new Date().toISOString()
+		})
+		.eq('order_id', order_id)
+		.eq('status', 'pending');
+
+	if (updateErr) {
+		console.error('Failed to update transactions', updateErr);
 	} else {
-		// Single product transaction
-		const { data: trans, error: fetchErr } = await supabaseAdmin
-			.from('transactions')
-			.select('amount, status')
-			.eq('order_id', order_id)
-			.single();
-
-		if (fetchErr || !trans) {
-			console.warn('Webhook: Transaction not found', order_id);
-			return json({ received: true });
-		}
-
-		if (trans.status === 'completed') {
-			return json({ received: true });
-		}
-
-		if (trans.amount !== amount) {
-			console.error('Amount mismatch!', { order_id, expected: trans.amount, got: amount });
-			return json({ received: true });
-		}
-
-		const { error: updateErr } = await supabaseAdmin
-			.from('transactions')
-			.update({
-				status: 'completed',
-				payment_method,
-				completed_at: new Date().toISOString()
-			})
-			.eq('order_id', order_id);
-
-		if (updateErr) {
-			console.error('Failed to update transaction', updateErr);
-		}
+		console.log(`Successfully updated ${transactions.length} transactions for order ${order_id}`);
 	}
 
 	return json({ received: true });

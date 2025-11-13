@@ -6,7 +6,7 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const body = await request.json();
-		const { cart_items, order_id, payment_method = 'qris', total_amount } = body;
+		const { cart_items, order_id, payment_method = 'qris' } = body;
 
 		if (!cart_items || !Array.isArray(cart_items) || cart_items.length === 0) {
 			return json({ error: 'Cart items required' }, { status: 400 });
@@ -31,6 +31,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ error: 'Failed to fetch products' }, { status: 500 });
 		}
 
+		// Validasi dan hitung total
 		for (const item of cart_items) {
 			const product = products.find((p) => p.id === item.product_id);
 			if (!product) {
@@ -47,14 +48,18 @@ export const POST: RequestHandler = async ({ request }) => {
 			calculatedTotal += product.price * item.quantity;
 		}
 
-		// Insert transaction untuk setiap product
+		// Insert transaction untuk setiap product dengan order_id yang sama
 		const transactionInserts = cart_items.map((item: any) => {
 			const product = products.find((p) => p.id === item.product_id);
 			return {
-				order_id: `${order_id}_${item.product_id.slice(-8)}`,
+				order_id: order_id, // Gunakan order_id yang sama untuk semua
 				product_id: item.product_id,
 				amount: product!.price * item.quantity,
-				status: 'pending'
+				status: 'pending',
+				metadata: {
+					quantity: item.quantity,
+					is_cart_purchase: true
+				}
 			};
 		});
 
@@ -76,9 +81,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		return json({
 			order_id: payment.order_id,
-			amount: payment.amount,
+			amount: calculatedTotal, // Total belanja sebelum fee
 			fee: payment.fee,
-			total_payment: payment.total_payment,
+			total_payment: payment.total_payment, // Total yang harus dibayar (amount + fee)
 			payment_method: payment.payment_method,
 			payment_number: payment.payment_number,
 			expired_at: payment.expired_at
