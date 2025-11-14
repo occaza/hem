@@ -23,12 +23,43 @@ export const POST: RequestHandler = async ({ request }) => {
 		})
 		.eq('order_id', order_id)
 		.eq('status', 'pending')
-		.select();
+		.select('product_id, amount');
 
 	if (updateErr) {
 		console.error('Failed to update transactions:', updateErr);
-	} else {
-		console.log(`✅ Updated ${updated?.length || 0} transactions for order ${order_id}`);
+		return json({ received: true });
+	}
+
+	console.log(`✅ Updated ${updated?.length || 0} transactions for order ${order_id}`);
+
+	// Kurangi stok untuk setiap produk
+	if (updated && updated.length > 0) {
+		for (const transaction of updated) {
+			const { data: product } = await supabaseAdmin
+				.from('products')
+				.select('stock, price')
+				.eq('id', transaction.product_id)
+				.single();
+
+			if (product) {
+				// Hitung quantity dari amount
+				const quantity = Math.floor(transaction.amount / product.price);
+
+				// Kurangi stok
+				const { error: stockError } = await supabaseAdmin
+					.from('products')
+					.update({
+						stock: Math.max(0, product.stock - quantity)
+					})
+					.eq('id', transaction.product_id);
+
+				if (stockError) {
+					console.error('Failed to reduce stock:', stockError);
+				} else {
+					console.log(`✅ Stock reduced for product ${transaction.product_id}: ${quantity} units`);
+				}
+			}
+		}
 	}
 
 	return json({ received: true });

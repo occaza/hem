@@ -1,10 +1,10 @@
-<!-- src/lib/components/products/ProductCard.svelte -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import type { Product } from '$lib/types/types';
 	import { formatCurrency, formatStock } from '$lib/utils/format.utils';
 	import { calculateDiscountedPrice, isDiscountActive, isInStock } from '$lib/utils/product.utils';
 	import { cartStore } from '$lib/stores/cart.store';
+	import { authUser } from '$lib/stores/auth.store';
 
 	type Props = {
 		product: Product;
@@ -15,12 +15,12 @@
 	let { product, onBuy, showAddToCart = false }: Props = $props();
 
 	let addingToCart = $state(false);
+	const user = $derived($authUser);
 
 	const hasDiscount = $derived(isDiscountActive(product));
 	const finalPrice = $derived(calculateDiscountedPrice(product));
 	const inStock = $derived(isInStock(product));
 
-	// Fix: Handle undefined images array
 	const productImage = $derived(
 		product.images && Array.isArray(product.images) && product.images.length > 0
 			? product.images[0]
@@ -28,6 +28,12 @@
 	);
 
 	async function handleAddToCart() {
+		if (!user) {
+			alert('Silakan login terlebih dahulu untuk menambahkan ke keranjang');
+			goto('/login');
+			return;
+		}
+
 		addingToCart = true;
 		const success = await cartStore.addItem(product, 1);
 		if (success) {
@@ -37,8 +43,14 @@
 		}
 		addingToCart = false;
 	}
+
 	function handleBuyNow() {
-		// Gunakan slug jika ada, fallback ke id
+		if (!user) {
+			alert('Silakan login terlebih dahulu untuk membeli produk');
+			goto('/login');
+			return;
+		}
+
 		const identifier = product.slug || product.id;
 		goto(`/shop/${identifier}`);
 	}
@@ -62,7 +74,6 @@
 		}
 	}}
 >
-	<!-- Product Image -->
 	<figure class="relative h-48 overflow-hidden">
 		<img
 			src={productImage}
@@ -74,7 +85,6 @@
 			}}
 		/>
 
-		<!-- Discount Badge -->
 		{#if hasDiscount && product.discount_percentage}
 			<div class="absolute top-2 right-2 badge gap-1 font-bold badge-error">
 				<span>🔥</span>
@@ -82,7 +92,6 @@
 			</div>
 		{/if}
 
-		<!-- Stock Badge -->
 		{#if !inStock}
 			<div class="absolute bottom-2 left-2 badge badge-ghost bg-black/70 text-white">
 				Stok Habis
@@ -100,7 +109,6 @@
 
 		<p class="line-clamp-2 text-base-content/70">{product.description}</p>
 
-		<!-- Price Section -->
 		<div class="my-2">
 			{#if hasDiscount}
 				<div class="flex items-center gap-2">
@@ -117,13 +125,11 @@
 				</div>
 			{/if}
 
-			<!-- Stock Info -->
 			<div class="mt-1 text-sm text-base-content/70">
 				{formatStock(product.stock)}
 			</div>
 		</div>
 
-		<!-- Action Buttons -->
 		<div class="card-actions justify-end">
 			{#if inStock}
 				{#if showAddToCart}
@@ -147,7 +153,7 @@
 				<button
 					class="btn flex-1 btn-sm btn-primary"
 					onclick={(e) => {
-						e.stopPropagation(); // Prevent card click
+						e.stopPropagation();
 						handleBuyNow();
 					}}
 				>

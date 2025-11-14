@@ -1,16 +1,19 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { cartStore, cartCount } from '$lib/stores/cart.store';
+	import {
+		Navbar,
+		cartStore,
+		cartCount,
+		formatCurrency,
+		calculateDiscountedPrice,
+		PAYMENT_METHODS,
+		MethodSelectorModal,
+		PaymentModal
+	} from '$lib';
 	import { appliedCoupon } from '$lib/stores/coupon.store';
-	import { formatCurrency } from '$lib/utils/format.utils';
-	import { calculateDiscountedPrice } from '$lib/utils/product.utils';
-	import Navbar from '$lib/components/shared/Navbar.svelte';
 	import type { CartItem } from '$lib/types/types';
 	import QRCode from 'qrcode';
-	import PaymentModal from '$lib/components/payment/PaymentModal.svelte';
-	import MethodSelectorModal from '$lib/components/payment/MethodSelectorModal.svelte';
-	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
 
 	let cart = $state<CartItem[]>([]);
 	let selectedItems = $state<Set<string>>(new Set());

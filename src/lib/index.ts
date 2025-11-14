@@ -15,6 +15,7 @@ export * from './constants/payment.constants';
 
 // STORES
 export * from './stores/cart.store';
+export * from './stores/auth.store'; // ✨ Tambah ini
 
 // TYPES
 export * from './types/types';

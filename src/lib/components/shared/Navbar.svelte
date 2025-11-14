@@ -1,6 +1,6 @@
-<!-- src/lib/components/Navbar.svelte -->
 <script lang="ts">
 	import { cartCount } from '$lib/stores/cart.store';
+	import { authUser } from '$lib/stores/auth.store';
 	import { page } from '$app/stores';
 
 	type Props = {
@@ -11,17 +11,16 @@
 	let { showCart = true, variant = 'default' }: Props = $props();
 
 	const isActive = (path: string) => $page.url.pathname === path;
+	const user = $derived($authUser);
 </script>
 
 <nav class="navbar fixed top-0 z-50 bg-base-100 shadow-md">
 	<div class="container mx-auto flex items-center justify-between px-4">
-		<!-- Logo -->
 		<a href="/" class="flex items-center gap-2 text-xl font-semibold text-primary">
 			<span class="text-2xl">🛒</span>
 			<span class="hidden sm:inline">Toko Digital</span>
 		</a>
 
-		<!-- Desktop Menu -->
 		<ul class="hidden items-center gap-6 text-sm font-medium lg:flex">
 			<li>
 				<a
@@ -43,10 +42,8 @@
 			</li>
 		</ul>
 
-		<!-- Right Actions -->
 		<div class="flex items-center gap-2">
-			<!-- Cart -->
-			{#if showCart}
+			{#if showCart && user}
 				<a href="/cart" class="btn relative btn-circle btn-ghost">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -68,10 +65,36 @@
 				</a>
 			{/if}
 
-			<!-- Admin -->
-			<a href="/login" class="btn hidden items-center btn-outline btn-sm sm:flex"> 👤 Admin </a>
+			{#if user}
+				<div class="dropdown dropdown-end">
+					<button tabindex="0" class="btn avatar btn-circle btn-ghost">
+						<div class="w-10 rounded-full bg-primary text-primary-content">
+							<span class="text-xl">👤</span>
+						</div>
+					</button>
+					<ul
+						class="dropdown-content menu z-1 mt-3 w-52 menu-sm rounded-box bg-base-100 p-2 shadow"
+					>
+						<li class="menu-title">
+							<span>{user.email}</span>
+						</li>
+						<li><a href="/my-orders">Pesanan Saya</a></li>
+						<li>
+							<button
+								onclick={async () => {
+									await authUser.signOut();
+									window.location.href = '/';
+								}}
+							>
+								Logout
+							</button>
+						</li>
+					</ul>
+				</div>
+			{:else}
+				<a href="/login" class="btn hidden items-center btn-outline btn-sm sm:flex"> 👤 Login </a>
+			{/if}
 
-			<!-- Mobile Menu Button -->
 			<label for="mobile-menu" class="btn btn-square btn-ghost lg:hidden">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -91,7 +114,6 @@
 	</div>
 </nav>
 
-<!-- Mobile Drawer -->
 <input id="mobile-menu" type="checkbox" class="drawer-toggle" />
 <div class="drawer z-40 drawer-end">
 	<div class="drawer-side">
@@ -104,21 +126,35 @@
 			<li>
 				<a href="/shop" class:active={isActive('/shop')}>🛍️ Belanja</a>
 			</li>
-			<li>
-				<a href="/cart" class:active={isActive('/cart')}>
-					🛒 Keranjang
-					{#if $cartCount > 0}
-						<span class="ml-auto badge badge-primary">{$cartCount}</span>
-					{/if}
-				</a>
-			</li>
-			<div class="divider"></div>
-			<li>
-				<a href="/login">👤 Admin</a>
-			</li>
+			{#if user}
+				<li>
+					<a href="/cart" class:active={isActive('/cart')}>
+						🛒 Keranjang
+						{#if $cartCount > 0}
+							<span class="ml-auto badge badge-primary">{$cartCount}</span>
+						{/if}
+					</a>
+				</li>
+				<li><a href="/my-orders">📦 Pesanan Saya</a></li>
+				<div class="divider"></div>
+				<li>
+					<button
+						onclick={async () => {
+							await authUser.signOut();
+							window.location.href = '/';
+						}}
+					>
+						🚪 Logout
+					</button>
+				</li>
+			{:else}
+				<div class="divider"></div>
+				<li>
+					<a href="/login">👤 Login</a>
+				</li>
+			{/if}
 		</ul>
 	</div>
 </div>
 
-<!-- Spacer -->
 <div class="h-16"></div>

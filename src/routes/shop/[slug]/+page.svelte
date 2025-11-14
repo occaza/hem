@@ -3,6 +3,8 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import type { Product } from '$lib/types/types';
+	import { authUser } from '$lib/stores/auth.store';
+
 	import {
 		PAYMENT_METHODS,
 		MethodSelectorModal,
@@ -31,6 +33,7 @@
 	let pollingInterval = $state<any>(null);
 	let isSimulating = $state(false);
 
+	const user = $derived($authUser);
 	const productId = $derived($page.params.slug);
 	const hasDiscount = $derived(product ? isDiscountActive(product) : false);
 	const finalPrice = $derived(product ? calculateDiscountedPrice(product) : 0);
@@ -64,6 +67,12 @@
 	async function handleAddToCart() {
 		if (!product) return;
 
+		if (!user) {
+			alert('Silakan login terlebih dahulu untuk menambahkan ke keranjang');
+			goto('/login');
+			return;
+		}
+
 		addingToCart = true;
 		const success = await cartStore.addItem(product, quantity);
 		if (success) {
@@ -76,6 +85,13 @@
 
 	function handleBuyNow() {
 		if (!product) return;
+
+		if (!user) {
+			alert('Silakan login terlebih dahulu untuk membeli produk');
+			goto('/login');
+			return;
+		}
+
 		showMethodSelector = true;
 	}
 

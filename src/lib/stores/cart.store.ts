@@ -1,15 +1,20 @@
-// src/lib/stores/cart.store.ts
 import { writable, derived, get } from 'svelte/store';
 import type { CartItem, Product } from '$lib/types/types';
+import { authUser } from './auth.store';
+import { get as getStore } from 'svelte/store';
 
 function createCartStore() {
 	const { subscribe, set, update } = writable<CartItem[]>([]);
 
-	// Generate atau ambil user_id dari localStorage
 	function getUserId(): string {
+		const user = getStore(authUser);
+		if (user) {
+			return user.id;
+		}
+
 		let userId = localStorage.getItem('cart_user_id');
 		if (!userId) {
-			userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+			userId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 			localStorage.setItem('cart_user_id', userId);
 		}
 		return userId;
@@ -18,7 +23,6 @@ function createCartStore() {
 	return {
 		subscribe,
 
-		// Load cart dari server
 		async load() {
 			try {
 				const userId = getUserId();
@@ -32,7 +36,6 @@ function createCartStore() {
 			}
 		},
 
-		// Tambah item ke cart
 		async addItem(product: Product, quantity: number = 1) {
 			try {
 				const userId = getUserId();
@@ -57,7 +60,6 @@ function createCartStore() {
 			}
 		},
 
-		// Update quantity
 		async updateQuantity(cartItemId: string, quantity: number) {
 			try {
 				const res = await fetch(`/api/cart/${cartItemId}`, {
@@ -77,7 +79,6 @@ function createCartStore() {
 			}
 		},
 
-		// Hapus item dari cart
 		async removeItem(cartItemId: string) {
 			try {
 				const res = await fetch(`/api/cart/${cartItemId}`, {
@@ -95,7 +96,6 @@ function createCartStore() {
 			}
 		},
 
-		// Clear cart
 		async clear() {
 			try {
 				const userId = getUserId();
@@ -118,7 +118,6 @@ function createCartStore() {
 
 export const cartStore = createCartStore();
 
-// Derived stores untuk computed values
 export const cartCount = derived(cartStore, ($cart) =>
 	$cart.reduce((sum, item) => sum + item.quantity, 0)
 );
