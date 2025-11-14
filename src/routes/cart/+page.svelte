@@ -15,6 +15,9 @@
 	import type { CartItem } from '$lib/types/types';
 	import QRCode from 'qrcode';
 
+	import { authUser } from '$lib/stores/auth.store';
+	const user = $derived($authUser);
+
 	let cart = $state<CartItem[]>([]);
 	let selectedItems = $state<Set<string>>(new Set());
 	let loading = $state(true);
@@ -156,7 +159,7 @@
 					order_id: orderId,
 					payment_method: method,
 					total_amount: totalAmount,
-					user_id: user.id // Tambah ini
+					user_id: user.id
 				})
 			});
 
@@ -168,21 +171,17 @@
 				return;
 			}
 
-			paymentData = data;
-
-			if (method === 'qris') {
-				qrImageUrl = await QRCode.toDataURL(data.payment_number, {
-					width: 300,
-					margin: 2
-				});
+			// Hapus item dari cart
+			for (const itemId of selectedItems) {
+				await cartStore.removeItem(itemId);
 			}
+			selectedItems = new Set();
 
-			showPayment = true;
-			startPolling(orderId);
+			// Redirect ke halaman payment
+			goto(`/payment/${orderId}`);
 		} catch (error) {
 			console.error('Checkout error:', error);
 			alert('Terjadi kesalahan saat checkout');
-		} finally {
 			checkoutLoading = false;
 		}
 	}

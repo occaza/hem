@@ -183,6 +183,9 @@
 
 							{#if order.status === 'pending'}
 								<div class="card-actions justify-end">
+									<a href="/payment/{order.order_id}" class="btn btn-sm btn-primary">
+										💳 Bayar Sekarang
+									</a>
 									<button class="btn btn-outline btn-sm" onclick={() => loadOrders()}>
 										🔄 Refresh Status
 									</button>

@@ -113,7 +113,7 @@
 					product_id: product.id,
 					order_id: orderId,
 					payment_method: method,
-					user_id: user.id // Tambah ini
+					user_id: user.id
 				})
 			});
 
@@ -124,17 +124,8 @@
 				return;
 			}
 
-			paymentData = data;
-
-			if (method === 'qris') {
-				qrImageUrl = await QRCode.toDataURL(data.payment_number, {
-					width: 300,
-					margin: 2
-				});
-			}
-
-			showPayment = true;
-			startPolling(orderId);
+			// Redirect ke halaman payment
+			goto(`/payment/${orderId}`);
 		} catch (error) {
 			console.error('Checkout error:', error);
 			alert('Terjadi kesalahan. Silakan coba lagi.');
