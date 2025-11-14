@@ -14,10 +14,10 @@
 
 	const orderId = $derived($page.params.order_id);
 
-	onMount(async () => {
+	onMount(() => {
 		if (!browser) return;
 
-		await loadPaymentData();
+		loadPaymentData();
 		startPolling();
 
 		return () => {
@@ -38,13 +38,7 @@
 
 			const data = await res.json();
 			paymentData = data;
-
-			if (data.payment_method === 'qris' && browser) {
-				qrImageUrl = await QRCode.toDataURL(data.payment_number, {
-					width: 300,
-					margin: 2
-				});
-			}
+			// QR akan di-generate otomatis oleh $effect di atas
 		} catch (error) {
 			console.error('Load payment error:', error);
 			goto('/my-orders');
@@ -120,6 +114,27 @@
 		navigator.clipboard.writeText(text);
 		alert('Nomor berhasil disalin!');
 	}
+
+	$effect(() => {
+		if (
+			paymentData?.payment_method === 'qris' &&
+			paymentData.payment_number &&
+			browser &&
+			!qrImageUrl
+		) {
+			QRCode.toDataURL(paymentData.payment_number, {
+				width: 300,
+				margin: 2,
+				errorCorrectionLevel: 'M'
+			})
+				.then((url) => {
+					qrImageUrl = url;
+				})
+				.catch((error) => {
+					console.error('QR generation error:', error);
+				});
+		}
+	});
 </script>
 
 <div class="min-h-screen bg-base-200">
@@ -190,8 +205,18 @@
 										{#if qrImageUrl}
 											<img src={qrImageUrl} alt="QR Code QRIS" class="h-72 w-72" />
 										{:else}
-											<div class="flex h-72 w-72 items-center justify-center">
+											<!-- ✅ Fallback jika QR gagal generate -->
+											<div class="flex h-72 w-72 flex-col items-center justify-center gap-4">
 												<span class="loading loading-lg loading-spinner"></span>
+												<div class="text-center">
+													<div class="text-sm text-base-content/70">Atau gunakan nomor:</div>
+													<input
+														type="text"
+														value={paymentData.payment_number}
+														readonly
+														class="input-bordered input input-sm mt-2 w-full font-mono text-xs"
+													/>
+												</div>
 											</div>
 										{/if}
 									</div>
