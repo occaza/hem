@@ -12,42 +12,23 @@ export const GET: RequestHandler = async ({ params }) => {
 
 	const { data, error } = await supabaseAdmin
 		.from('transactions')
-		.select('status, amount, completed_at, payment_method, product_id')
+		.select('status, amount, completed_at, payment_method, product_id, processing_started_at')
 		.eq('order_id', order_id);
 
 	if (error || !data || data.length === 0) {
 		return json({ error: 'Transaction not found' }, { status: 404 });
 	}
 
-	const allCompleted = data.every((t) => t.status === 'completed');
 	const totalAmount = data.reduce((sum, t) => sum + t.amount, 0);
 
-	// Jika completed, kurangi stok
-	if (allCompleted) {
-		for (const transaction of data) {
-			const { data: product } = await supabaseAdmin
-				.from('products')
-				.select('stock, price')
-				.eq('id', transaction.product_id)
-				.single();
-
-			if (product && product.stock > 0) {
-				const quantity = Math.floor(transaction.amount / product.price);
-
-				await supabaseAdmin
-					.from('products')
-					.update({
-						stock: Math.max(0, product.stock - quantity)
-					})
-					.eq('id', transaction.product_id);
-			}
-		}
-	}
+	// Status bisa pending, processing, atau completed
+	const firstStatus = data[0].status;
 
 	return json({
-		status: allCompleted ? 'completed' : data[0].status,
+		status: firstStatus,
 		amount: totalAmount,
-		completed_at: allCompleted ? data[0].completed_at : null,
+		completed_at: data[0].completed_at,
+		processing_started_at: data[0].processing_started_at,
 		payment_method: data[0].payment_method
 	});
 };

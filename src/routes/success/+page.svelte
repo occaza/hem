@@ -4,10 +4,12 @@
 
 	let transaction: Pick<Transaction, 'status' | 'amount'> | null = null;
 	let loading = true;
+	let isSimulated = false;
 
 	onMount(async () => {
 		const urlParams = new URLSearchParams(window.location.search);
 		const orderId = urlParams.get('order_id');
+		isSimulated = urlParams.get('simulated') === 'true';
 
 		if (!orderId) {
 			loading = false;
@@ -38,14 +40,37 @@
 					<p>Memverifikasi pembayaran...</p>
 				</div>
 			</div>
+		{:else if transaction && transaction.status === 'completed'}
+			<div class="card bg-base-100 shadow-xl">
+				<div class="card-body items-center text-center">
+					<div class="mb-4 text-6xl">✅</div>
+					<h1 class="card-title text-2xl">Pembayaran Berhasil</h1>
+					<p class="text-base-content/70">Pesanan Anda sudah selesai diproses</p>
+					<div class="divider"></div>
+					<div class="text-3xl font-bold text-primary">
+						Rp{transaction.amount.toLocaleString('id-ID')}
+					</div>
+					<div class="mt-6 card-actions">
+						<a href="/my-orders" class="btn btn-primary">Pesanan saya</a>
+					</div>
+				</div>
+			</div>
 		{:else if transaction && transaction.status === 'processing'}
 			<div class="card bg-base-100 shadow-xl">
 				<div class="card-body items-center text-center">
 					<div class="mb-4 text-6xl">⏳</div>
-					<h1 class="card-title text-2xl">Pembayaran Diterima</h1>
-					<p class="text-base-content/70">Pesanan Anda sedang diproses oleh admin</p>
+					<h1 class="card-title text-2xl">
+						{isSimulated ? 'Pembayaran Diterima!' : 'Sedang Diproses'}
+					</h1>
+					<p class="text-base-content/70">
+						Pesanan Anda sedang diproses oleh admin. Anda akan menerima notifikasi saat selesai.
+					</p>
+					<div class="divider"></div>
+					<div class="text-2xl font-bold text-primary">
+						Rp{transaction.amount.toLocaleString('id-ID')}
+					</div>
 					<div class="mt-6 card-actions">
-						<a href="/my-orders" class="btn btn-primary">Lihat Status</a>
+						<a href="/my-orders" class="btn btn-primary">Lihat Status Pesanan</a>
 					</div>
 				</div>
 			</div>

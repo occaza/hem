@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Product } from '$lib/types/types';
 	import { formatCurrency, formatShortDate } from '$lib/utils/format.utils';
+	import { goto } from '$app/navigation';
 
 	type Props = {
 		product: Product;
@@ -25,6 +26,15 @@
 	function copyToClipboard(text: string) {
 		navigator.clipboard.writeText(text);
 		alert('Nomor berhasil disalin!');
+	}
+
+	async function handleSimulate() {
+		await onSimulate();
+
+		// Tunggu sebentar lalu redirect
+		setTimeout(() => {
+			goto(`/success?order_id=${paymentData.order_id}&simulated=true`);
+		}, 2000);
 	}
 </script>
 
@@ -139,7 +149,11 @@
 
 		<!-- Simulate Payment Button (Development Only) -->
 		<div class="mt-4">
-			<button class="btn btn-block btn-sm btn-warning" onclick={onSimulate} disabled={isSimulating}>
+			<button
+				class="btn btn-block btn-sm btn-warning"
+				onclick={handleSimulate}
+				disabled={isSimulating}
+			>
 				{#if isSimulating}
 					<span class="loading loading-sm loading-spinner"></span>
 					Memproses simulasi...

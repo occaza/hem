@@ -135,10 +135,15 @@
 				})
 			});
 
+			const data = await res.json();
+
 			if (res.ok) {
-				alert('Simulasi berhasil! Tunggu sebentar...');
+				// Stop polling
+				cleanup();
+
+				// Redirect ke success
+				goto(`/success?order_id=${orderId}&simulated=true`);
 			} else {
-				const data = await res.json();
 				alert(data.error || 'Simulasi gagal');
 				isSimulating = false;
 			}
