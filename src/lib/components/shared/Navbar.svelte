@@ -138,8 +138,9 @@
 						{/if}
 					</a>
 				</li>
-				<li><a href="/my-orders">📦 Pesanan Saya</a></li>
-				<div class="divider"></div>
+				<!-- Di bagian dropdown user menu -->
+				<li><a href="/profile">Profile Saya</a></li>
+				<li><a href="/my-orders">Pesanan Saya</a></li>
 				<li>
 					<button
 						onclick={async () => {
@@ -147,7 +148,7 @@
 							window.location.href = '/';
 						}}
 					>
-						🚪 Logout
+						Logout
 					</button>
 				</li>
 			{:else}

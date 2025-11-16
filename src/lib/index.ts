@@ -25,4 +25,5 @@ export * from './utils/format.utils';
 export * from './utils/product.utils';
 export * from './utils/status.utils';
 export * from './utils/upload.utils';
-export * from './utils/order.utils'; // ← Tambah ini
+export * from './utils/order.utils';
+export * from './utils/avatar.utils';
