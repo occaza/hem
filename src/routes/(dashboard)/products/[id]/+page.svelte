@@ -13,8 +13,8 @@
 	let discountPercentage = $state(0);
 	let discountEndDate = $state('');
 	let existingImages = $state<string[]>([]);
-	let imageFiles = $state<FileList | null>(null);
-	let imagePreviewUrls = $state<string[]>([]);
+	let newImageFiles = $state<File[]>([]);
+	let newImagePreviews = $state<string[]>([]);
 	let loading = $state(true);
 	let saving = $state(false);
 	let uploadingImages = $state(false);
@@ -49,65 +49,57 @@
 		}
 	});
 
-	function handleImageChange(e: Event) {
-		const target = e.target as HTMLInputElement;
-		imageFiles = target.files;
-		uploadErrors = [];
+	function handleAddNewImage() {
+		const totalImages = existingImages.length + newImageFiles.length;
+		if (totalImages >= 3) return;
 
-		if (imageFiles) {
-			// Validasi jumlah total gambar
-			const totalImages = existingImages.length + imageFiles.length;
-			if (totalImages > 3) {
-				uploadErrors = [
-					`Total gambar tidak boleh lebih dari 3. Anda sudah punya ${existingImages.length} gambar.`
-				];
-				target.value = '';
-				imageFiles = null;
-				imagePreviewUrls = [];
-				return;
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = 'image/*';
+		input.onchange = (e) => {
+			const target = e.target as HTMLInputElement;
+			if (target.files && target.files[0]) {
+				handleNewImageAdd(target.files[0]);
 			}
-
-			// Validasi setiap file
-			const errors: string[] = [];
-			const validFiles: File[] = [];
-
-			Array.from(imageFiles).forEach((file) => {
-				const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-				if (!allowedTypes.includes(file.type)) {
-					errors.push(`${file.name}: Format tidak didukung`);
-					return;
-				}
-
-				const maxSize = 5 * 1024 * 1024;
-				if (file.size > maxSize) {
-					const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-					errors.push(`${file.name}: Terlalu besar (${sizeMB}MB). Max 5MB`);
-					return;
-				}
-
-				validFiles.push(file);
-			});
-
-			if (errors.length > 0) {
-				uploadErrors = errors;
-			}
-
-			imagePreviewUrls = [];
-			validFiles.forEach((file) => {
-				const reader = new FileReader();
-				reader.onload = (e) => {
-					if (e.target?.result) {
-						imagePreviewUrls = [...imagePreviewUrls, e.target.result as string];
-					}
-				};
-				reader.readAsDataURL(file);
-			});
-		}
+		};
+		input.click();
 	}
 
-	async function removeExistingImage(imageUrl: string) {
+	function handleNewImageAdd(file: File) {
+		uploadErrors = [];
+
+		const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+		if (!allowedTypes.includes(file.type)) {
+			uploadErrors = [`Format tidak didukung: ${file.name}`];
+			return;
+		}
+
+		const maxSize = 100 * 1024;
+		if (file.size > maxSize) {
+			const sizeMB = (file.size / 1024).toFixed(2);
+			uploadErrors = [`File terlalu besar: ${file.name} (${sizeMB}KB). Maksimal 100KB`];
+			return;
+		}
+
+		newImageFiles = [...newImageFiles, file];
+
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			if (e.target?.result) {
+				newImagePreviews = [...newImagePreviews, e.target.result as string];
+			}
+		};
+		reader.readAsDataURL(file);
+	}
+
+	function removeExistingImage(imageUrl: string) {
 		if (!confirm('Hapus gambar ini?')) return;
 		existingImages = existingImages.filter((img) => img !== imageUrl);
+	}
+
+	function removeNewImage(index: number) {
+		newImageFiles = newImageFiles.filter((_, i) => i !== index);
+		newImagePreviews = newImagePreviews.filter((_, i) => i !== index);
 	}
 
 	async function handleSubmit() {
@@ -115,6 +107,7 @@
 		error = '';
 		uploadErrors = [];
 
+		// Validasi
 		if (!name.trim()) {
 			error = 'Nama produk harus diisi';
 			saving = false;
@@ -146,17 +139,17 @@
 		}
 
 		try {
-			let newImageUrls: string[] = [];
+			let uploadedUrls: string[] = [];
 
-			if (imageFiles && imageFiles.length > 0) {
+			if (newImageFiles.length > 0) {
 				uploadingImages = true;
-				const uploadPromises = Array.from(imageFiles).map((file) => uploadProductImage(file));
-				const results: UploadResult[] = await Promise.all(uploadPromises);
+				const uploadPromises = newImageFiles.map((file) => uploadProductImage(file));
+				const results = await Promise.all(uploadPromises);
 
 				const errors: string[] = [];
 				results.forEach((result) => {
 					if (result.success && result.url) {
-						newImageUrls.push(result.url);
+						uploadedUrls.push(result.url);
 					} else if (result.error) {
 						errors.push(result.error);
 					}
@@ -171,7 +164,7 @@
 				}
 			}
 
-			const allImages = [...existingImages, ...newImageUrls];
+			const allImages = [...existingImages, ...uploadedUrls];
 
 			const res = await fetch(`/api/admin/products/${productId}`, {
 				method: 'PUT',
@@ -261,7 +254,7 @@
 							/>
 						</svg>
 						<div>
-							<div class="font-semibold">Beberapa gambar tidak dapat diupload:</div>
+							<div class="font-semibold">Error Upload:</div>
 							<ul class="mt-1 list-inside list-disc text-sm">
 								{#each uploadErrors as err}
 									<li>{err}</li>
@@ -277,68 +270,84 @@
 						handleSubmit();
 					}}
 				>
-					{#if existingImages.length > 0}
-						<div class="form-control">
-							<label class="label" for="existingImages">
-								<span class="label-text">Gambar Saat Ini</span>
-							</label>
-							<div class="flex flex-wrap gap-4">
-								{#each existingImages as imageUrl}
-									<div class="relative">
-										<div class="h-32 w-32 overflow-hidden rounded-lg border-2 border-base-300">
-											<img src={imageUrl} alt="Product" class="h-full w-full object-cover" />
-										</div>
-										<button
-											type="button"
-											class="btn absolute top-1 right-1 btn-circle btn-xs btn-error"
-											onclick={() => removeExistingImage(imageUrl)}
-										>
-											✕
-										</button>
-									</div>
-								{/each}
-							</div>
+					<!-- Section Gambar -->
+					<div class="form-control">
+						<div class="label">
+							<span class="label-text">Gambar Produk</span>
 						</div>
-					{/if}
 
-					<div class="form-control mt-4">
-						<label class="label" for="images">
-							<span class="label-text">Tambah Gambar Baru (Max 3 total)</span>
-						</label>
-						<input
-							id="images"
-							type="file"
-							accept="image/*"
-							multiple
-							class="file-input-bordered file-input w-full"
-							onchange={handleImageChange}
-							disabled={loading || existingImages.length >= 3}
-						/>
+						<div class="grid grid-cols-3 gap-4">
+							<!-- Existing images -->
+							{#each existingImages as url, index}
+								<div
+									class="relative aspect-square overflow-hidden rounded-lg border-2 border-base-300"
+								>
+									<img src={url} alt="Existing {index + 1}" class="h-full w-full object-cover" />
+									<button
+										type="button"
+										class="btn absolute top-1 right-1 btn-circle btn-xs btn-error"
+										onclick={() => removeExistingImage(url)}
+									>
+										✕
+									</button>
+								</div>
+							{/each}
+
+							<!-- New images -->
+							{#each newImagePreviews as url, index}
+								<div
+									class="relative aspect-square overflow-hidden rounded-lg border-2 border-primary"
+								>
+									<img src={url} alt="New {index + 1}" class="h-full w-full object-cover" />
+									<button
+										type="button"
+										class="btn absolute top-1 right-1 btn-circle btn-xs btn-error"
+										onclick={() => removeNewImage(index)}
+									>
+										✕
+									</button>
+									<div class="absolute bottom-1 left-1 badge badge-sm badge-primary">Baru</div>
+								</div>
+							{/each}
+
+							<!-- Add button -->
+							{#if existingImages.length + newImageFiles.length < 3}
+								<button
+									type="button"
+									class="btn aspect-square flex-col border-2 border-dashed btn-outline"
+									onclick={handleAddNewImage}
+									disabled={loading}
+								>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										class="h-8 w-8"
+										fill="none"
+										viewBox="0 0 24 24"
+										stroke="currentColor"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M12 4v16m8-8H4"
+										/>
+									</svg>
+									<span class="text-xs">Tambah Foto</span>
+								</button>
+							{/if}
+						</div>
+
 						<div class="label">
 							<span class="label-text-alt">
-								Format: JPG, PNG, WEBP. Max 5MB per gambar.
-								{#if existingImages.length >= 3}
-									Sudah mencapai batas maksimal gambar.
-								{:else}
-									Anda bisa menambah {3 - existingImages.length} gambar lagi.
-								{/if}
+								Format: JPG, PNG, WEBP. Maksimal 100KB per gambar. Total {existingImages.length +
+									newImageFiles.length}/3
 							</span>
 						</div>
-
-						{#if imagePreviewUrls.length > 0}
-							<div class="mt-4 flex gap-4">
-								{#each imagePreviewUrls as url}
-									<div class="h-32 w-32 overflow-hidden rounded-lg border-2 border-base-300">
-										<img src={url} alt="Preview" class="h-full w-full object-cover" />
-									</div>
-								{/each}
-							</div>
-						{/if}
 					</div>
 
 					<div class="divider"></div>
 
-					<!-- Sisanya sama seperti sebelumnya -->
+					<!-- Form fields sisanya sama seperti sebelumnya -->
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div class="form-control">
 							<label class="label" for="name">
@@ -398,7 +407,6 @@
 
 					<div class="divider"></div>
 
-					<!-- Stock & Discount -->
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div class="form-control">
 							<label class="label" for="stock">

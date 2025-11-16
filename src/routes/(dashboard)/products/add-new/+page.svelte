@@ -9,35 +9,71 @@
 	let stock = $state(0);
 	let discountPercentage = $state(0);
 	let discountEndDate = $state('');
-	let imageFiles = $state<FileList | null>(null);
+	let imageFiles = $state<File[]>([]); // Ubah dari FileList jadi array File
 	let imagePreviewUrls = $state<string[]>([]);
+	let uploadErrors = $state<string[]>([]);
 	let loading = $state(false);
 	let uploadingImages = $state(false);
 	let error = $state('');
 
-	function handleImageChange(e: Event) {
-		const target = e.target as HTMLInputElement;
-		imageFiles = target.files;
+	function handleAddImageSlot() {
+		if (imageFiles.length >= 3) return;
 
-		if (imageFiles) {
-			imagePreviewUrls = [];
-			Array.from(imageFiles).forEach((file) => {
-				const reader = new FileReader();
-				reader.onload = (e) => {
-					if (e.target?.result) {
-						imagePreviewUrls = [...imagePreviewUrls, e.target.result as string];
-					}
-				};
-				reader.readAsDataURL(file);
-			});
+		// Trigger input file click
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = 'image/*';
+		input.onchange = (e) => {
+			const target = e.target as HTMLInputElement;
+			if (target.files && target.files[0]) {
+				handleImageAdd(target.files[0]);
+			}
+		};
+		input.click();
+	}
+
+	function handleImageAdd(file: File) {
+		uploadErrors = [];
+
+		// Validasi tipe file
+		const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+		if (!allowedTypes.includes(file.type)) {
+			uploadErrors = [`${file.name}: Format tidak didukung. Gunakan JPG, PNG, atau WEBP`];
+			return;
 		}
+
+		// Validasi ukuran (100KB)
+		const maxSize = 100 * 1024; // 100KB
+		if (file.size > maxSize) {
+			const sizeMB = (file.size / 1024).toFixed(2);
+			uploadErrors = [`${file.name}: Terlalu besar (${sizeMB}KB). Maksimal 100KB`];
+			return;
+		}
+
+		// Add file
+		imageFiles = [...imageFiles, file];
+
+		// Generate preview
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			if (e.target?.result) {
+				imagePreviewUrls = [...imagePreviewUrls, e.target.result as string];
+			}
+		};
+		reader.readAsDataURL(file);
+	}
+
+	function removeImage(index: number) {
+		imageFiles = imageFiles.filter((_, i) => i !== index);
+		imagePreviewUrls = imagePreviewUrls.filter((_, i) => i !== index);
 	}
 
 	async function handleSubmit() {
 		loading = true;
 		error = '';
+		uploadErrors = [];
 
-		// Validasi
+		// Validasi basic
 		if (!name.trim()) {
 			error = 'Nama produk harus diisi';
 			loading = false;
@@ -69,27 +105,26 @@
 		}
 
 		try {
-			// Upload images
 			let uploadedImageUrls: string[] = [];
 
-			if (imageFiles && imageFiles.length > 0) {
+			if (imageFiles.length > 0) {
 				uploadingImages = true;
-				const uploadPromises = Array.from(imageFiles).map((file) => uploadProductImage(file));
+				const uploadPromises = imageFiles.map((file) => uploadProductImage(file));
 				const results = await Promise.all(uploadPromises);
-				// Normalize results to string URLs: handle cases where uploadProductImage returns a string, null,
-				// or an object that contains a `url` property.
-				uploadedImageUrls = results.reduce<string[]>((acc, r) => {
-					if (typeof r === 'string') {
-						acc.push(r);
-					} else if (r && typeof (r as any).url === 'string') {
-						acc.push((r as any).url);
+
+				const errors: string[] = [];
+				results.forEach((result) => {
+					if (result.success && result.url) {
+						uploadedImageUrls.push(result.url);
+					} else if (result.error) {
+						errors.push(result.error);
 					}
-					return acc;
-				}, []);
+				});
+
 				uploadingImages = false;
 
-				if (uploadedImageUrls.length === 0) {
-					error = 'Gagal mengupload gambar';
+				if (errors.length > 0) {
+					uploadErrors = errors;
 					loading = false;
 					return;
 				}
@@ -159,44 +194,96 @@
 				</div>
 			{/if}
 
+			{#if uploadErrors.length > 0}
+				<div class="alert alert-warning">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-6 w-6 shrink-0 stroke-current"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+						/>
+					</svg>
+					<div>
+						<div class="font-semibold">Error Upload:</div>
+						<ul class="mt-1 list-inside list-disc text-sm">
+							{#each uploadErrors as err}
+								<li>{err}</li>
+							{/each}
+						</ul>
+					</div>
+				</div>
+			{/if}
+
 			<form
 				onsubmit={(e) => {
 					e.preventDefault();
 					handleSubmit();
 				}}
 			>
-				<!-- Product Images -->
-				<div class="form-control">
-					<label class="label" for="images">
-						<span class="label-text">Gambar Produk (Max 3)</span>
-					</label>
-					<input
-						id="images"
-						type="file"
-						accept="image/*"
-						multiple
-						class="file-input-bordered file-input w-full"
-						onchange={handleImageChange}
-						disabled={loading}
-					/>
-					<div class="label">
-						<span class="label-text-alt">Format: JPG, PNG. Max 3 gambar.</span>
+				<!-- Section Upload Gambar Baru -->
+				<fieldset class="form-control">
+					<legend class="label">
+						<span class="label-text">Gambar Produk (Maksimal 3, 100KB per gambar)</span>
+					</legend>
+
+					<div class="grid grid-cols-3 gap-4">
+						{#each imagePreviewUrls as url, index}
+							<div
+								class="relative aspect-square overflow-hidden rounded-lg border-2 border-base-300"
+							>
+								<img src={url} alt="Preview {index + 1}" class="h-full w-full object-cover" />
+								<button
+									type="button"
+									class="btn absolute top-1 right-1 btn-circle btn-xs btn-error"
+									onclick={() => removeImage(index)}
+								>
+									✕
+								</button>
+							</div>
+						{/each}
+
+						{#if imageFiles.length < 3}
+							<button
+								type="button"
+								class="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-base-300 transition-colors hover:border-primary hover:bg-base-200"
+								onclick={handleAddImageSlot}
+								disabled={loading}
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-8 w-8"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M12 4v16m8-8H4"
+									/>
+								</svg>
+								<span class="text-xs">Tambah Foto</span>
+							</button>
+						{/if}
 					</div>
 
-					{#if imagePreviewUrls.length > 0}
-						<div class="mt-4 flex gap-4">
-							{#each imagePreviewUrls as url}
-								<div class="h-32 w-32 overflow-hidden rounded-lg border-2 border-base-300">
-									<img src={url} alt="Preview" class="h-full w-full object-cover" />
-								</div>
-							{/each}
-						</div>
-					{/if}
-				</div>
+					<div class="label">
+						<span class="label-text-alt">
+							Format: JPG, PNG, WEBP. Maksimal 100KB per gambar. Total {imageFiles.length}/3
+						</span>
+					</div>
+				</fieldset>
 
 				<div class="divider"></div>
 
-				<!-- Basic Info -->
+				<!-- Sisanya sama seperti sebelumnya -->
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div class="form-control">
 						<label class="label" for="name">
@@ -261,7 +348,6 @@
 
 				<div class="divider"></div>
 
-				<!-- Stock & Discount -->
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div class="form-control">
 						<label class="label" for="stock">
