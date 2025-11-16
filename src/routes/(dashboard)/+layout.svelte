@@ -20,6 +20,11 @@
 	];
 
 	onMount(() => {
+		if (!isSuperAdmin) {
+			console.log('User bukan superadmin, skip fetch orders');
+			return;
+		}
+
 		const checkOrders = async () => {
 			try {
 				const res = await fetch('/api/admin/orders-processing');
