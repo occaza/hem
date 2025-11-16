@@ -15,6 +15,7 @@
 	let loading = $state(false);
 	let uploadingImages = $state(false);
 	let error = $state('');
+	let faqItems = $state<Array<{ question: string; answer: string }>>([]);
 
 	function handleAddImageSlot() {
 		if (imageFiles.length >= 3) return;
@@ -142,7 +143,8 @@
 					stock,
 					discount_percentage: discountPercentage,
 					discount_end_date: discountEndDate || null,
-					images: uploadedImageUrls
+					images: uploadedImageUrls,
+					faq: faqItems.length > 0 ? faqItems : null // Tambah ini
 				})
 			});
 
@@ -160,6 +162,13 @@
 		} finally {
 			loading = false;
 		}
+	}
+	function addFaqItem() {
+		faqItems = [...faqItems, { question: '', answer: '' }];
+	}
+
+	function removeFaqItem(index: number) {
+		faqItems = faqItems.filter((_, i) => i !== index);
 	}
 </script>
 
@@ -403,6 +412,47 @@
 				{/if}
 
 				<div class="divider"></div>
+
+				<div class="form-control">
+					<div class="mb-2 flex items-center justify-between">
+						<div class="label">
+							<span class="label-text">FAQ Produk</span>
+						</div>
+						<button type="button" class="btn btn-outline btn-sm" onclick={addFaqItem}>
+							+ Tambah FAQ
+						</button>
+					</div>
+
+					{#if faqItems.length > 0}
+						<div class="space-y-4">
+							{#each faqItems as item, index}
+								<div class="rounded-lg border border-base-300 p-4">
+									<div class="mb-2 flex items-center justify-between">
+										<span class="text-sm font-semibold">FAQ {index + 1}</span>
+										<button
+											type="button"
+											class="btn btn-circle btn-ghost btn-xs"
+											onclick={() => removeFaqItem(index)}
+										>
+											✕
+										</button>
+									</div>
+									<input
+										type="text"
+										placeholder="Pertanyaan"
+										class="input-bordered input input-sm mb-2 w-full"
+										bind:value={item.question}
+									/>
+									<textarea
+										placeholder="Jawaban"
+										class="textarea-bordered textarea w-full textarea-sm"
+										bind:value={item.answer}
+									></textarea>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
 
 				<div class="card-actions justify-end">
 					<button type="button" class="btn btn-ghost" onclick={() => goto('/products')}>

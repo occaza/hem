@@ -20,6 +20,7 @@
 	let uploadingImages = $state(false);
 	let error = $state('');
 	let uploadErrors = $state<string[]>([]);
+	let faqItems = $state<Array<{ question: string; answer: string }>>([]);
 
 	const productId = $derived($page.params.id);
 
@@ -41,6 +42,7 @@
 			discountPercentage = data.discount_percentage || 0;
 			discountEndDate = data.discount_end_date || '';
 			existingImages = data.images || [];
+			faqItems = data.faq || []; // Tambah baris ini
 		} catch (err) {
 			console.error('Failed to load product:', err);
 			error = 'Gagal memuat produk';
@@ -100,6 +102,14 @@
 	function removeNewImage(index: number) {
 		newImageFiles = newImageFiles.filter((_, i) => i !== index);
 		newImagePreviews = newImagePreviews.filter((_, i) => i !== index);
+	}
+
+	function addFaqItem() {
+		faqItems = [...faqItems, { question: '', answer: '' }];
+	}
+
+	function removeFaqItem(index: number) {
+		faqItems = faqItems.filter((_, i) => i !== index);
 	}
 
 	async function handleSubmit() {
@@ -460,6 +470,49 @@
 							</div>
 						</div>
 					{/if}
+
+					<div class="divider"></div>
+
+					<div class="form-control">
+						<div class="mb-2 flex items-center justify-between">
+							<div class="label" role="heading" aria-level="2">
+								<span class="label-text">FAQ Produk</span>
+							</div>
+							<button type="button" class="btn btn-outline btn-sm" onclick={addFaqItem}>
+								+ Tambah FAQ
+							</button>
+						</div>
+
+						{#if faqItems.length > 0}
+							<div class="space-y-4">
+								{#each faqItems as item, index}
+									<div class="rounded-lg border border-base-300 p-4">
+										<div class="mb-2 flex items-center justify-between">
+											<span class="text-sm font-semibold">FAQ {index + 1}</span>
+											<button
+												type="button"
+												class="btn btn-circle btn-ghost btn-xs"
+												onclick={() => removeFaqItem(index)}
+											>
+												✕
+											</button>
+										</div>
+										<input
+											type="text"
+											placeholder="Pertanyaan"
+											class="input-bordered input input-sm mb-2 w-full"
+											bind:value={item.question}
+										/>
+										<textarea
+											placeholder="Jawaban"
+											class="textarea-bordered textarea w-full textarea-sm"
+											bind:value={item.answer}
+										></textarea>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</div>
 
 					<div class="divider"></div>
 

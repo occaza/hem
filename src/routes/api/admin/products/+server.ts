@@ -19,7 +19,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			images,
 			stock,
 			discount_percentage,
-			discount_end_date
+			discount_end_date,
+			faq // Tambah ini
 		} = body;
 
 		console.log('Received POST request:', { name, description, price });
@@ -56,7 +57,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 				detail_description: detail_description?.trim() || description.trim(),
 				price: priceNumber,
 				images: images || [],
-				stock: stock !== undefined ? parseInt(stock.toString()) : 0
+				stock: stock !== undefined ? parseInt(stock.toString()) : 0,
+				faq: faq || null // Tambah baris ini
 			})
 			.select()
 			.single();

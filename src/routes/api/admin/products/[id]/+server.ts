@@ -56,7 +56,8 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 			images,
 			stock,
 			discount_percentage,
-			discount_end_date
+			discount_end_date,
+			faq // Tambah ini
 		} = body;
 
 		if (!name || !description || price === undefined) {
