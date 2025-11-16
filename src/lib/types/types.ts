@@ -11,7 +11,7 @@ export type Product = {
 	discount_percentage?: number;
 	discount_end_date?: string;
 	created_at?: string;
-	faq?: Array<{ question: string; answer: string }>; // Tambah baris ini
+	faq?: Array<{ question: string; answer: string }>; // Tambah ini
 };
 
 // Ubah ini
