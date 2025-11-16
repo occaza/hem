@@ -5,6 +5,8 @@
 		Navbar,
 		cartStore,
 		cartCount,
+		generateOrderId,
+		encodeOrderId,
 		formatCurrency,
 		calculateDiscountedPrice,
 		PAYMENT_METHODS,
@@ -14,8 +16,8 @@
 	import { appliedCoupon } from '$lib/stores/coupon.store';
 	import type { CartItem } from '$lib/types/types';
 	import QRCode from 'qrcode';
-
 	import { authUser } from '$lib/stores/auth.store';
+
 	const user = $derived($authUser);
 
 	let cart = $state<CartItem[]>([]);
@@ -141,10 +143,8 @@
 		try {
 			const selectedCartItems = cart.filter((item) => selectedItems.has(item.id));
 
-			const today = new Date();
-			const ymd = today.toISOString().slice(2, 10).replace(/-/g, '');
-			const run = String(Math.floor(Math.random() * 1e4)).padStart(4, '0');
-			const orderId = `CART${ymd}-${run}`;
+			const orderId = generateOrderId(); // Format: ADF/16112025/A7K9M2X5
+			const encodedOrderId = encodeOrderId(orderId); // Format: ADF-16112025-A7K9M2X5
 
 			const totalAmount = selectedCartItems.reduce((sum, item) => sum + getItemSubtotal(item), 0);
 
@@ -156,7 +156,7 @@
 						product_id: item.product_id,
 						quantity: item.quantity
 					})),
-					order_id: orderId,
+					order_id: encodedOrderId, // Kirim yang encoded
 					payment_method: method,
 					total_amount: totalAmount,
 					user_id: user.id
@@ -171,14 +171,12 @@
 				return;
 			}
 
-			// Hapus item dari cart
 			for (const itemId of selectedItems) {
 				await cartStore.removeItem(itemId);
 			}
 			selectedItems = new Set();
 
-			// Redirect ke halaman payment
-			goto(`/payment/${orderId}`);
+			goto(`/payment/${encodedOrderId}`); // Route pakai encoded
 		} catch (error) {
 			console.error('Checkout error:', error);
 			alert('Terjadi kesalahan saat checkout');
@@ -247,7 +245,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					order_id: paymentData.order_id,
-					amount: paymentData.amount // Gunakan amount, bukan total_payment
+					amount: paymentData.amount
 				})
 			});
 
@@ -285,7 +283,7 @@
 			selectedItems.size > 1
 				? 'Multi Product'
 				: cart.find((item) => selectedItems.has(item.id))?.product?.name || 'Product',
-		price: totalAmount, // Gunakan totalAmount, bukan subtotalAmount
+		price: totalAmount,
 		description: `${selectedItems.size} produk dipilih`,
 		stock: 999
 	});
@@ -323,18 +321,20 @@
 			</div>
 		{:else}
 			<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+				<!-- Cart Items -->
 				<div class="space-y-4 lg:col-span-2">
+					<!-- Header -->
 					<div class="card bg-base-100 shadow-xl">
-						<div class="card-body">
+						<div class="card-body py-4">
 							<div class="flex items-center justify-between">
 								<label class="flex cursor-pointer items-center gap-3">
 									<input
 										type="checkbox"
-										class="checkbox checkbox-primary"
+										class="checkbox checkbox-sm checkbox-primary"
 										checked={allSelected}
 										onchange={toggleSelectAll}
 									/>
-									<span class="font-semibold">Pilih Semua ({cart.length})</span>
+									<span class="text-sm font-semibold">Pilih Semua</span>
 								</label>
 								{#if cart.length > 0}
 									<button class="btn text-error btn-ghost btn-sm" onclick={clearCart}>
@@ -345,35 +345,41 @@
 						</div>
 					</div>
 
+					<!-- Cart Items List -->
 					{#each cart as item}
 						{#if item.product}
 							<div class="card bg-base-100 shadow-xl">
-								<div class="card-body">
-									<div class="flex gap-4">
-										<div class="flex items-start">
+								<div class="card-body p-4">
+									<div class="flex gap-3">
+										<!-- Checkbox -->
+										<div class="flex items-start pt-1">
 											<input
 												type="checkbox"
-												class="checkbox checkbox-primary"
+												class="checkbox checkbox-sm checkbox-primary"
 												checked={selectedItems.has(item.id)}
 												onchange={() => toggleSelectItem(item.id)}
 											/>
 										</div>
 
-										<figure class="h-20 w-20 shrink-0 overflow-hidden rounded-lg">
+										<!-- Image -->
+										<div
+											class="h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-base-300"
+										>
 											<img
 												src={item.product.images?.[0] || 'https://via.placeholder.com/200'}
 												alt={item.product.name}
 												class="h-full w-full object-cover"
 											/>
-										</figure>
+										</div>
 
-										<div class="flex-1">
-											<h3 class="font-bold">{item.product.name}</h3>
+										<!-- Product Info -->
+										<div class="min-w-0 flex-1">
+											<h3 class="truncate text-sm font-semibold">{item.product.name}</h3>
 
-											<div class="mt-2">
+											<div class="mt-1">
 												{#if item.product.discount_percentage}
 													<div class="flex items-center gap-2">
-														<span class="font-bold text-primary">
+														<span class="text-sm font-bold text-primary">
 															{formatCurrency(calculateDiscountedPrice(item.product))}
 														</span>
 														<span class="text-xs text-base-content/50 line-through">
@@ -381,24 +387,25 @@
 														</span>
 													</div>
 												{:else}
-													<span class="font-bold text-primary">
+													<span class="text-sm font-bold text-primary">
 														{formatCurrency(item.product.price)}
 													</span>
 												{/if}
 											</div>
 
+											<!-- Quantity Controls -->
 											<div class="mt-3 flex items-center justify-between">
 												<div class="flex items-center gap-2">
 													<button
-														class="btn btn-circle btn-sm"
+														class="btn btn-circle btn-outline btn-xs"
 														onclick={() => updateQuantity(item, item.quantity - 1)}
 														disabled={item.quantity <= 1}
 													>
 														−
 													</button>
-													<span class="w-8 text-center font-semibold">{item.quantity}</span>
+													<span class="w-6 text-center text-sm font-semibold">{item.quantity}</span>
 													<button
-														class="btn btn-circle btn-sm"
+														class="btn btn-circle btn-outline btn-xs"
 														onclick={() => updateQuantity(item, item.quantity + 1)}
 														disabled={item.product && item.quantity >= item.product.stock}
 													>
@@ -408,25 +415,10 @@
 
 												<button
 													type="button"
-													class="btn text-error btn-ghost btn-sm"
+													class="btn text-error btn-ghost btn-xs"
 													onclick={() => removeItem(item)}
-													aria-label={'Hapus ' + (item.product?.name ?? 'item')}
-													title={'Hapus ' + (item.product?.name ?? 'item')}
 												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														class="h-5 w-5"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-														/>
-													</svg>
+													🗑️
 												</button>
 											</div>
 
@@ -443,88 +435,34 @@
 					{/each}
 				</div>
 
+				<!-- Summary -->
 				<div class="lg:col-span-1">
 					<div class="card sticky top-4 bg-base-100 shadow-xl">
 						<div class="card-body">
-							<h2 class="card-title">Ringkasan belanja</h2>
+							<h2 class="card-title text-lg">Ringkasan Belanja</h2>
 
-							<div class="divider"></div>
+							<div class="divider my-2"></div>
 
-							{#if selectedItems.size === 0}
-								<div class="rounded-lg border-2 border-dashed border-base-300 p-4 text-center">
-									<svg
-										class="mx-auto mb-2 h-12 w-12 text-base-content/30"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-										/>
-									</svg>
-									<p class="text-sm text-base-content/70">Pilih barang dulu sebelum pakai promo</p>
-								</div>
-							{:else}
-								<div class="form-control">
-									<div class="join">
-										<input
-											type="text"
-											placeholder="KODE PROMO"
-											class="input-bordered input join-item w-full uppercase"
-											bind:value={couponCode}
-											disabled={$appliedCoupon !== null}
-										/>
-										{#if $appliedCoupon}
-											<button class="btn join-item btn-error" onclick={handleRemoveCoupon}>
-												Hapus
-											</button>
-										{:else}
-											<button
-												class="btn join-item btn-primary"
-												onclick={handleApplyCoupon}
-												disabled={applyingCoupon || !couponCode.trim()}
-											>
-												{#if applyingCoupon}
-													<span class="loading loading-sm loading-spinner"></span>
-												{:else}
-													Pakai
-												{/if}
-											</button>
-										{/if}
-									</div>
+							<div class="space-y-2 text-sm">
+								<div class="flex justify-between">
+									<span class="text-base-content/70">Total ({selectedItems.size} item)</span>
+									<span class="font-semibold">
+										{selectedItems.size === 0 ? '-' : formatCurrency(subtotalAmount)}
+									</span>
 								</div>
 
 								{#if $appliedCoupon}
-									<div class="mt-2 rounded-lg bg-success/10 p-3 text-sm text-success">
-										<div class="font-semibold">{$appliedCoupon.coupon.name}</div>
-										<div>Hemat {formatCurrency($appliedCoupon.discount_amount)}</div>
-									</div>
-								{/if}
-							{/if}
-
-							<div class="divider"></div>
-
-							<div class="space-y-2">
-								<div class="flex justify-between text-sm">
-									<span>Total ({selectedItems.size} item)</span>
-									<span>{selectedItems.size === 0 ? '-' : formatCurrency(subtotalAmount)}</span>
-								</div>
-
-								{#if $appliedCoupon}
-									<div class="flex justify-between text-sm text-success">
-										<span>Diskon</span>
-										<span>- {formatCurrency(discountAmount)}</span>
+									<div class="flex justify-between text-success">
+										<span>Diskon Kupon</span>
+										<span class="font-semibold">-{formatCurrency(discountAmount)}</span>
 									</div>
 								{/if}
 							</div>
 
-							<div class="divider"></div>
+							<div class="divider my-2"></div>
 
-							<div class="flex justify-between text-lg font-bold">
-								<span>Total</span>
+							<div class="flex justify-between text-base font-bold">
+								<span>Total Bayar</span>
 								<span class="text-primary">
 									{selectedItems.size === 0 ? '-' : formatCurrency(totalAmount)}
 								</span>

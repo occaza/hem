@@ -5,6 +5,7 @@
 	import { browser } from '$app/environment';
 	import QRCode from 'qrcode';
 	import { formatCurrency, formatShortDate } from '$lib/utils/format.utils';
+	import { decodeOrderId } from '$lib';
 
 	let paymentData = $state<any>(null);
 	let qrImageUrl = $state('');
@@ -15,6 +16,7 @@
 	let debugInfo = $state('');
 
 	const orderId = $derived($page.params.order_id);
+	const displayOrderId = $derived(decodeOrderId(orderId));
 
 	onMount(async () => {
 		if (!browser) return;
@@ -120,6 +122,29 @@
 		}, 600000);
 	}
 
+	async function checkPaymentStatus() {
+		try {
+			const res = await fetch('/api/check-payment', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ order_id: orderId })
+			});
+
+			const data = await res.json();
+
+			if (data.status === 'completed') {
+				cleanup();
+				goto(`/success?order_id=${orderId}`);
+			} else if (data.status === 'processing') {
+				// Redirect ke success dengan status processing
+				cleanup();
+				goto(`/success?order_id=${orderId}&simulated=true`);
+			}
+		} catch (error) {
+			console.error('Check status error:', error);
+		}
+	}
+
 	async function simulatePayment() {
 		if (isSimulating || !paymentData) return;
 
@@ -138,11 +163,8 @@
 			const data = await res.json();
 
 			if (res.ok) {
-				// Stop polling
-				cleanup();
-
-				// Redirect ke success
-				goto(`/success?order_id=${orderId}&simulated=true`);
+				// Langsung cek status dan redirect
+				await checkPaymentStatus();
 			} else {
 				alert(data.error || 'Simulasi gagal');
 				isSimulating = false;
@@ -216,7 +238,7 @@
 					<div class="card-body">
 						<div class="mb-4 text-center">
 							<div class="text-sm text-base-content/70">Order ID</div>
-							<div class="font-mono font-semibold">{orderId}</div>
+							<div class="font-mono font-semibold">{displayOrderId}</div>
 						</div>
 
 						<div class="rounded-lg bg-base-200 p-4">

@@ -21,9 +21,9 @@ export const POST: RequestHandler = async ({ request }) => {
 		// Tunggu sebentar supaya webhook keburu jalan
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 
-		// Manual trigger update status ke processing
 		const supabaseAdmin = getSupabaseAdmin();
 
+		// UBAH: Hapus filter .eq('status', 'pending')
 		const { data: updated, error: updateErr } = await supabaseAdmin
 			.from('transactions')
 			.update({
@@ -31,7 +31,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				processing_started_at: new Date().toISOString()
 			})
 			.eq('order_id', order_id)
-			.eq('status', 'pending')
+			.in('status', ['pending', 'processing']) // Tambah ini, terima pending atau processing
 			.select('product_id, amount');
 
 		if (updateErr) {

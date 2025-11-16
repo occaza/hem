@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import type { Product } from '$lib/types/types';
 	import { authUser } from '$lib/stores/auth.store';
+	import QRCode from 'qrcode';
 
 	import {
 		PAYMENT_METHODS,
@@ -14,9 +15,10 @@
 		cartStore,
 		calculateDiscountedPrice,
 		isDiscountActive,
+		generateOrderId,
+		encodeOrderId,
 		isInStock
 	} from '$lib';
-	import QRCode from 'qrcode';
 
 	let product = $state<Product | null>(null);
 	let loading = $state(true);
@@ -99,19 +101,18 @@
 		if (!product || !user) return;
 
 		selectedMethod = method;
-		const today = new Date();
-		const ymd = today.toISOString().slice(2, 10).replace(/-/g, '');
-		const run = String(Math.floor(Math.random() * 1e4)).padStart(4, '0');
-		const orderId = `ADF${ymd}-${run}`;
 		showMethodSelector = false;
 
 		try {
+			const orderId = generateOrderId();
+			const encodedOrderId = encodeOrderId(orderId);
+
 			const res = await fetch('/api/checkout', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					product_id: product.id,
-					order_id: orderId,
+					order_id: encodedOrderId,
 					payment_method: method,
 					user_id: user.id
 				})
@@ -124,8 +125,7 @@
 				return;
 			}
 
-			// Redirect ke halaman payment
-			goto(`/payment/${orderId}`);
+			goto(`/payment/${encodedOrderId}`);
 		} catch (error) {
 			console.error('Checkout error:', error);
 			alert('Terjadi kesalahan. Silakan coba lagi.');
