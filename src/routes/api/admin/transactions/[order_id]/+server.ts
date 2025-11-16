@@ -13,6 +13,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
 		const supabaseAdmin = getSupabaseAdmin();
 
+		// Ambil SEMUA transaksi dengan order_id yang sama
 		const { data, error } = await supabaseAdmin
 			.from('transactions')
 			.select(
@@ -26,19 +27,34 @@ export const GET: RequestHandler = async ({ params }) => {
 				products (
 					name,
 					description,
-					price
+					price,
+					images
 				)
 			`
 			)
 			.eq('order_id', order_id)
-			.single();
+			.order('created_at', { ascending: true });
 
-		if (error || !data) {
+		if (error || !data || data.length === 0) {
 			console.error('Fetch transaction error:', error);
 			return json({ error: 'Transaction not found' }, { status: 404 });
 		}
 
-		return json(data);
+		// Hitung total amount dari semua transaksi
+		const totalAmount = data.reduce((sum, t) => sum + t.amount, 0);
+
+		return json({
+			order_id: data[0].order_id,
+			total_amount: totalAmount,
+			status: data[0].status,
+			payment_method: data[0].payment_method,
+			completed_at: data[0].completed_at,
+			created_at: data[0].created_at,
+			items: data.map((t) => ({
+				product: t.products,
+				amount: t.amount
+			}))
+		});
 	} catch (error) {
 		console.error('Get transaction detail error:', error);
 		return json({ error: 'Internal server error' }, { status: 500 });

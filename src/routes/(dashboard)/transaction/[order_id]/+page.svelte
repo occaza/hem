@@ -5,14 +5,26 @@
 	import { formatCurrency, formatDate } from '$lib/utils/format.utils';
 	import { getStatusBadge, getStatusText } from '$lib/utils/status.utils';
 
+	type ProductInfo = {
+		name: string;
+		description: string;
+		price: number;
+		images?: string[];
+	};
+
+	type TransactionItem = {
+		product: ProductInfo;
+		amount: number;
+	};
+
 	type TransactionDetail = {
 		order_id: string;
-		amount: number;
+		total_amount: number;
 		status: string;
 		payment_method?: string;
 		completed_at?: string;
 		created_at?: string;
-		products: { name: string; description: string; price: number } | null;
+		items: TransactionItem[];
 	};
 
 	let transaction = $state<TransactionDetail | null>(null);
@@ -37,7 +49,7 @@
 	});
 </script>
 
-<div class="mx-auto max-w-3xl">
+<div class="mx-auto max-w-4xl">
 	<div class="mb-8">
 		<a href="/transaction" class="btn btn-ghost btn-sm">
 			<span>←</span>
@@ -76,18 +88,32 @@
 					<div class="divider"></div>
 
 					<div>
-						<div class="mb-2 text-sm text-base-content/70">Produk:</div>
-						{#if transaction.products}
-							<div class="rounded-lg bg-base-200 p-4">
-								<div class="font-semibold">{transaction.products.name}</div>
-								<div class="text-sm text-base-content/70">{transaction.products.description}</div>
-								<div class="mt-2 text-lg font-bold text-primary">
-									{formatCurrency(transaction.products.price)}
-								</div>
-							</div>
-						{:else}
-							<span>-</span>
-						{/if}
+						<div class="mb-3 text-sm text-base-content/70">
+							Produk ({transaction.items.length} item):
+						</div>
+						<div class="space-y-3">
+							{#each transaction.items as item}
+								{#if item.product}
+									<div class="flex gap-4 rounded-lg bg-base-200 p-4">
+										<div class="h-20 w-20 overflow-hidden rounded-lg border border-base-300">
+											<img
+												src={item.product.images?.[0] ||
+													'https://placehold.co/100x100?text=No+Image'}
+												alt={item.product.name}
+												class="h-full w-full object-cover"
+											/>
+										</div>
+										<div class="flex-1">
+											<div class="font-semibold">{item.product.name}</div>
+											<div class="text-sm text-base-content/70">{item.product.description}</div>
+											<div class="mt-2 font-bold text-primary">
+												{formatCurrency(item.amount)}
+											</div>
+										</div>
+									</div>
+								{/if}
+							{/each}
+						</div>
 					</div>
 
 					<div class="divider"></div>
@@ -95,7 +121,7 @@
 					<div class="flex justify-between">
 						<span class="text-base-content/70">Total Pembayaran:</span>
 						<span class="text-2xl font-bold text-primary">
-							{formatCurrency(transaction.amount)}
+							{formatCurrency(transaction.total_amount)}
 						</span>
 					</div>
 
