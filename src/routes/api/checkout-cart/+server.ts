@@ -65,6 +65,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		console.log('Payment created:', payment);
 
 		// Insert transactions with payment info
+		// Insert transactions dengan payment info
 		const transactionInserts = cart_items.map((item: any) => {
 			const product = products.find((p) => p.id === item.product_id);
 			return {
@@ -89,6 +90,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			console.error('Failed to insert transactions:', insertError);
 			return json({ error: 'Failed to create transactions' }, { status: 500 });
 		}
+
+		// Insert notes HANYA SEKALI
 		const noteInserts = cart_items
 			.filter((item: any) => item.note && item.note.trim())
 			.map((item: any) => ({
@@ -97,8 +100,6 @@ export const POST: RequestHandler = async ({ request }) => {
 				note: item.note.trim()
 			}));
 
-		console.log('Inserting notes:', noteInserts);
-
 		if (noteInserts.length > 0) {
 			const { error: noteError } = await supabaseAdmin
 				.from('transaction_notes')
@@ -106,13 +107,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			if (noteError) {
 				console.error('Failed to save transaction notes:', noteError);
-			} else {
-				console.log('Transaction notes saved successfully');
 			}
-		}
-
-		if (noteInserts.length > 0) {
-			await supabaseAdmin.from('transaction_notes').insert(noteInserts);
 		}
 
 		return json({

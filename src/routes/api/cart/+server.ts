@@ -19,24 +19,25 @@ export const GET: RequestHandler = async ({ url }) => {
 			.from('carts')
 			.select(
 				`
-				id,
-				user_id,
-				product_id,
-				quantity,
-				created_at,
-				updated_at,
-				product:products (
-					id,
-					name,
-					price,
-					description,
-					detail_description,
-					images,
-					stock,
-					discount_percentage,
-					discount_end_date
-				)
-			`
+                id,
+                user_id,
+                product_id,
+                quantity,
+                note,
+                created_at,
+                updated_at,
+                product:products (
+                    id,
+                    name,
+                    price,
+                    description,
+                    detail_description,
+                    images,
+                    stock,
+                    discount_percentage,
+                    discount_end_date
+                )
+            `
 			)
 			.eq('user_id', userId)
 			.order('created_at', { ascending: false });
@@ -46,26 +47,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			return json({ error: 'Failed to load cart' }, { status: 500 });
 		}
 
-		// Ambil notes secara terpisah
-		const cartIds = (data || []).map((item) => item.id);
-
-		let notesMap = new Map<string, string>();
-
-		if (cartIds.length > 0) {
-			const { data: notes } = await supabaseAdmin
-				.from('cart_notes')
-				.select('cart_id, note')
-				.in('cart_id', cartIds);
-
-			notesMap = new Map((notes || []).map((n) => [n.cart_id, n.note]));
-		}
-
-		const transformedData = (data || []).map((item) => ({
-			...item,
-			note: notesMap.get(item.id) || null
-		}));
-
-		return json(transformedData);
+		return json(data || []);
 	} catch (error) {
 		console.error('Get cart error:', error);
 		return json({ error: 'Internal server error' }, { status: 500 });

@@ -15,15 +15,16 @@ export const load: PageServerLoad = async ({ cookies, depends }) => {
 			.from('transactions')
 			.select(
 				`
-				order_id,
-				amount,
-				payment_method,
-				processing_started_at,
-				product:products (
-					name,
-					images
-				)
-			`
+        order_id,
+        amount,
+        payment_method,
+        processing_started_at,
+        product_id,
+        product:products (
+            name,
+            images
+        )
+    `
 			)
 			.eq('status', 'processing')
 			.order('processing_started_at', { ascending: true });
@@ -31,6 +32,26 @@ export const load: PageServerLoad = async ({ cookies, depends }) => {
 		if (error) {
 			console.error('Get processing orders error:', error);
 			return { orders: [] };
+		}
+
+		// Get notes untuk semua transactions
+		const orderIds = [...new Set((data || []).map((t) => t.order_id))];
+		let notesMap = new Map<string, Map<string, string>>();
+
+		if (orderIds.length > 0) {
+			const { data: notes } = await supabaseAdmin
+				.from('transaction_notes')
+				.select('order_id, product_id, note')
+				.in('order_id', orderIds);
+
+			if (notes) {
+				notes.forEach((note) => {
+					if (!notesMap.has(note.order_id)) {
+						notesMap.set(note.order_id, new Map());
+					}
+					notesMap.get(note.order_id)!.set(note.product_id, note.note);
+				});
+			}
 		}
 
 		const groupedOrders = (data || []).reduce(
@@ -46,9 +67,13 @@ export const load: PageServerLoad = async ({ cookies, depends }) => {
 					};
 				}
 
+				const orderNotes = notesMap.get(orderId);
+				const note = orderNotes ? orderNotes.get(transaction.product_id) : null;
+
 				acc[orderId].items.push({
 					product: transaction.product,
-					amount: transaction.amount
+					amount: transaction.amount,
+					note: note // TAMBAH INI
 				});
 				acc[orderId].total += transaction.amount;
 

@@ -165,6 +165,12 @@
 											<div class="text-sm text-base-content/70">
 												{formatCurrency(item.amount)}
 											</div>
+											{#if item.note}
+												<div class="mt-2 rounded bg-base-200 p-2">
+													<div class="text-xs font-semibold text-base-content/70">Catatan:</div>
+													<div class="text-sm">{item.note}</div>
+												</div>
+											{/if}
 										</div>
 									</div>
 								{/each}

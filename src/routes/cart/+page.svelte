@@ -139,14 +139,13 @@
 		try {
 			const note = tempNotes[itemId] || '';
 
-			const res = await fetch(`/api/cart/${itemId}/note`, {
+			const res = await fetch(`/api/cart/${itemId}`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ note })
 			});
 
 			if (res.ok) {
-				// Reload cart untuk dapat data terbaru
 				await cartStore.load();
 				editingNote = null;
 			} else {

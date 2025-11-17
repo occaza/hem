@@ -87,3 +87,15 @@ export type CartItem = {
 	product?: Product;
 	note?: string; // Tambah ini
 };
+
+// Update atau tambah ini
+export type OrderItem = {
+	product: {
+		id: string;
+		name: string;
+		images?: string[];
+		price: number;
+	};
+	amount: number;
+	note?: string; // TAMBAH INI
+};

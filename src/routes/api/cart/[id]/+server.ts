@@ -1,53 +1,73 @@
-// src/routes/api/cart/[id]/+server.ts
 import { json } from '@sveltejs/kit';
 import { getSupabaseAdmin } from '$lib/server/supabase';
 import type { RequestHandler } from './$types';
 
-// PUT - Update quantity
+// PUT - Update quantity atau note
 export const PUT: RequestHandler = async ({ params, request }) => {
 	try {
 		const { id } = params;
 		const body = await request.json();
-		const { quantity } = body;
+		const { quantity, note } = body;
 
-		if (!id || !quantity || quantity < 1) {
+		if (!id) {
 			return json({ error: 'Invalid parameters' }, { status: 400 });
 		}
 
 		const supabaseAdmin = getSupabaseAdmin();
 
-		// Get cart item untuk cek stock
-		const { data: cartItem } = await supabaseAdmin
-			.from('carts')
-			.select('product_id')
-			.eq('id', id)
-			.single();
+		// Jika update quantity
+		if (quantity !== undefined) {
+			if (quantity < 1) {
+				return json({ error: 'Invalid quantity' }, { status: 400 });
+			}
 
-		if (!cartItem) {
-			return json({ error: 'Cart item not found' }, { status: 404 });
+			const { data: cartItem } = await supabaseAdmin
+				.from('carts')
+				.select('product_id')
+				.eq('id', id)
+				.single();
+
+			if (!cartItem) {
+				return json({ error: 'Cart item not found' }, { status: 404 });
+			}
+
+			const { data: product } = await supabaseAdmin
+				.from('products')
+				.select('stock')
+				.eq('id', cartItem.product_id)
+				.single();
+
+			if (!product || product.stock < quantity) {
+				return json({ error: 'Insufficient stock' }, { status: 400 });
+			}
+
+			const { error } = await supabaseAdmin
+				.from('carts')
+				.update({
+					quantity,
+					updated_at: new Date().toISOString()
+				})
+				.eq('id', id);
+
+			if (error) {
+				return json({ error: 'Failed to update cart' }, { status: 500 });
+			}
 		}
 
-		// Cek stock
-		const { data: product } = await supabaseAdmin
-			.from('products')
-			.select('stock')
-			.eq('id', cartItem.product_id)
-			.single();
+		// Jika update note
+		if (note !== undefined) {
+			const { error } = await supabaseAdmin
+				.from('carts')
+				.update({
+					note: note.trim() || null,
+					updated_at: new Date().toISOString()
+				})
+				.eq('id', id);
 
-		if (!product || product.stock < quantity) {
-			return json({ error: 'Insufficient stock' }, { status: 400 });
-		}
-
-		const { error } = await supabaseAdmin
-			.from('carts')
-			.update({
-				quantity,
-				updated_at: new Date().toISOString()
-			})
-			.eq('id', id);
-
-		if (error) {
-			return json({ error: 'Failed to update cart' }, { status: 500 });
+			if (error) {
+				console.error('Update note error:', error);
+				return json({ error: 'Failed to update note' }, { status: 500 });
+			}
 		}
 
 		return json({ success: true });
@@ -57,7 +77,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 	}
 };
 
-// DELETE - Remove item
+// DELETE - Remove item (sudah ada di file asli)
 export const DELETE: RequestHandler = async ({ params }) => {
 	try {
 		const { id } = params;

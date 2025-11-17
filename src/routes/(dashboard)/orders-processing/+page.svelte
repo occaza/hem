@@ -150,6 +150,17 @@
 										<div class="text-sm text-base-content/70">
 											{formatCurrency(item.amount)}
 										</div>
+										{#if item.note}
+											<div class="mt-2 rounded bg-warning/20 p-2">
+												<div
+													class="text-md flex items-center gap-1 font-semibold text-warning-content/70"
+												>
+													<span>Catatan pembeli:</span>
+												</div>
+
+												<div class="text-sm">{item.note}</div>
+											</div>
+										{/if}
 									</div>
 								</div>
 							{/each}
