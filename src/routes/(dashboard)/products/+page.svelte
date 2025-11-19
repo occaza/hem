@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import type { Product } from '$lib/types/types';
 	import { formatCurrency } from '$lib/utils/format.utils';
+	import { SquarePen, Trash2, PackagePlus } from '@lucide/svelte';
 
 	let products = $state<Product[]>([]);
 	let loading = $state(true);
@@ -51,7 +52,7 @@
 	<div class="mb-8 flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Produk</h1>
 		<a href="/products/add-new" class="btn btn-primary">
-			<span class="text-xl">➕</span>
+			<PackagePlus />
 			Tambah Produk
 		</a>
 	</div>
@@ -72,7 +73,7 @@
 						</div>
 						<div class="card-actions justify-end">
 							<a href="/products/{product.id}" class="btn btn-outline btn-sm">
-								<span>✏️</span>
+								<SquarePen size="16" />
 								Edit
 							</a>
 							<button
@@ -83,7 +84,7 @@
 								{#if deleteLoading === product.id}
 									<span class="loading loading-sm loading-spinner"></span>
 								{:else}
-									<span>🗑️</span>
+									<Trash2 size="16" />
 									Hapus
 								{/if}
 							</button>

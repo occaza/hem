@@ -3,20 +3,23 @@
 	import { uploadProductImage } from '$lib/utils/upload.utils';
 	import {
 		Save,
+		X,
+		Info,
 		ImagePlus,
 		CircleAlert,
 		MessageCircleX,
 		Image,
 		MessageCircleQuestionMark,
-		Box
+		Box,
+		Plus
 	} from '@lucide/svelte';
 
 	let name = $state('');
 	let description = $state('');
 	let detailDescription = $state('');
 	let price: number | '' = $state('');
-	let stock = $state(0);
-	let discountPercentage = $state(2);
+	let stock: number | '' = $state('');
+	let discountPercentage: number | '' = $state('');
 	let discountEndDate = $state('');
 	let imageFiles = $state<File[]>([]); // Ubah dari FileList jadi array File
 	let imagePreviewUrls = $state<string[]>([]);
@@ -102,13 +105,13 @@
 			return;
 		}
 
-		if (stock < 0) {
+		if (Number(stock) < 0) {
 			error = 'Stok tidak boleh negatif';
 			loading = false;
 			return;
 		}
 
-		if (discountPercentage < 0 || discountPercentage > 100) {
+		if (Number(discountPercentage) < 0 || Number(discountPercentage) > 100) {
 			error = 'Diskon harus antara 0-100%';
 			loading = false;
 			return;
@@ -172,6 +175,7 @@
 			loading = false;
 		}
 	}
+
 	function addFaqItem() {
 		faqItems = [...faqItems, { question: '', answer: '' }];
 	}
@@ -270,10 +274,10 @@
 						</div>
 					</div>
 
-					<div class="grid grid-cols-3 gap-4">
+					<div class="flex gap-3">
 						{#each imagePreviewUrls as url, index}
 							<div
-								class="group relative aspect-square overflow-hidden rounded-xl border-2 border-base-300 bg-base-100"
+								class="group relative aspect-square w-40 overflow-hidden rounded-xl border-2 border-base-300 bg-base-100"
 							>
 								<img src={url} alt="Preview {index + 1}" class="h-full w-full object-cover" />
 								<button
@@ -282,14 +286,7 @@
 									class="btn absolute top-2 right-2 btn-circle opacity-0 transition-opacity btn-sm btn-error group-hover:opacity-100"
 									onclick={() => removeImage(index)}
 								>
-									<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M6 18L18 6M6 6l12 12"
-										/>
-									</svg>
+									<X strokeWidth={2} size="16" />
 								</button>
 								<div class="absolute bottom-2 left-2 badge badge-sm badge-neutral">
 									Foto {index + 1}
@@ -300,7 +297,7 @@
 						{#if imageFiles.length < 3}
 							<button
 								type="button"
-								class="group flex aspect-square flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-base-300 bg-base-100 transition-all hover:border-primary hover:bg-primary/5"
+								class="group flex aspect-square w-40 flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-base-300 bg-base-100 transition-all hover:border-primary hover:bg-primary/5"
 								onclick={handleAddImageSlot}
 								disabled={loading}
 							>
@@ -315,19 +312,9 @@
 					</div>
 
 					<div class="mt-4 flex items-start gap-2 rounded-lg bg-info/10 p-3">
-						<svg
-							class="mt-0.5 h-5 w-5 shrink-0 text-info"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-							/>
-						</svg>
+						<div class="mt-0.5 text-info">
+							<Info strokeWidth={2} />
+						</div>
 						<div class="text-sm">
 							<p class="font-medium text-info">Format JPG, PNG, atau WEBP</p>
 							<p class="text-base-content/70">
@@ -421,7 +408,7 @@
 								<input
 									id="price"
 									type="number"
-									placeholder="50000"
+									placeholder="1000"
 									class="input-bordered input join-item w-full"
 									bind:value={price}
 									min="1"
@@ -449,7 +436,7 @@
 						</div>
 					</div>
 
-					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<div class="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div class="form-control flex flex-col">
 							<label class="label" for="discount">
 								<span class="label-text font-medium">Diskon</span>
@@ -468,8 +455,9 @@
 								<span class="btn btn-disabled join-item">%</span>
 							</div>
 						</div>
-						<div class="form-control mt-4 flex flex-col">
-							{#if discountPercentage > 0}
+
+						{#if Number(discountPercentage) > 0}
+							<div class="form-control flex flex-col">
 								<label class="label" for="discountEndDate">
 									<span class="label-text font-medium">Berlaku Sampai</span>
 								</label>
@@ -480,8 +468,8 @@
 									bind:value={discountEndDate}
 								/>
 								<span class="label-text-alt label">Kosongkan jika tanpa batas waktu</span>
-							{/if}
-						</div>
+							</div>
+						{/if}
 					</div>
 				</div>
 
@@ -507,14 +495,7 @@
 							</div>
 						</div>
 						<button type="button" class="btn gap-2 btn-outline btn-sm" onclick={addFaqItem}>
-							<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M12 4v16m8-8H4"
-								/>
-							</svg>
+							<Plus />
 							Tambah FAQ
 						</button>
 					</div>
