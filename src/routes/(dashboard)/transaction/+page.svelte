@@ -15,6 +15,7 @@
 		product: {
 			name: string;
 		};
+		buyer_name?: string;
 	};
 
 	type GroupedTransaction = {
