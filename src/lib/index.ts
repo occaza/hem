@@ -27,3 +27,4 @@ export * from './utils/status.utils';
 export * from './utils/upload.utils';
 export * from './utils/order.utils';
 export * from './utils/avatar.utils';
+export * from './utils/payment.utils';
