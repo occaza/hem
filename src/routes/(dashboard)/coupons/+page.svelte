@@ -8,6 +8,7 @@
 		getCouponStatusText
 	} from '$lib/utils/coupon.utils';
 	import { formatDate } from '$lib/utils/format.utils';
+	import { Plus } from '@lucide/svelte';
 
 	let coupons = $state<Coupon[]>([]);
 	let loading = $state(true);
@@ -82,7 +83,7 @@
 			<p class="text-base-content/70">Kelola kupon dan promosi</p>
 		</div>
 		<a href="/coupons/add-new" class="btn btn-primary">
-			<span class="text-xl">➕</span>
+			<span class="text-xl"><Plus /></span>
 			Buat Kupon
 		</a>
 	</div>

@@ -11,17 +11,17 @@ export const GET: RequestHandler = async () => {
 			.from('transactions')
 			.select(
 				`
-				order_id,
-				amount,
-				status,
-				payment_method,
-				completed_at,
-				created_at,
-				user_id,
-				product:products (
-					name
-				)
-			`
+                order_id,
+                amount,
+                status,
+                payment_method,
+                completed_at,
+                created_at,
+                user_id,
+                product:products (
+                    name
+                )
+            `
 			)
 			.order('created_at', { ascending: false });
 
@@ -30,8 +30,9 @@ export const GET: RequestHandler = async () => {
 			return json({ error: 'Failed to fetch transactions' }, { status: 500 });
 		}
 
-		// Get user info untuk semua transaksi
+		// Get user info
 		const userIds = [...new Set((data || []).map((t) => t.user_id))];
+
 		const { data: userRoles } = await supabaseAdmin
 			.from('user_roles')
 			.select('user_id, full_name')
@@ -39,10 +40,14 @@ export const GET: RequestHandler = async () => {
 
 		const userMap = new Map(userRoles?.map((u) => [u.user_id, u.full_name]) || []);
 
-		// Tambahkan nama pembeli ke setiap transaksi SEBELUM return
+		// Get auth users untuk email sebagai fallback
+		const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers();
+		const emailMap = new Map(authUsers?.users.map((u) => [u.id, u.email]) || []);
+
+		// Gabungkan data
 		const transactionsWithBuyer = (data || []).map((t) => ({
 			...t,
-			buyer_name: userMap.get(t.user_id) || 'Unknown'
+			buyer_name: userMap.get(t.user_id) || emailMap.get(t.user_id) || 'Guest User'
 		}));
 
 		return json(transactionsWithBuyer);

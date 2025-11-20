@@ -80,7 +80,7 @@
 					created_at: transaction.created_at,
 					products: [transaction.product.name],
 					product_count: 1,
-					buyer_name: transaction.buyer_name
+					buyer_name: transaction.buyer_name // Data buyer_name sudah ada di sini
 				});
 			}
 		});
