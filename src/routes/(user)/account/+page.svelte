@@ -171,10 +171,10 @@
 										class="order-item flex items-center justify-between rounded-xl bg-gradient-to-r from-base-200 to-base-100 p-4 border border-base-300 hover:border-primary hover:shadow-lg"
 									>
 										<div class="flex items-center gap-4">
-											{#if order.product?.images?.[0]}
+											{#if order.product?.[0]?.images?.[0]}
 												<div class="avatar">
 													<div class="w-14 rounded-lg shadow-md">
-														<img src={order.product.images[0]} alt={order.product.name} />
+														<img src={order.product[0].images[0]} alt={order.product[0].name} />
 													</div>
 												</div>
 											{:else}
@@ -183,7 +183,7 @@
 												</div>
 											{/if}
 											<div>
-												<div class="font-semibold text-base">{order.product?.name || 'Produk'}</div>
+												<div class="font-semibold text-base">{order.product?.[0]?.name || 'Produk'}</div>
 												<div class="text-sm text-base-content/60 flex items-center gap-2">
 													<Clock size={12} />
 													{formatDate(order.created_at)}

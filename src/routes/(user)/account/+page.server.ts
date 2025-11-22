@@ -41,7 +41,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	const completedOrders = allOrders?.filter((o) => o.status === 'completed').length || 0;
 
 	// Get recent orders (last 5)
-	const { data: recentOrders } = await supabaseAdmin
+	const { data: recentOrders, error: recentOrdersError } = await supabaseAdmin
 		.from('transactions')
 		.select(
 			`
@@ -58,6 +58,10 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		.eq('user_id', user.id)
 		.order('created_at', { ascending: false })
 		.limit(5);
+
+	if (recentOrdersError) {
+		console.error('Error fetching recent orders:', recentOrdersError);
+	}
 
 	return {
 		user: {
