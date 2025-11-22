@@ -84,7 +84,7 @@
 </script>
 
 <svelte:head>
-	<title>Register - JualFB</title>
+	<title>Register - adverFI</title>
 </svelte:head>
 
 <div class="flex min-h-screen items-center justify-center bg-base-200 px-4">

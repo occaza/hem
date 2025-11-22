@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { getStatusBadge, getStatusText, formatCurrency, formatDate } from '$lib';
+	import { formatCurrency, formatDate } from '$lib/utils/format.utils';
+	import { getStatusBadge, getStatusText } from '$lib/utils/status.utils';
 	import { formatPaymentMethod } from '$lib/utils/payment.utils';
 	import { User, Mail, Phone } from '@lucide/svelte';
 

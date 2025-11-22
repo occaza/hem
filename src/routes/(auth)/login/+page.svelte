@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { getSupabaseClient } from '$lib';
+	import { getSupabaseClient } from '$lib/client/supabase';
 	import { onMount } from 'svelte';
 
 	let email = $state('');
@@ -84,6 +84,10 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>Login - adverFI</title>
+</svelte:head>
 
 <div class="flex min-h-screen items-center justify-center bg-base-200">
 	<div class="card w-96 bg-base-100 shadow-xl">

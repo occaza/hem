@@ -51,6 +51,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Dashboard - adverFI</title>
+</svelte:head>
+
 <div>
 	<h1 class="mb-8 text-3xl font-bold">Dashboard</h1>
 
@@ -67,7 +71,7 @@
 					</div>
 					<div class="stat-title">Total Pendapatan</div>
 					<div class="stat-value text-accent">
-						{formatCurrency(stats.totalRevenue / 1000)}K
+						{formatCurrency(stats.totalRevenue)}
 					</div>
 					<div class="stat-desc">Dari transaksi selesai</div>
 				</div>

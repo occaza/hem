@@ -6,19 +6,14 @@
 	import { authUser } from '$lib/stores/auth.store';
 	import QRCode from 'qrcode';
 
-	import {
-		PAYMENT_METHODS,
-		MethodSelectorModal,
-		PaymentModal,
-		Navbar,
-		formatCurrency,
-		cartStore,
-		calculateDiscountedPrice,
-		isDiscountActive,
-		generateOrderId,
-		encodeOrderId,
-		isInStock
-	} from '$lib';
+	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
+	import MethodSelectorModal from '$lib/components/features/payment/MethodSelectorModal.svelte';
+	import PaymentModal from '$lib/components/features/payment/PaymentModal.svelte';
+	import Navbar from '$lib/components/layout/Navbar.svelte';
+	import { formatCurrency } from '$lib/utils/format.utils';
+	import { cartStore } from '$lib/stores/cart.store';
+	import { calculateDiscountedPrice, isDiscountActive, isInStock } from '$lib/utils/product.utils';
+	import { generateOrderId, encodeOrderId } from '$lib/utils/order.utils';
 
 	let product = $state<Product | null>(null);
 	let loading = $state(true);
@@ -228,6 +223,10 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>{product ? `${product.name} - adverFI` : 'Produk - adverFI'}</title>
+</svelte:head>
 
 <div class="min-h-screen bg-base-200">
 	<Navbar />

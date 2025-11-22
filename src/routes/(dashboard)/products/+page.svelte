@@ -68,8 +68,24 @@
 					<div class="card-body">
 						<h2 class="card-title">{product.name}</h2>
 						<p class="text-base-content/70">{product.description}</p>
-						<div class="my-2 text-2xl font-bold text-primary">
-							{formatCurrency(product.price)}
+						<div class="my-2">
+							{#if product.discount_percentage && product.discount_percentage > 0}
+								<!-- Has discount -->
+								<div class="flex flex-col gap-1">
+									<div class="text-sm text-base-content/50 line-through">
+										{formatCurrency(product.price)}
+									</div>
+									<div class="text-2xl font-bold text-error flex items-center gap-2">
+										{formatCurrency(product.price * (1 - product.discount_percentage / 100))}
+										<span class="badge badge-error badge-sm">-{product.discount_percentage}%</span>
+									</div>
+								</div>
+							{:else}
+								<!-- No discount -->
+								<div class="text-2xl font-bold text-primary">
+									{formatCurrency(product.price)}
+								</div>
+							{/if}
 						</div>
 						<div class="card-actions justify-end">
 							<a href="/products/{product.id}" class="btn btn-outline btn-sm">

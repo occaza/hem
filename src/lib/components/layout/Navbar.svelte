@@ -81,6 +81,7 @@
 						<li class="menu-title">
 							<span>{user.email}</span>
 						</li>
+						<li><a href="/account">Dashboard</a></li>
 						<li><a href="/my-orders">Pesanan Saya</a></li>
 						<li>
 							<button
@@ -138,9 +139,9 @@
 						{/if}
 					</a>
 				</li>
-				<!-- Di bagian dropdown user menu -->
-				<li><a href="/profile">Profile Saya</a></li>
-				<li><a href="/my-orders">Pesanan Saya</a></li>
+				<li><a href="/account">📊 Dashboard</a></li>
+				<li><a href="/profile">👤 Profile Saya</a></li>
+				<li><a href="/my-orders">📦 Pesanan Saya</a></li>
 				<li>
 					<button
 						onclick={async () => {

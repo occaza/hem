@@ -2,7 +2,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { Navbar } from '$lib';
+	import Navbar from '$lib/components/layout/Navbar.svelte';
 	import { authUser } from '$lib/stores/auth.store';
 	import { uploadAvatar, deleteAvatar } from '$lib/utils/avatar.utils';
 
@@ -185,6 +185,10 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>Edit Profile - adverFI</title>
+</svelte:head>
 
 <div class="min-h-screen bg-base-200">
 	<Navbar />

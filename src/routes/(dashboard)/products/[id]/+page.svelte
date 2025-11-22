@@ -2,8 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { uploadProductImage, deleteProductImage } from '$lib/utils/upload.utils';
-	// import type { UploadResult } from '$lib/utils/upload.utils';
+	import { uploadProductImage } from '$lib/utils/upload.utils';
 	import {
 		Image,
 		Info,
@@ -546,6 +545,23 @@
 								<div class="form-control flex flex-col">
 									<label class="label" for="discountEndDate">
 										<span class="label-text font-medium">Berlaku Sampai</span>
+										{#if discountEndDate}
+											<button
+												type="button"
+												class="btn btn-ghost btn-xs gap-1"
+												onclick={() => (discountEndDate = '')}
+											>
+												<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+													<path
+														stroke-linecap="round"
+														stroke-linejoin="round"
+														stroke-width="2"
+														d="M6 18L18 6M6 6l12 12"
+													/>
+												</svg>
+												Hapus Batas Waktu
+											</button>
+										{/if}
 									</label>
 									<input
 										id="discountEndDate"
@@ -553,7 +569,13 @@
 										class="input-bordered input w-full"
 										bind:value={discountEndDate}
 									/>
-									<span class="label-text-alt label">Kosongkan jika tanpa batas waktu</span>
+									<span class="label-text-alt label">
+										{#if discountEndDate}
+											Diskon berlaku sampai tanggal yang ditentukan
+										{:else}
+											<span class="font-semibold text-success">✓ Diskon tanpa batas waktu (unlimited)</span>
+										{/if}
+									</span>
 								</div>
 							{/if}
 						</div>

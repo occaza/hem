@@ -1,18 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import {
-		Navbar,
-		cartStore,
-		cartCount,
-		generateOrderId,
-		encodeOrderId,
-		formatCurrency,
-		calculateDiscountedPrice,
-		PAYMENT_METHODS,
-		MethodSelectorModal,
-		PaymentModal
-	} from '$lib';
+	
+	import Navbar from '$lib/components/layout/Navbar.svelte';
+	import { cartStore, cartCount } from '$lib/stores/cart.store';
+	import { generateOrderId, encodeOrderId } from '$lib/utils/order.utils';
+	import { formatCurrency } from '$lib/utils/format.utils';
+	import { calculateDiscountedPrice } from '$lib/utils/product.utils';
+	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
+	import MethodSelectorModal from '$lib/components/features/payment/MethodSelectorModal.svelte';
+	import PaymentModal from '$lib/components/features/payment/PaymentModal.svelte';
 	import { appliedCoupon } from '$lib/stores/coupon.store';
 	import type { CartItem } from '$lib/types/types';
 	import QRCode from 'qrcode';
@@ -324,6 +321,10 @@
 		stock: 999
 	});
 </script>
+
+<svelte:head>
+	<title>Keranjang - adverFI</title>
+</svelte:head>
 
 <div class="min-h-screen bg-base-200">
 	<Navbar />

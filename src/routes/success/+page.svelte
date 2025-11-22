@@ -31,6 +31,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Pembayaran Berhasil - adverFI</title>
+</svelte:head>
+
 <div class="container mx-auto px-4 py-8">
 	<div class="mx-auto max-w-md">
 		{#if loading}

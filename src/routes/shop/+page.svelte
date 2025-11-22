@@ -3,15 +3,13 @@
 	import { onMount } from 'svelte';
 	import type { Product } from '$lib/types/types';
 	import QRCode from 'qrcode';
-	import {
-		cartStore,
-		cartCount,
-		Navbar,
-		PAYMENT_METHODS,
-		ProductCard,
-		MethodSelectorModal,
-		PaymentModal
-	} from '$lib'; // ✨ Tambah ini
+	
+	import { cartStore, cartCount } from '$lib/stores/cart.store';
+	import Navbar from '$lib/components/layout/Navbar.svelte';
+	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
+	import ProductCard from '$lib/components/features/products/ProductCard.svelte';
+	import MethodSelectorModal from '$lib/components/features/payment/MethodSelectorModal.svelte';
+	import PaymentModal from '$lib/components/features/payment/PaymentModal.svelte';
 
 	let products = $state<Product[]>([]);
 	let loading = $state(true);
@@ -176,6 +174,10 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>Produk - adverFI</title>
+</svelte:head>
 
 <!-- Update Navbar untuk tampilkan cart count -->
 <div class="min-h-screen bg-base-200">

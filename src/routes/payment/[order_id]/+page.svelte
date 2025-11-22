@@ -5,7 +5,7 @@
 	import { browser } from '$app/environment';
 	import QRCode from 'qrcode';
 	import { formatCurrency, formatShortDate } from '$lib/utils/format.utils';
-	import { decodeOrderId } from '$lib';
+	import { decodeOrderId } from '$lib/utils/order.utils';
 
 	let paymentData = $state<any>(null);
 	let qrImageUrl = $state('');
@@ -182,6 +182,10 @@
 		alert('Nomor berhasil disalin!');
 	}
 </script>
+
+<svelte:head>
+	<title>Pembayaran - adverFI</title>
+</svelte:head>
 
 <div class="min-h-screen bg-base-200">
 	<div class="navbar bg-base-100 shadow-md">
