@@ -11,7 +11,8 @@
 		Users,
 		PackagePlus,
 		House,
-		DoorOpen
+		DoorOpen,
+		Tag
 	} from '@lucide/svelte';
 
 	let { data, children } = $props();
@@ -23,6 +24,7 @@
 	const menuItems = [
 		{ href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
 		{ href: '/products', icon: Package, label: 'Produk' },
+		{ href: '/categories', icon: Tag, label: 'Kategori' },
 		{ href: '/coupons', icon: Ticket, label: 'Kupon' },
 		{ href: '/transaction', icon: CreditCard, label: 'Transaksi' },
 		{ href: '/users', icon: Users, label: 'Kelola User' },
