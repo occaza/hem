@@ -200,18 +200,6 @@
 <!-- Modal -->
 {#if showModal}
 	<div class="modal-open modal">
-		<div class="modal-box">
-			<h3 class="text-lg font-bold">
-				{editingCategory ? 'Edit Kategori' : 'Tambah Kategori'}
-			</h3>
-
-			<form class="py-4" onsubmit|preventDefault={handleSubmit}>
-				<div class="form-control">
-					<label class="label">
-						<span class="label-text">Nama Kategori *</span>
-					</label>
-					<input
-						type="text"
 						class="input-bordered input"
 						bind:value={formData.name}
 						oninput={generateSlug}
