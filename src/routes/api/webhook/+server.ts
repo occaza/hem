@@ -35,7 +35,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		// SECURITY: Validasi transaksi ada di database dan amount sesuai
 		const { data: existingTransaction, error: fetchError } = await supabaseAdmin
 			.from('transactions')
-			.select('order_id, amount, status, payment_method')
+			.select('order_id, amount, status, payment_method, product_id, quantity')
 			.eq('order_id', order_id)
 			.single();
 
@@ -66,7 +66,54 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ received: true, message: 'Already processed' });
 		}
 
-		// Update ke status 'processing' ketika pembayaran sukses
+		// ✅ ATOMIC STOCK REDUCTION - PREVENTS RACE CONDITION
+		const quantity = existingTransaction.quantity || 1;
+		const product_id = existingTransaction.product_id;
+
+		console.log('💳 Processing payment confirmation:', {
+			order_id,
+			product_id,
+			quantity
+		});
+
+		// Reduce stock atomically using PostgreSQL's built-in row locking
+		const { data: productUpdate, error: stockError } = await supabaseAdmin.rpc(
+			'reduce_stock_atomic',
+			{
+				p_product_id: product_id,
+				p_quantity: quantity
+			}
+		);
+
+		if (stockError || !productUpdate || !productUpdate.success) {
+			console.error('❌ Stock reduction failed:', {
+				order_id,
+				product_id,
+				quantity,
+				error: stockError,
+				result: productUpdate
+			});
+
+			// Mark transaction as failed due to insufficient stock
+			await supabaseAdmin
+				.from('transactions')
+				.update({
+					status: 'failed',
+					error_message: 'Insufficient stock at payment confirmation'
+				})
+				.eq('order_id', order_id);
+
+			return json(
+				{
+					received: false,
+					error: 'Insufficient stock',
+					message: 'Stock tidak mencukupi saat konfirmasi pembayaran'
+				},
+				{ status: 400 }
+			);
+		}
+
+		// Update transaction status to processing
 		const { data: updated, error: updateErr } = await supabaseAdmin
 			.from('transactions')
 			.update({
@@ -77,23 +124,40 @@ export const POST: RequestHandler = async ({ request }) => {
 			})
 			.eq('order_id', order_id)
 			.eq('status', 'pending') // Double check masih pending
-			.select('product_id, amount, user_id');
+			.select('product_id, amount, user_id, quantity');
 
 		if (updateErr) {
 			console.error('❌ Failed to update transaction:', {
 				order_id,
 				error: updateErr
 			});
+
+			// Rollback stock if transaction update failed
+			await supabaseAdmin.rpc('rollback_stock_reduction', {
+				p_product_id: product_id,
+				p_quantity: quantity
+			});
+
 			return json({ received: false, error: 'Update failed' }, { status: 500 });
 		}
 
 		if (!updated || updated.length === 0) {
 			console.error('❌ No transaction updated (race condition?)', { order_id });
+
+			// Rollback stock
+			await supabaseAdmin.rpc('rollback_stock_reduction', {
+				p_product_id: product_id,
+				p_quantity: quantity
+			});
+
 			return json({ received: false, error: 'Update failed' }, { status: 500 });
 		}
 
-		console.log(`✅ Order ${order_id} moved to PROCESSING status`, {
+		console.log(`✅ Payment confirmed and stock reduced atomically`, {
+			order_id,
 			product_id: updated[0].product_id,
+			quantity: updated[0].quantity,
+			new_stock: productUpdate.new_stock,
 			amount: updated[0].amount,
 			user_id: updated[0].user_id
 		});

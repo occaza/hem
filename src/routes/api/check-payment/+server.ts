@@ -13,9 +13,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		const supabaseAdmin = getSupabaseAdmin();
 
+		// Just check status - NO stock reduction here!
 		const { data: transactions, error } = await supabaseAdmin
 			.from('transactions')
-			.select('status, amount, completed_at, product_id')
+			.select('status, amount, completed_at, product_id, quantity')
 			.eq('order_id', order_id);
 
 		if (error || !transactions || transactions.length === 0) {
@@ -26,34 +27,6 @@ export const POST: RequestHandler = async ({ request }) => {
 		const anyProcessing = transactions.some((t) => t.status === 'processing');
 
 		const totalAmount = transactions.reduce((sum, t) => sum + t.amount, 0);
-
-		// Jika completed dan ini first time check, kurangi stok
-		if (allCompleted) {
-			for (const transaction of transactions) {
-				const { data: product } = await supabaseAdmin
-					.from('products')
-					.select('stock, price')
-					.eq('id', transaction.product_id)
-					.single();
-
-				if (product && product.stock > 0) {
-					const quantity = Math.floor(transaction.amount / product.price);
-
-					const { error: stockError } = await supabaseAdmin
-						.from('products')
-						.update({
-							stock: Math.max(0, product.stock - quantity)
-						})
-						.eq('id', transaction.product_id);
-
-					if (!stockError) {
-						console.log(
-							`✅ Stock reduced for product ${transaction.product_id}: ${quantity} units`
-						);
-					}
-				}
-			}
-		}
 
 		return json({
 			status: allCompleted ? 'completed' : anyProcessing ? 'processing' : transactions[0].status,
