@@ -12,6 +12,7 @@
 	import ProductCard from '$lib/components/features/products/ProductCard.svelte';
 	import MethodSelectorModal from '$lib/components/features/payment/MethodSelectorModal.svelte';
 	import PaymentModal from '$lib/components/features/payment/PaymentModal.svelte';
+	import DynamicIcon from '$lib/components/ui/DynamicIcon.svelte';
 
 	let products = $state<Product[]>([]);
 	let categories = $state<Category[]>([]);
@@ -225,22 +226,6 @@
 				>
 					Semua Produk
 				</button>
-				{#each categories as category}
-					<button
-						class="btn btn-sm {selectedCategory === category.slug ? 'btn-primary' : 'btn-outline'}"
-						onclick={() => selectCategory(category.slug)}
-					>
-						{#if category.icon}
-							<span>{category.icon}</span>
-						{/if}
-						{category.name}
-					</button>
-				{/each}
-			</div>
-		{/if}
-
-		{#if loading}
-			<div class="flex justify-center py-20">
 				<span class="loading loading-lg loading-spinner"></span>
 			</div>
 		{:else if products.length}

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import type { Category } from '$lib/types/types';
 	import { uploadProductImage } from '$lib/utils/upload.utils';
 	import {
 		Image,
@@ -30,6 +31,8 @@
 	let error = $state('');
 	let uploadErrors = $state<string[]>([]);
 	let faqItems = $state<Array<{ question: string; answer: string }>>([]);
+	let categories = $state<Category[]>([]);
+	let selectedCategoryIds = $state<string[]>([]);
 
 	const productId = $derived($page.params.id);
 
@@ -51,7 +54,18 @@
 			discountPercentage = data.discount_percentage || 0;
 			discountEndDate = data.discount_end_date || '';
 			existingImages = data.images || [];
-			faqItems = data.faq || []; // Tambah baris ini
+			faqItems = data.faq || [];
+
+			// Set selected categories
+			if (data.product_categories) {
+				selectedCategoryIds = data.product_categories.map((pc: any) => pc.category_id);
+			}
+
+			// Load all categories
+			const catRes = await fetch('/api/admin/categories');
+			if (catRes.ok) {
+				categories = await catRes.json();
+			}
 		} catch (err) {
 			console.error('Failed to load product:', err);
 			error = 'Gagal memuat produk';
@@ -198,7 +212,8 @@
 					discount_percentage: discountPercentage,
 					discount_end_date: discountEndDate || null,
 					images: allImages,
-					faq: faqItems.length > 0 ? faqItems : null // Pastikan baris ini ada
+					faq: faqItems.length > 0 ? faqItems : null,
+					category_ids: selectedCategoryIds
 				})
 			});
 
@@ -469,6 +484,61 @@
 						</div>
 					</div>
 
+					<!-- Section: Kategori -->
+					<div class="mb-6 rounded-lg bg-base-200/50 p-6">
+						<div class="mb-4 flex items-center gap-3">
+							<div
+								class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20 text-primary"
+							>
+								<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+									/>
+								</svg>
+							</div>
+							<div>
+								<h3 class="text-lg font-semibold">Kategori</h3>
+								<p class="text-sm text-base-content/70">Pilih kategori untuk produk ini</p>
+							</div>
+						</div>
+
+						{#if categories.length > 0}
+							<div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+								{#each categories as category}
+									<label
+										class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 bg-base-100 p-3 hover:border-primary"
+									>
+										<input
+											type="checkbox"
+											class="checkbox checkbox-sm checkbox-primary"
+											value={category.id}
+											checked={selectedCategoryIds.includes(category.id)}
+											onchange={(e) => {
+												const checked = e.currentTarget.checked;
+												if (checked) {
+													selectedCategoryIds = [...selectedCategoryIds, category.id];
+												} else {
+													selectedCategoryIds = selectedCategoryIds.filter(
+														(id) => id !== category.id
+													);
+												}
+											}}
+										/>
+										<span class="label-text">{category.name}</span>
+									</label>
+								{/each}
+							</div>
+						{:else}
+							<div class="alert alert-info">
+								<span>Belum ada kategori yang tersedia. Silakan buat kategori terlebih dahulu.</span
+								>
+							</div>
+						{/if}
+					</div>
+
 					<div class="mb-6 rounded-lg bg-base-200/50 p-6">
 						<div class="mb-4 flex items-center gap-3">
 							<div
@@ -548,7 +618,7 @@
 										{#if discountEndDate}
 											<button
 												type="button"
-												class="btn btn-ghost btn-xs gap-1"
+												class="btn gap-1 btn-ghost btn-xs"
 												onclick={() => (discountEndDate = '')}
 											>
 												<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -573,7 +643,9 @@
 										{#if discountEndDate}
 											Diskon berlaku sampai tanggal yang ditentukan
 										{:else}
-											<span class="font-semibold text-success">✓ Diskon tanpa batas waktu (unlimited)</span>
+											<span class="font-semibold text-success"
+												>✓ Diskon tanpa batas waktu (unlimited)</span
+											>
 										{/if}
 									</span>
 								</div>

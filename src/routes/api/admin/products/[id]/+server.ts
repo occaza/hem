@@ -14,7 +14,11 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 		const supabaseAdmin = getSupabaseAdmin();
 
 		// Coba cari by id dulu
-		let { data, error } = await supabaseAdmin.from('products').select('*').eq('id', id).single();
+		let { data, error } = await supabaseAdmin
+			.from('products')
+			.select('*, product_categories(category_id)')
+			.eq('id', id)
+			.single();
 
 		// Jika tidak ketemu, coba extract dari slug
 		if (error || !data) {
@@ -22,7 +26,7 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 			if (extractedId) {
 				const result = await supabaseAdmin
 					.from('products')
-					.select('*')
+					.select('*, product_categories(category_id)')
 					.ilike('id', `%${extractedId}`)
 					.single();
 				data = result.data;
@@ -51,7 +55,6 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 
 		// Tambah console.log ini untuk debug
 		console.log('Received body:', body);
-		console.log('FAQ data:', body.faq);
 
 		const {
 			name,
@@ -63,7 +66,8 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 			discount_percentage,
 			discount_end_date,
 			faq,
-			is_active
+			status,
+			category_ids // Array of category IDs
 		} = body;
 
 		if (!name || !description || price === undefined) {
@@ -96,12 +100,10 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 			discount_percentage: discount_percentage ? parseInt(discount_percentage.toString()) : null,
 			discount_end_date: discount_end_date || null,
 			faq: faq || null,
-			status: body.status || 'active'
+			status: status || 'active'
 		};
 
-		// Tambah console.log ini
-		console.log('Update data:', updateData);
-
+		// 1. Update Product Data
 		const { data, error } = await supabaseAdmin
 			.from('products')
 			.update(updateData)
@@ -114,8 +116,27 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 			return json({ error: 'Gagal update produk' }, { status: 500 });
 		}
 
-		// Tambah console.log ini
-		console.log('Updated product:', data);
+		// 2. Update Categories if provided
+		if (category_ids && Array.isArray(category_ids)) {
+			// Delete existing
+			await supabaseAdmin.from('product_categories').delete().eq('product_id', productId);
+
+			// Insert new
+			if (category_ids.length > 0) {
+				const categoryInserts = category_ids.map((catId: string) => ({
+					product_id: productId,
+					category_id: catId
+				}));
+				const { error: catError } = await supabaseAdmin
+					.from('product_categories')
+					.insert(categoryInserts);
+
+				if (catError) {
+					console.error('Update categories error:', catError);
+					// Don't fail the whole request, just log error
+				}
+			}
+		}
 
 		return json(data);
 	} catch (error) {

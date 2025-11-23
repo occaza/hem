@@ -3,6 +3,7 @@
 	import type { Category } from '$lib/types/types';
 	import { toast } from '$lib/stores/toast.store';
 	import { SquarePen, Plus, Tag } from '@lucide/svelte';
+	import DynamicIcon from '$lib/components/ui/DynamicIcon.svelte';
 
 	let categories = $state<Category[]>([]);
 	let loading = $state(true);
@@ -150,7 +151,7 @@
 						<div class="flex items-start justify-between">
 							<div class="flex items-center gap-2">
 								{#if category.icon}
-									<span class="text-2xl">{category.icon}</span>
+									<DynamicIcon name={category.icon} size={24} class="text-primary" />
 								{:else}
 									<Tag size="24" class="text-base-content/50" />
 								{/if}
@@ -200,6 +201,25 @@
 <!-- Modal -->
 {#if showModal}
 	<div class="modal-open modal">
+		<div class="modal-box">
+			<h3 class="text-lg font-bold">
+				{editingCategory ? 'Edit Kategori' : 'Tambah Kategori'}
+			</h3>
+
+			<form
+				class="py-4"
+				onsubmit={(e) => {
+					e.preventDefault();
+					handleSubmit();
+				}}
+			>
+				<div class="form-control">
+					<label class="label" for="category-name">
+						<span class="label-text">Nama Kategori *</span>
+					</label>
+					<input
+						id="category-name"
+						type="text"
 						class="input-bordered input"
 						bind:value={formData.name}
 						oninput={generateSlug}
@@ -208,34 +228,81 @@
 				</div>
 
 				<div class="form-control mt-4">
-					<label class="label">
+					<label class="label" for="category-slug">
 						<span class="label-text">Slug *</span>
 					</label>
-					<input type="text" class="input-bordered input" bind:value={formData.slug} required />
+					<input
+						id="category-slug"
+						type="text"
+						class="input-bordered input"
+						bind:value={formData.slug}
+						required
+					/>
 				</div>
 
 				<div class="form-control mt-4">
-					<label class="label">
-						<span class="label-text">Icon (Emoji)</span>
+					<label class="label" for="category-icon">
+						<span class="label-text">Icon (Nama Lucide)</span>
+						<a
+							href="https://lucide.dev/icons"
+							target="_blank"
+							class="label-text-alt link link-primary"
+						>
+							Cari Icon di Sini ↗
+						</a>
 					</label>
-					<input type="text" class="input-bordered input" bind:value={formData.icon} />
-					<label class="label">
-						<span class="label-text-alt">Contoh: 🎮 📱 💻</span>
-					</label>
+					<div class="flex gap-2">
+						<input
+							id="category-icon"
+							type="text"
+							class="input-bordered input w-full"
+							bind:value={formData.icon}
+							oninput={(e) => {
+								const val = e.currentTarget.value;
+								if (val) {
+									formData.icon = val
+										.split(/[\s-]/)
+										.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+										.join('');
+								}
+							}}
+							placeholder="Contoh: ShoppingCart, Gamepad, Zap..."
+						/>
+						<div
+							class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-base-300 bg-base-100"
+							title="Preview Icon"
+						>
+							{#if formData.icon}
+								<DynamicIcon name={formData.icon} size={24} class="text-primary" />
+							{:else}
+								<span class="text-xs text-base-content/30">?</span>
+							{/if}
+						</div>
+					</div>
+					<div class="label">
+						<span class="label-text-alt text-xs text-base-content/60">
+							Tips: Ketik nama icon, otomatis diformat (contoh: "shopping cart" -> "ShoppingCart")
+						</span>
+					</div>
 				</div>
 
 				<div class="form-control mt-4">
-					<label class="label">
+					<label class="label" for="category-description">
 						<span class="label-text">Deskripsi</span>
 					</label>
-					<textarea class="textarea-bordered textarea" bind:value={formData.description}></textarea>
+					<textarea
+						id="category-description"
+						class="textarea-bordered textarea"
+						bind:value={formData.description}
+					></textarea>
 				</div>
 
 				<div class="form-control mt-4">
-					<label class="label">
+					<label class="label" for="category-order">
 						<span class="label-text">Urutan Tampilan</span>
 					</label>
 					<input
+						id="category-order"
 						type="number"
 						class="input-bordered input"
 						bind:value={formData.display_order}
@@ -249,6 +316,7 @@
 				</div>
 			</form>
 		</div>
-		<div class="modal-backdrop" onclick={closeModal}></div>
+		<button type="button" class="modal-backdrop" onclick={closeModal} aria-label="Close modal"
+		></button>
 	</div>
 {/if}
