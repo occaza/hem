@@ -31,27 +31,8 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 			return json({ error: 'Order not found or already completed' }, { status: 404 });
 		}
 
-		// Kurangi stok di sini
-		for (const transaction of updated) {
-			const { data: product } = await supabaseAdmin
-				.from('products')
-				.select('stock, price')
-				.eq('id', transaction.product_id)
-				.single();
-
-			if (product && product.stock > 0) {
-				const quantity = Math.floor(transaction.amount / product.price);
-
-				await supabaseAdmin
-					.from('products')
-					.update({
-						stock: Math.max(0, product.stock - quantity)
-					})
-					.eq('id', transaction.product_id);
-
-				console.log(`✅ Stock reduced for ${transaction.product_id}: ${quantity} units`);
-			}
-		}
+		// Stock is already reduced by webhook when payment is confirmed
+		// No need to reduce stock again here
 
 		console.log(`✅ Order ${order_id} completed by ${user.email}`);
 
