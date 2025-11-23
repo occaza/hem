@@ -1,7 +1,7 @@
 <!-- src/routes/+page.svelte (REFACTORED - Step 4) -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Product } from '$lib/types/types';
+	import type { Product, Category } from '$lib/types/types';
 	import QRCode from 'qrcode';
 
 	import { cartStore, cartCount } from '$lib/stores/cart.store';
@@ -14,6 +14,8 @@
 	import PaymentModal from '$lib/components/features/payment/PaymentModal.svelte';
 
 	let products = $state<Product[]>([]);
+	let categories = $state<Category[]>([]);
+	let selectedCategory = $state<string | null>(null);
 	let loading = $state(true);
 	let showPayment = $state(false);
 	let showMethodSelector = $state(false);
@@ -27,15 +29,18 @@
 	onMount(() => {
 		(async () => {
 			try {
+				// Load categories
+				const catRes = await fetch('/api/categories');
+				const catData = await catRes.json();
+				categories = catData;
+
 				// Load products
-				const res = await fetch('/api/products');
-				const data = await res.json();
-				products = data;
+				await loadProducts();
 
 				// Load cart ✨
 				await cartStore.load();
 			} catch (error) {
-				console.error('Failed to fetch products:', error);
+				console.error('Failed to fetch data:', error);
 			} finally {
 				loading = false;
 			}
@@ -45,6 +50,22 @@
 			if (pollingInterval) clearInterval(pollingInterval);
 		};
 	});
+
+	async function loadProducts() {
+		try {
+			const url = selectedCategory ? `/api/products?category=${selectedCategory}` : '/api/products';
+			const res = await fetch(url);
+			const data = await res.json();
+			products = data;
+		} catch (error) {
+			console.error('Failed to fetch products:', error);
+		}
+	}
+
+	async function selectCategory(slug: string | null) {
+		selectedCategory = slug;
+		await loadProducts();
+	}
 
 	function showMethodSelection(product: Product) {
 		selectedProduct = product;
@@ -194,6 +215,29 @@
 				Pilih produk yang Anda inginkan dan nikmati kemudahan berbelanja
 			</p>
 		</div>
+
+		<!-- Category Filter -->
+		{#if categories.length > 0}
+			<div class="mb-6 flex flex-wrap items-center justify-center gap-2">
+				<button
+					class="btn btn-sm {selectedCategory === null ? 'btn-primary' : 'btn-outline'}"
+					onclick={() => selectCategory(null)}
+				>
+					Semua Produk
+				</button>
+				{#each categories as category}
+					<button
+						class="btn btn-sm {selectedCategory === category.slug ? 'btn-primary' : 'btn-outline'}"
+						onclick={() => selectCategory(category.slug)}
+					>
+						{#if category.icon}
+							<span>{category.icon}</span>
+						{/if}
+						{category.name}
+					</button>
+				{/each}
+			</div>
+		{/if}
 
 		{#if loading}
 			<div class="flex justify-center py-20">

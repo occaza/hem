@@ -11,7 +11,9 @@ export type Product = {
 	discount_percentage?: number;
 	discount_end_date?: string;
 	created_at?: string;
-	faq?: Array<{ question: string; answer: string }>; // Tambah ini
+	faq?: Array<{ question: string; answer: string }>;
+	status: 'active' | 'draft' | 'archived';
+	categories?: Array<{ id: string; name: string; slug: string; icon?: string }>;
 };
 
 // Ubah ini
@@ -86,7 +88,27 @@ export type CartItem = {
 	created_at: string;
 	updated_at: string;
 	product?: Product;
-	note?: string; // Tambah ini
+	note?: string;
+};
+
+// Category types
+export type Category = {
+	id: string;
+	name: string;
+	slug: string;
+	icon?: string;
+	description?: string;
+	display_order: number;
+	is_active: boolean;
+	created_at?: string;
+	updated_at?: string;
+};
+
+export type ProductCategory = {
+	id: string;
+	product_id: string;
+	category_id: string;
+	created_at?: string;
 };
 
 // Update atau tambah ini

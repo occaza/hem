@@ -62,7 +62,8 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 			stock,
 			discount_percentage,
 			discount_end_date,
-			faq
+			faq,
+			is_active
 		} = body;
 
 		if (!name || !description || price === undefined) {
@@ -94,7 +95,8 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 			stock: stock !== undefined ? parseInt(stock.toString()) : 0,
 			discount_percentage: discount_percentage ? parseInt(discount_percentage.toString()) : null,
 			discount_end_date: discount_end_date || null,
-			faq: faq || null
+			faq: faq || null,
+			status: body.status || 'active'
 		};
 
 		// Tambah console.log ini
@@ -118,6 +120,45 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 		return json(data);
 	} catch (error) {
 		console.error('Update product error:', error);
+		return json({ error: 'Internal server error' }, { status: 500 });
+	}
+};
+
+// PATCH - Partial update (misal untuk toggle status)
+export const PATCH: RequestHandler = async ({ params, request, cookies }) => {
+	try {
+		await requireRole(cookies, ['superadmin']);
+
+		const { id } = params;
+		const body = await request.json();
+		const supabaseAdmin = getSupabaseAdmin();
+
+		let productId = id;
+		const extractedId = extractIdFromSlug(id);
+		if (extractedId) {
+			const { data: existing } = await supabaseAdmin
+				.from('products')
+				.select('id')
+				.ilike('id', `%${extractedId}`)
+				.single();
+			if (existing) productId = existing.id;
+		}
+
+		const { data, error } = await supabaseAdmin
+			.from('products')
+			.update(body)
+			.eq('id', productId)
+			.select()
+			.single();
+
+		if (error) {
+			console.error('Patch product error:', error);
+			return json({ error: 'Gagal update produk' }, { status: 500 });
+		}
+
+		return json(data);
+	} catch (error) {
+		console.error('Patch product error:', error);
 		return json({ error: 'Internal server error' }, { status: 500 });
 	}
 };

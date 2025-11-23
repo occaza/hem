@@ -89,7 +89,7 @@ export const GET: RequestHandler = async () => {
 
 		const { data, error } = await supabaseAdmin
 			.from('products')
-			.select('id, name, price, description')
+			.select('*')
 			.order('created_at', { ascending: false });
 
 		if (error) {

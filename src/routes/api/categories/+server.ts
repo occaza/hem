@@ -9,7 +9,7 @@ export const GET: RequestHandler = async () => {
 
 		const { data, error } = await supabaseAdmin
 			.from('categories')
-			.select('*')
+			.select('id, name, slug, icon, description, display_order')
 			.eq('is_active', true)
 			.order('display_order', { ascending: true });
 
@@ -18,7 +18,11 @@ export const GET: RequestHandler = async () => {
 			return json({ error: 'Failed to fetch categories' }, { status: 500 });
 		}
 
-		return json(data || []);
+		return json(data || [], {
+			headers: {
+				'Cache-Control': 'public, max-age=300' // Cache for 5 minutes
+			}
+		});
 	} catch (error) {
 		console.error('Get categories error:', error);
 		return json({ error: 'Internal server error' }, { status: 500 });

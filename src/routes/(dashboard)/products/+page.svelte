@@ -2,12 +2,12 @@
 	import { onMount } from 'svelte';
 	import type { Product } from '$lib/types/types';
 	import { formatCurrency } from '$lib/utils/format.utils';
-	import { SquarePen, Trash2, PackagePlus } from '@lucide/svelte';
+	import { SquarePen, PackagePlus } from '@lucide/svelte';
 	import { toast } from '$lib/stores/toast.store';
+	import { TriangleAlert, Box, CircleX } from '@lucide/svelte';
 
 	let products = $state<Product[]>([]);
 	let loading = $state(true);
-	let deleteLoading = $state<string | null>(null);
 
 	onMount(async () => {
 		await loadProducts();
@@ -15,7 +15,7 @@
 
 	async function loadProducts() {
 		try {
-			const res = await fetch('/api/products');
+			const res = await fetch('/api/admin/products');
 			const data = await res.json();
 			products = data;
 		} catch (error) {
@@ -25,25 +25,28 @@
 		}
 	}
 
-	async function deleteProduct(id: string) {
-		if (!confirm('Yakin ingin menghapus produk ini?')) return;
+	async function updateProductStatus(product: Product, newStatus: 'active' | 'draft' | 'archived') {
+		const originalStatus = product.status;
+		product.status = newStatus;
 
-		deleteLoading = id;
 		try {
-			const res = await fetch(`/api/admin/products/${id}`, {
-				method: 'DELETE'
+			const res = await fetch(`/api/admin/products/${product.id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status: newStatus })
 			});
 
 			if (res.ok) {
-				await loadProducts();
+				toast.success(`Status produk diubah menjadi ${newStatus}`);
 			} else {
-				toast.error('Gagal menghapus produk');
+				// Revert if failed
+				product.status = originalStatus;
+				toast.error('Gagal mengubah status produk');
 			}
 		} catch (error) {
-			console.error('Delete error:', error);
+			console.error('Update status error:', error);
+			product.status = originalStatus;
 			toast.error('Terjadi kesalahan');
-		} finally {
-			deleteLoading = null;
 		}
 	}
 </script>
@@ -72,69 +75,17 @@
 							<div class="flex items-center justify-between">
 								{#if product.stock === 0}
 									<span class="badge gap-1 font-semibold text-white badge-error">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="14"
-											height="14"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line
-												x1="9"
-												y1="9"
-												x2="15"
-												y2="15"
-											/></svg
-										>
+										<CircleX size="16" />
 										Stok Habis
 									</span>
 								{:else if product.stock < 5}
 									<span class="badge gap-1 font-semibold badge-warning">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="14"
-											height="14"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											><path
-												d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
-											/><line x1="12" y1="9" x2="12" y2="13" /><line
-												x1="12"
-												y1="17"
-												x2="12.01"
-												y2="17"
-											/></svg
-										>
+										<TriangleAlert size="16" />
 										Stok Menipis: {product.stock}
 									</span>
 								{:else}
 									<span class="badge gap-1 badge-ghost font-medium">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="14"
-											height="14"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											><path
-												d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-											/><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line
-												x1="12"
-												y1="22.08"
-												x2="12"
-												y2="12"
-											/></svg
-										>
+										<Box size="16" />
 										Stok: {product.stock}
 									</span>
 								{/if}
@@ -158,23 +109,25 @@
 								</div>
 							{/if}
 						</div>
-						<div class="card-actions justify-end">
-							<a href="/products/{product.id}" class="btn btn-outline btn-sm">
-								<SquarePen size="16" />
-								Edit
-							</a>
-							<button
-								class="btn btn-sm btn-error"
-								onclick={() => deleteProduct(product.id)}
-								disabled={deleteLoading === product.id}
-							>
-								{#if deleteLoading === product.id}
-									<span class="loading loading-sm loading-spinner"></span>
-								{:else}
-									<Trash2 size="16" />
-									Hapus
-								{/if}
-							</button>
+
+						<div class="mt-4 card-actions items-center justify-between">
+							<div class="form-control">
+								<select
+									class="select-bordered select w-full max-w-xs select-xs"
+									value={product.status || 'active'}
+									onchange={(e) => updateProductStatus(product, e.currentTarget.value as any)}
+								>
+									<option value="active">Aktif</option>
+									<option value="draft">Draft</option>
+									<option value="archived">Arsip</option>
+								</select>
+							</div>
+							<div class="flex gap-2">
+								<a href="/products/{product.id}" class="btn btn-outline btn-sm">
+									<SquarePen size="16" />
+									Edit
+								</a>
+							</div>
 						</div>
 					</div>
 				</div>
