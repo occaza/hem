@@ -5,6 +5,8 @@
 	import { calculateDiscountedPrice, isDiscountActive, isInStock } from '$lib/utils/product.utils';
 	import { cartStore } from '$lib/stores/cart.store';
 	import { authUser } from '$lib/stores/auth.store';
+	import { ShoppingCart, Zap } from '@lucide/svelte';
+	import { toast } from '$lib/stores/toast.store';
 
 	type Props = {
 		product: Product;
@@ -29,7 +31,7 @@
 
 	async function handleAddToCart() {
 		if (!user) {
-			alert('Silakan login terlebih dahulu untuk menambahkan ke keranjang');
+			toast.error('Silakan login terlebih dahulu untuk menambahkan ke keranjang');
 			goto('/login');
 			return;
 		}
@@ -37,16 +39,16 @@
 		addingToCart = true;
 		const success = await cartStore.addItem(product, 1);
 		if (success) {
-			alert('Produk berhasil ditambahkan ke keranjang!');
+			toast.success('Produk berhasil ditambahkan ke keranjang!');
 		} else {
-			alert('Gagal menambahkan ke keranjang');
+			toast.error('Gagal menambahkan ke keranjang');
 		}
 		addingToCart = false;
 	}
 
 	function handleBuyNow() {
 		if (!user) {
-			alert('Silakan login terlebih dahulu untuk membeli produk');
+			toast.error('Silakan login terlebih dahulu untuk membeli produk');
 			goto('/login');
 			return;
 		}
@@ -144,9 +146,8 @@
 						{#if addingToCart}
 							<span class="loading loading-xs loading-spinner"></span>
 						{:else}
-							<span>🛒</span>
+							<ShoppingCart size={14} />
 						{/if}
-						Keranjang
 					</button>
 				{/if}
 
@@ -157,7 +158,7 @@
 						handleBuyNow();
 					}}
 				>
-					<span>⚡</span>
+					<Zap size={14} />
 					Beli Sekarang
 				</button>
 			{:else}

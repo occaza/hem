@@ -3,6 +3,7 @@
 	import { authUser } from '$lib/stores/auth.store';
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import Toast from '$lib/components/common/Toast.svelte';
 
 	let { children } = $props();
 
@@ -16,5 +17,6 @@
 </svelte:head>
 
 <main data-theme="light">
+	<Toast />
 	{@render children()}
 </main>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { toast } from '$lib/stores/toast.store';
 
 	type UserWithRole = {
 		id: string;
@@ -25,16 +26,15 @@
 				const data = await res.json();
 				users = data;
 			} else {
-				alert('Gagal memuat user');
+				toast.error('Gagal memuat user');
 			}
 		} catch (error) {
 			console.error('Load users error:', error);
-			alert('Terjadi kesalahan');
+			toast.error('Terjadi kesalahan');
 		} finally {
 			loading = false;
 		}
 	}
-
 	function formatDate(dateString: string) {
 		return new Date(dateString).toLocaleString('id-ID', {
 			day: '2-digit',

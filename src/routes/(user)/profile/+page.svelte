@@ -1,14 +1,13 @@
-<!-- src/routes/profile/+page.svelte -->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Navbar from '$lib/components/layout/Navbar.svelte';
 	import { authUser } from '$lib/stores/auth.store';
 	import { uploadAvatar, deleteAvatar } from '$lib/utils/avatar.utils';
+	import { toast } from '$lib/stores/toast.store';
 
-	let { data } = $props(); // Tambah ini
+	let { data } = $props();
 
-	// Ganti ini
 	const user = $derived(data.user);
 
 	let profile = $state({
@@ -36,7 +35,6 @@
 	let passwordLoading = $state(false);
 
 	onMount(async () => {
-		// Hapus check user di sini karena sudah di server
 		await loadProfile();
 	});
 
@@ -97,14 +95,13 @@
 			});
 
 			if (res.ok) {
-				success = 'Profile berhasil diupdate';
-				setTimeout(() => (success = ''), 3000);
+				toast.success('Profile berhasil diupdate');
 			} else {
 				const data = await res.json();
-				error = data.error || 'Gagal update profile';
+				toast.error(data.error || 'Gagal update profile');
 			}
 		} catch (err) {
-			error = 'Terjadi kesalahan';
+			toast.error('Terjadi kesalahan');
 		} finally {
 			saving = false;
 		}
@@ -112,7 +109,7 @@
 
 	async function handleUpdateEmail() {
 		if (!newEmail.trim()) {
-			error = 'Email baru harus diisi';
+			toast.error('Email baru harus diisi');
 			return;
 		}
 
@@ -129,14 +126,14 @@
 			const data = await res.json();
 
 			if (res.ok) {
-				alert(data.message);
+				toast.success(data.message);
 				showEmailModal = false;
 				newEmail = '';
 			} else {
-				error = data.error || 'Gagal update email';
+				toast.error(data.error || 'Gagal update email');
 			}
 		} catch (err) {
-			error = 'Terjadi kesalahan';
+			toast.error('Terjadi kesalahan');
 		} finally {
 			emailLoading = false;
 		}
@@ -144,17 +141,17 @@
 
 	async function handleUpdatePassword() {
 		if (!newPassword.trim()) {
-			error = 'Password baru harus diisi';
+			toast.error('Password baru harus diisi');
 			return;
 		}
 
 		if (newPassword !== confirmPassword) {
-			error = 'Password tidak cocok';
+			toast.error('Password tidak cocok');
 			return;
 		}
 
 		if (newPassword.length < 6) {
-			error = 'Password minimal 6 karakter';
+			toast.error('Password minimal 6 karakter');
 			return;
 		}
 
@@ -171,15 +168,15 @@
 			const data = await res.json();
 
 			if (res.ok) {
-				alert(data.message);
+				toast.success(data.message);
 				showPasswordModal = false;
 				newPassword = '';
 				confirmPassword = '';
 			} else {
-				error = data.error || 'Gagal update password';
+				toast.error(data.error || 'Gagal update password');
 			}
 		} catch (err) {
-			error = 'Terjadi kesalahan';
+			toast.error('Terjadi kesalahan');
 		} finally {
 			passwordLoading = false;
 		}

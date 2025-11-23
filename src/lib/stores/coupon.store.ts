@@ -1,6 +1,6 @@
-// src/lib/stores/coupon.store.ts
 import { writable } from 'svelte/store';
-import type { Coupon, AppliedCoupon } from '$lib/types/types';
+import type { AppliedCoupon } from '$lib/types/types';
+import { toast } from '$lib/stores/toast.store';
 
 function createCouponStore() {
 	const { subscribe, set, update } = writable<AppliedCoupon | null>(null);
@@ -24,20 +24,22 @@ function createCouponStore() {
 						discount_amount: data.discount_amount,
 						final_amount: data.final_amount
 					});
+					toast.success('Kupon berhasil diterapkan!');
 					return true;
 				} else {
-					alert(data.message || 'Kupon tidak valid');
+					toast.error(data.message || 'Kupon tidak valid');
 					return false;
 				}
 			} catch (error) {
 				console.error('Apply coupon error:', error);
-				alert('Gagal menerapkan kupon');
+				toast.error('Gagal menerapkan kupon');
 				return false;
 			}
 		},
 
 		remove() {
 			set(null);
+			toast.info('Kupon dihapus');
 		},
 
 		clear() {

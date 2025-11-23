@@ -14,6 +14,7 @@
 	import { cartStore } from '$lib/stores/cart.store';
 	import { calculateDiscountedPrice, isDiscountActive, isInStock } from '$lib/utils/product.utils';
 	import { generateOrderId, encodeOrderId } from '$lib/utils/order.utils';
+	import { toast } from '$lib/stores/toast.store';
 
 	let product = $state<Product | null>(null);
 	let loading = $state(true);
@@ -21,7 +22,7 @@
 	let quantity = $state(1);
 	let addingToCart = $state(false);
 	let activeTab = $state<'detail' | 'faq'>('detail');
-	let note = $state(''); // TAMBAH INI
+	let note = $state('');
 	let showPayment = $state(false);
 	let showMethodSelector = $state(false);
 	let selectedMethod = $state('qris');
@@ -65,7 +66,7 @@
 		if (!product) return;
 
 		if (!user) {
-			alert('Silakan login terlebih dahulu untuk menambahkan ke keranjang');
+			toast.error('Silakan login terlebih dahulu untuk menambahkan ke keranjang');
 			goto('/login');
 			return;
 		}
@@ -73,9 +74,9 @@
 		addingToCart = true;
 		const success = await cartStore.addItem(product, quantity);
 		if (success) {
-			alert('Produk berhasil ditambahkan ke keranjang!');
+			toast.success('Produk berhasil ditambahkan ke keranjang!');
 		} else {
-			alert('Gagal menambahkan ke keranjang');
+			toast.error('Gagal menambahkan ke keranjang');
 		}
 		addingToCart = false;
 	}
@@ -84,7 +85,7 @@
 		if (!product) return;
 
 		if (!user) {
-			alert('Silakan login terlebih dahulu untuk membeli produk');
+			toast.error('Silakan login terlebih dahulu untuk membeli produk');
 			goto('/login');
 			return;
 		}
@@ -118,14 +119,14 @@
 			const data = await res.json();
 
 			if (!res.ok || data.error) {
-				alert(data.error || 'Gagal membuat transaksi.');
+				toast.error(data.error || 'Gagal membuat transaksi.');
 				return;
 			}
 
 			goto(`/payment/${encodedOrderId}`);
 		} catch (error) {
 			console.error('Checkout error:', error);
-			alert('Terjadi kesalahan. Silakan coba lagi.');
+			toast.error('Terjadi kesalahan. Silakan coba lagi.');
 		}
 	}
 
@@ -189,15 +190,15 @@
 			});
 
 			if (res.ok) {
-				alert('Simulasi berhasil! Tunggu sebentar...');
+				toast.success('Simulasi berhasil! Tunggu sebentar...');
 			} else {
 				const data = await res.json();
-				alert(data.error || 'Simulasi gagal');
+				toast.error(data.error || 'Simulasi gagal');
 				isSimulating = false;
 			}
 		} catch (error) {
 			console.error('Simulate error:', error);
-			alert('Terjadi kesalahan saat simulasi');
+			toast.error('Terjadi kesalahan saat simulasi');
 			isSimulating = false;
 		}
 	}
@@ -411,7 +412,7 @@
 								<textarea
 									id="note"
 									class="textarea-bordered textarea h-20 textarea-sm"
-									placeholder="Contoh: Tolong kirim warna merah"
+									placeholder="Contoh: Tolong kirim ke email contoh@gmail.com"
 									bind:value={note}
 								></textarea>
 								<div class="label">

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { getSupabaseClient } from '$lib/client/supabase';
+	import { toast } from '$lib/stores/toast.store';
 
 	let password = $state('');
 	let confirmPassword = $state('');
@@ -96,7 +97,7 @@
 			console.log('Response data:', data);
 
 			if (res.ok) {
-				alert('Password berhasil diubah! Silakan login dengan password baru.');
+				toast.success('Password berhasil diubah! Silakan login dengan password baru.');
 				goto('/login');
 			} else {
 				error = data.error || 'Gagal mengubah password';

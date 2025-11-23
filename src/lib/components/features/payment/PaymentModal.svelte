@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { Product } from '$lib/types/types';
-	import { formatCurrency, formatShortDate } from '$lib/utils/format.utils';
 	import { goto } from '$app/navigation';
+	import { formatCurrency, formatShortDate } from '$lib/utils/format.utils';
+	import { toast } from '$lib/stores/toast.store';
 
 	type Props = {
-		product: Product;
+		product: any;
 		paymentData: any;
 		qrImageUrl: string;
 		isSimulating: boolean;
@@ -25,13 +25,11 @@
 
 	function copyToClipboard(text: string) {
 		navigator.clipboard.writeText(text);
-		alert('Nomor berhasil disalin!');
+		toast.success('Nomor pembayaran disalin!');
 	}
 
-	async function handleSimulate() {
-		await onSimulate();
-
-		// Tunggu sebentar lalu redirect
+	function handleSimulate() {
+		onSimulate();
 		setTimeout(() => {
 			goto(`/success?order_id=${paymentData.order_id}&simulated=true`);
 		}, 2000);

@@ -6,6 +6,8 @@
 	import QRCode from 'qrcode';
 	import { formatCurrency, formatShortDate } from '$lib/utils/format.utils';
 	import { decodeOrderId } from '$lib/utils/order.utils';
+	import { toast } from '$lib/stores/toast.store';
+	import Footer from '$lib/components/layout/Footer.svelte';
 
 	let paymentData = $state<any>(null);
 	let qrImageUrl = $state('');
@@ -166,12 +168,12 @@
 				// Langsung cek status dan redirect
 				await checkPaymentStatus();
 			} else {
-				alert(data.error || 'Simulasi gagal');
+				toast.error(data.error || 'Simulasi gagal');
 				isSimulating = false;
 			}
 		} catch (error) {
 			console.error('Simulate error:', error);
-			alert('Terjadi kesalahan');
+			toast.error('Terjadi kesalahan');
 			isSimulating = false;
 		}
 	}
@@ -179,7 +181,7 @@
 	function copyToClipboard(text: string) {
 		if (!browser) return;
 		navigator.clipboard.writeText(text);
-		alert('Nomor berhasil disalin!');
+		toast.success('Nomor berhasil disalin!');
 	}
 </script>
 
@@ -403,4 +405,5 @@
 			</div>
 		{/if}
 	</div>
+	<Footer />
 </div>

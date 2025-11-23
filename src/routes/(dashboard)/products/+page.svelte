@@ -1,9 +1,9 @@
-<!-- src/routes/(dashboard)/products/+page.svelte -->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Product } from '$lib/types/types';
 	import { formatCurrency } from '$lib/utils/format.utils';
 	import { SquarePen, Trash2, PackagePlus } from '@lucide/svelte';
+	import { toast } from '$lib/stores/toast.store';
 
 	let products = $state<Product[]>([]);
 	let loading = $state(true);
@@ -37,11 +37,11 @@
 			if (res.ok) {
 				await loadProducts();
 			} else {
-				alert('Gagal menghapus produk');
+				toast.error('Gagal menghapus produk');
 			}
 		} catch (error) {
 			console.error('Delete error:', error);
-			alert('Terjadi kesalahan');
+			toast.error('Terjadi kesalahan');
 		} finally {
 			deleteLoading = null;
 		}
@@ -75,9 +75,9 @@
 									<div class="text-sm text-base-content/50 line-through">
 										{formatCurrency(product.price)}
 									</div>
-									<div class="text-2xl font-bold text-error flex items-center gap-2">
+									<div class="flex items-center gap-2 text-2xl font-bold text-error">
 										{formatCurrency(product.price * (1 - product.discount_percentage / 100))}
-										<span class="badge badge-error badge-sm">-{product.discount_percentage}%</span>
+										<span class="badge badge-sm badge-error">-{product.discount_percentage}%</span>
 									</div>
 								</div>
 							{:else}

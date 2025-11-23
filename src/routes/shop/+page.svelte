@@ -3,9 +3,11 @@
 	import { onMount } from 'svelte';
 	import type { Product } from '$lib/types/types';
 	import QRCode from 'qrcode';
-	
+
 	import { cartStore, cartCount } from '$lib/stores/cart.store';
+	import { toast } from '$lib/stores/toast.store';
 	import Navbar from '$lib/components/layout/Navbar.svelte';
+	import Footer from '$lib/components/layout/Footer.svelte';
 	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
 	import ProductCard from '$lib/components/features/products/ProductCard.svelte';
 	import MethodSelectorModal from '$lib/components/features/payment/MethodSelectorModal.svelte';
@@ -73,12 +75,12 @@
 			const data = await res.json();
 
 			if (!res.ok || data.error) {
-				alert(data.error || 'Gagal membuat transaksi.');
+				toast.error(data.error || 'Gagal membuat transaksi.');
 				return;
 			}
 
 			if (!data.payment_number) {
-				alert('Response tidak valid dari server.');
+				toast.error('Response tidak valid dari server.');
 				return;
 			}
 
@@ -95,7 +97,7 @@
 			startPolling(orderId);
 		} catch (error) {
 			console.error('Checkout error:', error);
-			alert('Terjadi kesalahan. Silakan coba lagi.');
+			toast.error('Terjadi kesalahan. Silakan coba lagi.');
 		}
 	}
 
@@ -162,14 +164,14 @@
 			const data = await res.json();
 
 			if (res.ok) {
-				alert('Simulasi berhasil! Tunggu sebentar...');
+				toast.success('Simulasi berhasil! Tunggu sebentar...');
 			} else {
-				alert(data.error || 'Simulasi gagal');
+				toast.error(data.error || 'Simulasi gagal');
 				isSimulating = false;
 			}
 		} catch (error) {
 			console.error('Simulate error:', error);
-			alert('Terjadi kesalahan saat simulasi');
+			toast.error('Terjadi kesalahan saat simulasi');
 			isSimulating = false;
 		}
 	}
@@ -209,6 +211,7 @@
 			</div>
 		{/if}
 	</div>
+	<Footer />
 </div>
 
 {#if showMethodSelector && selectedProduct}

@@ -20,6 +20,9 @@ export const load: PageServerLoad = async ({ cookies }) => {
 				`
                 order_id,
                 amount,
+                quantity,
+                fee,
+                total_payment,
                 status,
                 payment_method,
                 completed_at,
@@ -28,8 +31,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
                 product:products (
                     id,
                     name,
-                    images,
-                    price
+                    images
                 )
             `
 			)
@@ -89,11 +91,17 @@ export const load: PageServerLoad = async ({ cookies }) => {
 				const note = orderNotes ? orderNotes.get(transaction.product_id) : null;
 
 				acc[orderId].items.push({
-					product: transaction.product,
+					product: transaction.product ? {
+						...transaction.product,
+						price: transaction.amount, // Use amount as price (discounted price)
+						quantity: transaction.quantity || 1
+					} : null,
 					amount: transaction.amount,
 					note: note
 				});
 				acc[orderId].total += transaction.amount;
+				acc[orderId].fee = transaction.fee || 0;
+				acc[orderId].total_payment = transaction.total_payment || acc[orderId].total;
 
 				return acc;
 			},

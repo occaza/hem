@@ -1,4 +1,3 @@
-<!-- src/routes/(dashboard)/coupons/+page.svelte -->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Coupon } from '$lib/types/types';
@@ -9,6 +8,7 @@
 	} from '$lib/utils/coupon.utils';
 	import { formatDate } from '$lib/utils/format.utils';
 	import { Plus } from '@lucide/svelte';
+	import { toast } from '$lib/stores/toast.store';
 
 	let coupons = $state<Coupon[]>([]);
 	let loading = $state(true);
@@ -43,19 +43,17 @@
 			if (res.ok) {
 				await loadCoupons();
 			} else {
-				alert('Gagal mengubah status');
+				toast.error('Gagal mengubah status');
 			}
 		} catch (error) {
 			console.error('Toggle error:', error);
-			alert('Terjadi kesalahan');
+			toast.error('Terjadi kesalahan');
 		} finally {
 			actionLoading = null;
 		}
 	}
 
 	async function deleteCoupon(couponId: string) {
-		if (!confirm('Yakin ingin menghapus kupon ini?')) return;
-
 		actionLoading = couponId;
 		try {
 			const res = await fetch(`/api/admin/coupons/${couponId}`, {
@@ -65,7 +63,7 @@
 			if (res.ok) {
 				await loadCoupons();
 			} else {
-				alert('Gagal menghapus kupon');
+				toast.error('Gagal menghapus kupon');
 			}
 		} catch (error) {
 			console.error('Delete error:', error);

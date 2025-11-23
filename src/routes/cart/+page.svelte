@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	
+
 	import Navbar from '$lib/components/layout/Navbar.svelte';
+	import Footer from '$lib/components/layout/Footer.svelte';
 	import { cartStore, cartCount } from '$lib/stores/cart.store';
 	import { generateOrderId, encodeOrderId } from '$lib/utils/order.utils';
 	import { formatCurrency } from '$lib/utils/format.utils';
@@ -12,8 +13,9 @@
 	import PaymentModal from '$lib/components/features/payment/PaymentModal.svelte';
 	import { appliedCoupon } from '$lib/stores/coupon.store';
 	import type { CartItem } from '$lib/types/types';
-	import QRCode from 'qrcode';
+	import { Trash2, NotebookPen } from '@lucide/svelte';
 	import { authUser } from '$lib/stores/auth.store';
+	import { toast } from '$lib/stores/toast.store';
 
 	const user = $derived($authUser);
 
@@ -72,14 +74,14 @@
 		if (newQuantity < 1) return;
 		const success = await cartStore.updateQuantity(item.id, newQuantity);
 		if (!success) {
-			alert('Gagal mengupdate jumlah');
+			toast.error('Gagal mengupdate jumlah');
 		}
 	}
 
 	async function removeItem(item: CartItem) {
 		const success = await cartStore.removeItem(item.id);
 		if (!success) {
-			alert('Gagal menghapus item');
+			toast.error('Gagal menghapus item');
 		} else {
 			selectedItems.delete(item.id);
 		}
@@ -95,7 +97,7 @@
 
 	async function handleApplyCoupon() {
 		if (!couponCode.trim()) {
-			alert('Masukkan kode kupon');
+			toast.error('Masukkan kode kupon');
 			return;
 		}
 
@@ -126,7 +128,7 @@
 
 	function handleCheckout() {
 		if (selectedItems.size === 0) {
-			alert('Pilih produk yang ingin dibeli');
+			toast.error('Pilih produk yang ingin dibeli');
 			return;
 		}
 		showMethodSelector = true;
@@ -147,11 +149,11 @@
 				editingNote = null;
 			} else {
 				const data = await res.json();
-				alert('Gagal menyimpan catatan: ' + (data.error || 'Unknown error'));
+				toast.error('Gagal menyimpan catatan: ' + (data.error || 'Unknown error'));
 			}
 		} catch (error) {
 			console.error('Update note error:', error);
-			alert('Terjadi kesalahan');
+			toast.error('Terjadi kesalahan');
 		}
 	}
 
@@ -187,7 +189,7 @@
 					cart_items: selectedCartItems.map((item) => ({
 						product_id: item.product_id,
 						quantity: item.quantity,
-						note: item.note || null // TAMBAH INI
+						note: item.note || null
 					})),
 					order_id: encodedOrderId,
 					payment_method: method,
@@ -199,7 +201,7 @@
 			const data = await res.json();
 
 			if (!res.ok || data.error) {
-				alert(data.error || 'Gagal membuat transaksi');
+				toast.error(data.error || 'Gagal membuat transaksi');
 				checkoutLoading = false;
 				return;
 			}
@@ -209,10 +211,10 @@
 			}
 			selectedItems = new Set();
 
-			goto(`/payment/${encodedOrderId}`); // Route pakai encoded
+			goto(`/payment/${encodedOrderId}`);
 		} catch (error) {
 			console.error('Checkout error:', error);
-			alert('Terjadi kesalahan saat checkout');
+			toast.error('Terjadi kesalahan saat checkout');
 			checkoutLoading = false;
 		}
 	}
@@ -283,15 +285,15 @@
 			});
 
 			if (res.ok) {
-				alert('Simulasi berhasil! Tunggu sebentar...');
+				toast.success('Simulasi berhasil! Tunggu sebentar...');
 			} else {
 				const data = await res.json();
-				alert(data.error || 'Simulasi gagal');
+				toast.error(data.error || 'Simulasi gagal');
 				isSimulating = false;
 			}
 		} catch (error) {
 			console.error('Simulate error:', error);
-			alert('Terjadi kesalahan saat simulasi');
+			toast.error('Terjadi kesalahan saat simulasi');
 			isSimulating = false;
 		}
 	}
@@ -452,10 +454,10 @@
 
 												<button
 													type="button"
-													class="btn text-error btn-ghost btn-xs"
+													class="btn p-1 text-error btn-ghost btn-sm"
 													onclick={() => removeItem(item)}
 												>
-													🗑️
+													<Trash2 />
 												</button>
 											</div>
 
@@ -499,8 +501,9 @@
 														<div class="text-xs text-base-content/50">Belum ada catatan</div>
 													{/if}
 												</div>
-												<button class="btn btn-ghost btn-xs" onclick={() => startEditNote(item)}>
-													✏️ {item.note ? 'Edit' : 'Tambah'} Catatan
+												<button class="btn btn-ghost btn-sm" onclick={() => startEditNote(item)}>
+													<NotebookPen size="14" />
+													{item.note ? 'Edit' : 'Tambah'} Catatan
 												</button>
 											</div>
 										{/if}
@@ -562,6 +565,7 @@
 			</div>
 		{/if}
 	</div>
+	<Footer />
 </div>
 
 {#if showMethodSelector && dummyProduct}

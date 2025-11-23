@@ -1,21 +1,32 @@
 <script lang="ts">
 	import Navbar from '$lib/components/layout/Navbar.svelte';
-	import { Zap, LockKeyhole, TabletSmartphone, Sparkles, ShoppingBag, ArrowRight } from '@lucide/svelte';
+	import Footer from '$lib/components/layout/Footer.svelte';
+	import {
+		Zap,
+		LockKeyhole,
+		TabletSmartphone,
+		Sparkles,
+		ShoppingBag,
+		ArrowRight
+	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
 
 	let heroVisible = false;
 	let featuresVisible = false;
 
 	onMount(() => {
-		setTimeout(() => heroVisible = true, 100);
-		
-		const observer = new IntersectionObserver((entries) => {
-			entries.forEach(entry => {
-				if (entry.isIntersecting) {
-					featuresVisible = true;
-				}
-			});
-		}, { threshold: 0.2 });
+		setTimeout(() => (heroVisible = true), 100);
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						featuresVisible = true;
+					}
+				});
+			},
+			{ threshold: 0.2 }
+		);
 
 		const featuresSection = document.querySelector('#features');
 		if (featuresSection) observer.observe(featuresSection);
@@ -47,62 +58,68 @@
 
 <svelte:head>
 	<title>adverFI - Platform Belanja Digital Terpercaya</title>
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+		rel="stylesheet"
+	/>
 </svelte:head>
 
-<div class="min-h-screen font-inter">
+<div class="font-inter min-h-screen">
 	<Navbar />
 
 	<!-- Hero Section -->
-	<div class="hero-gradient relative min-h-[90vh] overflow-hidden flex items-center justify-center">
+	<div class="hero-gradient relative flex min-h-[90vh] items-center justify-center overflow-hidden">
 		<!-- Animated Background Blobs -->
 		<div class="blob blob-1"></div>
 		<div class="blob blob-2"></div>
 		<div class="blob blob-3"></div>
-		
-		<div class="relative z-10 text-center text-white px-4 py-20 w-full">
-			<div class="max-w-5xl mx-auto" class:fade-in-up={heroVisible}>
-				<div class="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-6 py-2 border border-white/20">
+
+		<div class="relative z-10 w-full px-4 py-20 text-center text-white">
+			<div class="mx-auto max-w-5xl" class:fade-in-up={heroVisible}>
+				<div
+					class="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-2 backdrop-blur-md"
+				>
 					<Sparkles size={20} class="text-yellow-300" />
 					<span class="text-sm font-medium">Platform Digital Terpercaya</span>
 				</div>
-				
-				<h1 class="mb-6 text-5xl font-black md:text-6xl lg:text-7xl xl:text-8xl leading-tight">
+
+				<h1 class="mb-6 text-5xl leading-tight font-black md:text-6xl lg:text-7xl xl:text-8xl">
 					<span class="gradient-text">Belanja Digital</span><br />
 					<span class="text-white">Lebih Mudah & Cepat</span>
 				</h1>
-				
-				<p class="mb-10 text-lg md:text-xl lg:text-2xl text-white/90 max-w-3xl mx-auto font-medium">
-					Platform terpercaya untuk membeli produk digital dengan proses pembayaran yang simpel, aman, dan instan
+
+				<p class="mx-auto mb-10 max-w-3xl text-lg font-medium text-white/90 md:text-xl lg:text-2xl">
+					Platform terpercaya untuk membeli produk digital dengan proses pembayaran yang simpel,
+					aman, dan instan
 				</p>
-				
-				<div class="flex flex-col gap-4 sm:flex-row sm:justify-center items-center">
+
+				<div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
 					<a href="/shop" class="btn-primary-custom group">
 						<ShoppingBag size={24} />
 						<span>Mulai Belanja Sekarang</span>
-						<ArrowRight size={20} class="group-hover:translate-x-1 transition-transform" />
+						<ArrowRight size={20} class="transition-transform group-hover:translate-x-1" />
 					</a>
 					<a href="#features" class="btn-secondary-custom group">
 						<span>Pelajari Lebih Lanjut</span>
-						<ArrowRight size={20} class="group-hover:translate-x-1 transition-transform" />
+						<ArrowRight size={20} class="transition-transform group-hover:translate-x-1" />
 					</a>
 				</div>
 
 				<!-- Stats -->
-				<div class="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
+				<div class="mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-8 sm:grid-cols-3">
 					<div class="stat-card">
-						<div class="text-3xl md:text-4xl font-black gradient-text">1000+</div>
-						<div class="text-sm md:text-base text-white/80 mt-1">Produk Digital</div>
+						<div class="gradient-text text-3xl font-black md:text-4xl">1000+</div>
+						<div class="mt-1 text-sm text-white/80 md:text-base">Produk Digital</div>
 					</div>
 					<div class="stat-card">
-						<div class="text-3xl md:text-4xl font-black gradient-text">5000+</div>
-						<div class="text-sm md:text-base text-white/80 mt-1">Pelanggan Puas</div>
+						<div class="gradient-text text-3xl font-black md:text-4xl">5000+</div>
+						<div class="mt-1 text-sm text-white/80 md:text-base">Pelanggan Puas</div>
 					</div>
 					<div class="stat-card">
-						<div class="text-3xl md:text-4xl font-black gradient-text">24/7</div>
-						<div class="text-sm md:text-base text-white/80 mt-1">Layanan Support</div>
+						<div class="gradient-text text-3xl font-black md:text-4xl">24/7</div>
+						<div class="mt-1 text-sm text-white/80 md:text-base">Layanan Support</div>
 					</div>
 				</div>
 			</div>
@@ -110,40 +127,48 @@
 	</div>
 
 	<!-- Features Section -->
-	<div id="features" class="py-24 bg-gradient-to-b from-base-100 to-base-200 relative overflow-hidden">
-		<div class="container mx-auto px-4 relative z-10">
+	<div
+		id="features"
+		class="relative overflow-hidden bg-gradient-to-b from-base-100 to-base-200 py-24"
+	>
+		<div class="relative z-10 container mx-auto px-4">
 			<div class="mb-20 text-center" class:fade-in-up={featuresVisible}>
-				<div class="inline-block mb-4">
-					<span class="text-sm font-bold tracking-wider uppercase text-primary">Keunggulan Kami</span>
+				<div class="mb-4 inline-block">
+					<span class="text-sm font-bold tracking-wider text-primary uppercase"
+						>Keunggulan Kami</span
+					>
 				</div>
-				<h2 class="mb-6 text-4xl md:text-5xl lg:text-6xl font-black">
+				<h2 class="mb-6 text-4xl font-black md:text-5xl lg:text-6xl">
 					Kenapa Pilih <span class="gradient-text">Kami?</span>
 				</h2>
-				<p class="text-lg md:text-xl text-base-content/70 max-w-2xl mx-auto">
-					Pengalaman berbelanja yang lebih baik dengan fitur unggulan yang dirancang untuk kenyamanan Anda
+				<p class="mx-auto max-w-2xl text-lg text-base-content/70 md:text-xl">
+					Pengalaman berbelanja yang lebih baik dengan fitur unggulan yang dirancang untuk
+					kenyamanan Anda
 				</p>
 			</div>
 
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
+			<div class="grid grid-cols-1 gap-8 md:grid-cols-3 lg:gap-10">
 				{#each features as feature, i}
-					<div 
+					<div
 						class="feature-card group"
 						class:fade-in-up={featuresVisible}
 						style="animation-delay: {i * 150}ms"
 					>
 						<div class="feature-card-inner">
 							<!-- Icon with gradient background -->
-							<div class="mb-6 relative">
+							<div class="relative mb-6">
 								<div class="icon-wrapper bg-gradient-to-br {feature.gradient}">
-									<feature.icon size={32} class="text-white relative z-10" strokeWidth={2.5} />
+									<feature.icon size={32} class="relative z-10 text-white" strokeWidth={2.5} />
 								</div>
 								<div class="icon-glow bg-gradient-to-br {feature.gradient}"></div>
 							</div>
-							
-							<h3 class="text-2xl md:text-3xl font-bold mb-4 group-hover:gradient-text transition-all duration-300">
+
+							<h3
+								class="group-hover:gradient-text mb-4 text-2xl font-bold transition-all duration-300 md:text-3xl"
+							>
 								{feature.title}
 							</h3>
-							<p class="text-base-content/70 leading-relaxed">
+							<p class="leading-relaxed text-base-content/70">
 								{feature.description}
 							</p>
 						</div>
@@ -154,88 +179,56 @@
 	</div>
 
 	<!-- CTA Section -->
-	<div class="cta-gradient relative py-24 text-white overflow-hidden">
+	<div class="cta-gradient relative overflow-hidden py-24 text-white">
 		<div class="blob blob-4"></div>
 		<div class="blob blob-5"></div>
-		
-		<div class="container mx-auto px-4 text-center relative z-10">
-			<div class="max-w-4xl mx-auto">
-				<h2 class="mb-6 text-4xl md:text-5xl lg:text-6xl font-black">
+
+		<div class="relative z-10 container mx-auto px-4 text-center">
+			<div class="mx-auto max-w-4xl">
+				<h2 class="mb-6 text-4xl font-black md:text-5xl lg:text-6xl">
 					Siap Untuk <span class="text-yellow-300">Memulai?</span>
 				</h2>
-				<p class="mb-10 text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
-					Jelajahi koleksi produk digital kami dan nikmati kemudahan berbelanja dengan sistem pembayaran yang aman dan cepat
+				<p class="mx-auto mb-10 max-w-2xl text-lg text-white/90 md:text-xl">
+					Jelajahi koleksi produk digital kami dan nikmati kemudahan berbelanja dengan sistem
+					pembayaran yang aman dan cepat
 				</p>
 				<a href="/shop" class="btn-cta-custom group">
 					<ShoppingBag size={24} />
 					<span>Lihat Semua Produk</span>
-					<ArrowRight size={20} class="group-hover:translate-x-1 transition-transform" />
+					<ArrowRight size={20} class="transition-transform group-hover:translate-x-1" />
 				</a>
 			</div>
 		</div>
 	</div>
 
 	<!-- Footer -->
-	<footer class="bg-base-300 pt-16 pb-8">
-		<div class="container mx-auto px-4">
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-				<!-- Brand -->
-				<div>
-					<h3 class="text-2xl font-black mb-4 gradient-text">adverFI</h3>
-					<p class="text-base-content/70 mb-4">
-						Platform belanja digital terpercaya sejak 2025. Kami berkomitmen memberikan pengalaman terbaik untuk setiap pelanggan.
-					</p>
-				</div>
-				
-				<!-- Quick Links -->
-			<div>
-				<h4 class="text-lg font-bold mb-4">Quick Links</h4>
-				<div class="flex flex-col gap-2">
-					<a href="/shop" class="link-footer">Produk</a>
-					<a href="/login" class="link-footer">Admin</a>
-					<a href="#features" class="link-footer">Fitur</a>
-				</div>
-			</div>
-			
-			<!-- Legal -->
-			<div>
-				<h4 class="text-lg font-bold mb-4">Legal</h4>
-				<div class="flex flex-col gap-2">
-					<a href="/terms-of-service" class="link-footer">Syarat dan Ketentuan</a>
-					<a href="/privacy-policy" class="link-footer">Kebijakan Privasi</a>
-					<a href="/disclaimer" class="link-footer">Disclaimer</a>
-				</div>
-			</div>
-			
-			<!-- Contact -->
-			<div>
-				<h4 class="text-lg font-bold mb-4">Hubungi Kami</h4>
-				<p class="text-base-content/70">
-					Email: support@adverfi.id<br />
-					Tersedia 24/7 untuk membantu Anda
-				</p>
-			</div>
-		</div>
-		
-		<div class="border-t border-base-content/10 pt-8 text-center">
-			<p class="text-base-content/60">© 2025 adverFI - All rights reserved</p>
-		</div>
-		</div>
-	</footer>
+	<!-- Footer -->
+	<Footer />
 </div>
 
 <style>
 	:global(body) {
-		font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		font-family:
+			'Inter',
+			-apple-system,
+			BlinkMacSystemFont,
+			'Segoe UI',
+			sans-serif;
 	}
 
 	.font-inter {
-		font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		font-family:
+			'Inter',
+			-apple-system,
+			BlinkMacSystemFont,
+			'Segoe UI',
+			sans-serif;
 	}
 
 	/* Hero Gradient Background */
 	.hero-gradient {
-		background: linear-gradient(135deg, 
+		background: linear-gradient(
+			135deg,
 			hsl(262, 83%, 58%) 0%,
 			hsl(270, 70%, 50%) 25%,
 			hsl(280, 80%, 45%) 50%,
@@ -246,7 +239,8 @@
 
 	/* CTA Gradient Background */
 	.cta-gradient {
-		background: linear-gradient(135deg,
+		background: linear-gradient(
+			135deg,
 			hsl(220, 90%, 56%) 0%,
 			hsl(230, 85%, 50%) 50%,
 			hsl(240, 80%, 55%) 100%
@@ -308,7 +302,8 @@
 	}
 
 	@keyframes float {
-		0%, 100% {
+		0%,
+		100% {
 			transform: translate(0, 0) scale(1);
 		}
 		33% {
@@ -321,7 +316,8 @@
 
 	/* Gradient Text */
 	.gradient-text {
-		background: linear-gradient(135deg, 
+		background: linear-gradient(
+			135deg,
 			hsl(280, 100%, 70%) 0%,
 			hsl(200, 100%, 70%) 50%,
 			hsl(320, 100%, 70%) 100%
@@ -334,8 +330,13 @@
 	}
 
 	@keyframes gradient-shift {
-		0%, 100% { background-position: 0% 50%; }
-		50% { background-position: 100% 50%; }
+		0%,
+		100% {
+			background-position: 0% 50%;
+		}
+		50% {
+			background-position: 100% 50%;
+		}
 	}
 
 	/* Custom Buttons */
@@ -479,18 +480,6 @@
 		transform: scale(1.1) rotate(5deg);
 	}
 
-	/* Footer Links */
-	.link-footer {
-		color: hsl(var(--bc) / 0.7);
-		transition: all 0.2s ease;
-		display: inline-block;
-	}
-
-	.link-footer:hover {
-		color: hsl(var(--p));
-		transform: translateX(5px);
-	}
-
 	/* Animations */
 	.fade-in-up {
 		animation: fadeInUp 0.8s ease forwards;
@@ -512,8 +501,12 @@
 		.blob {
 			filter: blur(40px);
 		}
-		
-		.blob-1, .blob-2, .blob-3, .blob-4, .blob-5 {
+
+		.blob-1,
+		.blob-2,
+		.blob-3,
+		.blob-4,
+		.blob-5 {
 			width: 250px;
 			height: 250px;
 		}

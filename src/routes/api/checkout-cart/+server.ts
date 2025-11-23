@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { getSupabaseAdmin } from '$lib/server/supabase';
 import { pakasir, type PaymentMethod } from '$lib/server/pakasir';
+import { calculateDiscountedPrice } from '$lib/utils/product.utils';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -27,7 +28,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		const { data: products, error: productsError } = await supabaseAdmin
 			.from('products')
-			.select('id, price, stock')
+			.select('id, price, stock, discount_percentage, discount_end_date')
 			.in('id', productIds);
 
 		if (productsError || !products) {
@@ -47,7 +48,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				);
 			}
 
-			calculatedTotal += product.price * item.quantity;
+			calculatedTotal += calculateDiscountedPrice(product as any) * item.quantity;
 		}
 
 		// Create payment via Pakasir
@@ -71,7 +72,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			return {
 				order_id: order_id,
 				product_id: item.product_id,
-				amount: product!.price * item.quantity,
+				amount: calculateDiscountedPrice(product! as any) * item.quantity,
 				status: 'pending',
 				user_id,
 				payment_method: payment.payment_method,

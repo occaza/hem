@@ -28,6 +28,16 @@ export function formatShortDate(dateString: string | undefined): string {
 	});
 }
 
+export function formatDateSimple(dateString: string | undefined): string {
+	if (!dateString) return '-';
+
+	return new Date(dateString).toLocaleString('id-ID', {
+		day: 'numeric',
+		month: 'short',
+		year: 'numeric'
+	});
+}
+
 export function formatDiscount(percentage: number): string {
 	return `${percentage}%`;
 }

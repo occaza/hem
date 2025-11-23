@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Product } from '$lib/types/types';
 	import { formatCurrency } from '$lib/utils/format.utils';
+	import { toast } from '$lib/stores/toast.store';
 
 	type PaymentMethod = {
 		value: string;
@@ -13,7 +14,7 @@
 		paymentMethods: PaymentMethod[];
 		isCartCheckout?: boolean;
 		itemCount?: number;
-		totalAmount?: number; // TAMBAH INI
+		totalAmount?: number;
 		onClose: () => void;
 		onSelectQRIS: () => void;
 		onSelectOther: (method: string) => void;
@@ -24,7 +25,7 @@
 		paymentMethods,
 		isCartCheckout = false,
 		itemCount = 1,
-		totalAmount, // TAMBAH INI
+		totalAmount,
 		onClose,
 		onSelectQRIS,
 		onSelectOther
@@ -39,7 +40,7 @@
 
 	function handleContinue() {
 		if (!selectedMethod || selectedMethod === '') {
-			alert('Pilih metode pembayaran terlebih dahulu');
+			toast.error('Pilih metode pembayaran terlebih dahulu');
 			return;
 		}
 		onSelectOther(selectedMethod);

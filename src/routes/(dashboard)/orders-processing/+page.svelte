@@ -3,6 +3,7 @@
 	import { invalidate } from '$app/navigation';
 	import { formatCurrency, formatDate } from '$lib/utils/format.utils';
 	import { formatPaymentMethod } from '$lib/utils/payment.utils';
+	import { toast } from '$lib/stores/toast.store';
 
 	let { data } = $props();
 
@@ -20,11 +21,7 @@
 
 		// Auto refresh setiap 10 detik
 		const interval = setInterval(async () => {
-			const oldCount = orders.length;
 			await invalidate('app:orders-processing');
-
-			// Cek apakah ada order baru setelah refresh
-			// Kita cek di $effect nanti
 		}, 10000);
 
 		// Request notification permission
@@ -72,16 +69,17 @@
 				method: 'POST'
 			});
 
+			const data = await res.json();
+
 			if (res.ok) {
+				toast.success('Pesanan berhasil diselesaikan');
 				await loadOrders();
-				alert('Pesanan berhasil diselesaikan');
 			} else {
-				const data = await res.json();
-				alert(data.error || 'Gagal menyelesaikan pesanan');
+				toast.error(data.error || 'Gagal menyelesaikan pesanan');
 			}
 		} catch (error) {
 			console.error('Complete order error:', error);
-			alert('Terjadi kesalahan');
+			toast.error('Terjadi kesalahan');
 		} finally {
 			completing = null;
 		}
