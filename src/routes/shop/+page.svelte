@@ -218,6 +218,7 @@
 		</div>
 
 		<!-- Category Filter -->
+		<!-- Category Filter -->
 		{#if categories.length > 0}
 			<div class="mb-6 flex flex-wrap items-center justify-center gap-2">
 				<button
@@ -226,9 +227,23 @@
 				>
 					Semua Produk
 				</button>
-				<span class="loading loading-lg loading-spinner"></span>
+				{#each categories as category}
+					<button
+						class="btn btn-sm {selectedCategory === category.slug ? 'btn-primary' : 'btn-outline'}"
+						onclick={() => selectCategory(category.slug)}
+					>
+						{category.name}
+					</button>
+				{/each}
 			</div>
-		{:else if products.length}
+		{/if}
+
+		<!-- Products Grid -->
+		{#if loading}
+			<div class="flex justify-center py-12">
+				<span class="loading loading-lg loading-spinner text-primary"></span>
+			</div>
+		{:else if products.length > 0}
 			<div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 				{#each products as product}
 					<ProductCard {product} showAddToCart={true} />
@@ -236,6 +251,7 @@
 			</div>
 		{:else}
 			<div class="alert alert-info">
+				<DynamicIcon name="info" class="h-6 w-6" />
 				<span>Belum ada produk tersedia saat ini. Silakan cek kembali nanti.</span>
 			</div>
 		{/if}
