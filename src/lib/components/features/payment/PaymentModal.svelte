@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { formatCurrency, formatShortDate } from '$lib/utils/format.utils';
 	import { toast } from '$lib/stores/toast.store';
+	import { onMount, onDestroy } from 'svelte';
 
 	type Props = {
 		product: any;
@@ -9,6 +10,7 @@
 		qrImageUrl: string;
 		isSimulating: boolean;
 		isCartCheckout?: boolean;
+		isDevelopment?: boolean;
 		onClose: () => void;
 		onSimulate: () => void;
 	};
@@ -19,9 +21,52 @@
 		qrImageUrl,
 		isSimulating,
 		isCartCheckout = false,
+		isDevelopment = false,
 		onClose,
 		onSimulate
 	}: Props = $props();
+
+	let pollingInterval: any = null;
+
+	// Auto-reload polling untuk check payment status
+	onMount(() => {
+		startPolling();
+	});
+
+	onDestroy(() => {
+		if (pollingInterval) clearInterval(pollingInterval);
+	});
+
+	function startPolling() {
+		pollingInterval = setInterval(async () => {
+			try {
+				const res = await fetch('/api/check-payment', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ order_id: paymentData.order_id })
+				});
+
+				const data = await res.json();
+
+				// Check untuk processing atau completed
+				if (data.status === 'processing' || data.status === 'completed') {
+					clearInterval(pollingInterval);
+					// Redirect to success page
+					window.location.href = `/success?order_id=${paymentData.order_id}`;
+				}
+			} catch (error) {
+				console.error('Polling error:', error);
+			}
+		}, 3000); // Check every 3 seconds
+
+		// Timeout after 10 minutes
+		setTimeout(
+			() => {
+				if (pollingInterval) clearInterval(pollingInterval);
+			},
+			10 * 60 * 1000
+		);
+	}
 
 	function copyToClipboard(text: string) {
 		navigator.clipboard.writeText(text);
@@ -146,20 +191,22 @@
 		{/if}
 
 		<!-- Simulate Payment Button (Development Only) -->
-		<div class="mt-4">
-			<button
-				class="btn btn-block btn-sm btn-warning"
-				onclick={handleSimulate}
-				disabled={isSimulating}
-			>
-				{#if isSimulating}
-					<span class="loading loading-sm loading-spinner"></span>
-					Memproses simulasi...
-				{:else}
-					🧪 Simulasi Pembayaran (Development Only)
-				{/if}
-			</button>
-		</div>
+		{#if isDevelopment}
+			<div class="mt-4">
+				<button
+					class="btn btn-block btn-sm btn-warning"
+					onclick={handleSimulate}
+					disabled={isSimulating}
+				>
+					{#if isSimulating}
+						<span class="loading loading-sm loading-spinner"></span>
+						Memproses simulasi...
+					{:else}
+						🧪 Simulasi Pembayaran (Development Only)
+					{/if}
+				</button>
+			</div>
+		{/if}
 
 		<!-- Waiting Indicator -->
 		<div class="mt-4 flex items-center justify-center gap-2 text-warning">

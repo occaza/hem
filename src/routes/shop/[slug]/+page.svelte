@@ -28,8 +28,8 @@
 	let selectedMethod = $state('qris');
 	let paymentData = $state<any>(null);
 	let qrImageUrl = $state('');
-	let pollingInterval = $state<any>(null);
 	let isSimulating = $state(false);
+	let isDevelopment = $state(false);
 
 	const user = $derived($authUser);
 	const productId = $derived($page.params.slug);
@@ -38,12 +38,19 @@
 	const inStock = $derived(product ? isInStock(product, quantity) : false);
 	const subtotal = $derived(finalPrice * quantity);
 
-	onMount(() => {
+	onMount(async () => {
 		loadProduct();
 
-		return () => {
-			if (pollingInterval) clearInterval(pollingInterval);
-		};
+		// Check if development mode
+		try {
+			const res = await fetch('/api/config');
+			if (res.ok) {
+				const data = await res.json();
+				isDevelopment = data.isDevelopment;
+			}
+		} catch (error) {
+			console.error('Failed to check config:', error);
+		}
 	});
 
 	async function loadProduct() {
@@ -138,33 +145,7 @@
 		processCheckout(method);
 	}
 
-	function startPolling(orderId: string) {
-		pollingInterval = setInterval(async () => {
-			try {
-				const res = await fetch('/api/check-payment', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ order_id: orderId })
-				});
-
-				const data = await res.json();
-
-				if (data.status === 'completed') {
-					clearInterval(pollingInterval);
-					window.location.href = `/success?order_id=${orderId}`;
-				}
-			} catch (error) {
-				console.error('Polling error:', error);
-			}
-		}, 3000);
-
-		setTimeout(() => {
-			if (pollingInterval) clearInterval(pollingInterval);
-		}, 600000);
-	}
-
 	function closePayment() {
-		if (pollingInterval) clearInterval(pollingInterval);
 		showPayment = false;
 		paymentData = null;
 		qrImageUrl = '';
@@ -527,6 +508,7 @@
 		{paymentData}
 		{qrImageUrl}
 		{isSimulating}
+		{isDevelopment}
 		onClose={closePayment}
 		onSimulate={simulatePayment}
 	/>
