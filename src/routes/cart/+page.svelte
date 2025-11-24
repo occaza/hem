@@ -320,7 +320,8 @@
 				: cart.find((item) => selectedItems.has(item.id))?.product?.name || 'Product',
 		price: totalAmount,
 		description: `${selectedItems.size} produk dipilih`,
-		stock: 999
+		stock: 999,
+		status: 'active' as const
 	});
 </script>
 
@@ -350,7 +351,7 @@
 							</svg>
 						</div>
 						<h2 class="mb-2 text-2xl font-bold">Wah, keranjang belanjamu kosong</h2>
-						<p class="mb-8 text-base-content/70">Yuk, isi dengan barang-barang impianmu!</p>
+						<p class="mb-8 text-base-content/70">Yuk, isi dengan Item-Item impianmu!</p>
 						<a href="/shop" class="btn btn-lg btn-primary">
 							<span>🛍️</span>
 							Mulai Belanja
