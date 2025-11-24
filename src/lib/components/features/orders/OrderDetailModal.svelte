@@ -134,7 +134,7 @@
 										</div>
 									{/each}
 
-									<!-- Barang lainnya jika expanded -->
+									<!-- Item lainnya jika expanded -->
 									{#if expanded}
 										<div transition:slide={{ duration: 300, easing: quintOut }}>
 											{#each products.slice(1) as product}
@@ -193,7 +193,7 @@
 											class="mt-1 flex items-center gap-1 text-sm font-semibold text-success"
 											onclick={() => (expanded = !expanded)}
 										>
-											{expanded ? 'Lihat Lebih Sedikit' : 'Lihat Semua Barang'}
+											{expanded ? 'Lihat Lebih Sedikit' : 'Lihat Semua Item'}
 											<ChevronDown
 												size={16}
 												class={expanded
@@ -225,7 +225,7 @@
 								<div class="divider my-2"></div>
 
 								<div class="flex justify-between">
-									<span class="text-base-content/60">Subtotal Harga Barang</span>
+									<span class="text-base-content/60">Subtotal Harga Item</span>
 									<span>{formatCurrency(order.amount)}</span>
 								</div>
 

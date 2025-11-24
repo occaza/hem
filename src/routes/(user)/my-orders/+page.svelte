@@ -222,7 +222,7 @@
 												</div>
 												<div class="mt-1 flex items-center gap-2 text-sm text-base-content/70">
 													<span class="badge badge-ghost badge-sm"
-														>{item.product.quantity || 1} barang</span
+														>{item.product.quantity || 1} Item</span
 													>
 													<span>x {formatCurrency(item.product.price)}</span>
 												</div>

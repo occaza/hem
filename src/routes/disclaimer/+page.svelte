@@ -125,7 +125,7 @@
 							kebijakan privasi, atau praktik dari website atau layanan pihak ketiga mana pun. Anda
 							mengakui dan setuju bahwa AdverFI tidak bertanggung jawab, baik secara langsung maupun
 							tidak langsung, atas kerusakan atau kerugian yang disebabkan atau diduga disebabkan
-							oleh penggunaan konten, barang, atau layanan pihak ketiga.
+							oleh penggunaan konten, Item, atau layanan pihak ketiga.
 						</p>
 					</section>
 

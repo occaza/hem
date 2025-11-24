@@ -109,7 +109,7 @@
 									Platform.
 								</li>
 								<li>
-									<strong>"Produk Digital"</strong> adalah barang atau layanan digital yang dijual melalui
+									<strong>"Produk Digital"</strong> adalah Item atau layanan digital yang dijual melalui
 									Platform.
 								</li>
 								<li>
