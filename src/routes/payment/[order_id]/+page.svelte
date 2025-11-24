@@ -127,7 +127,7 @@
 						clearInterval(pollingInterval);
 						pollingInterval = null;
 					}
-					goto(`/success?order_id=${orderId}&simulated=true`);
+					goto(`/success?order_id=${orderId}`);
 				} else {
 					console.log('⏳ Status still pending:', data.status);
 				}
