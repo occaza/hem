@@ -13,7 +13,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 			.from('products')
 			.select('id, name, stock')
 			.lt('stock', 10)
-			.gt('stock', 0)
+			.gte('stock', 0)
 			.order('stock', { ascending: true });
 
 		if (error) {
