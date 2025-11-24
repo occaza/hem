@@ -17,6 +17,13 @@
 	let isSimulating = $state(false);
 	let debugInfo = $state('');
 
+	// Detect production by hostname
+	const isProduction = $derived(
+		browser &&
+			(window.location.hostname.includes('vercel.app') ||
+				window.location.hostname.includes('jualfb'))
+	);
+
 	const orderId = $derived($page.params.order_id);
 	const displayOrderId = $derived(decodeOrderId(orderId ?? ''));
 
@@ -379,20 +386,22 @@
 							</div>
 						{/if}
 
-						<div class="divider"></div>
+						{#if !isProduction}
+							<div class="divider"></div>
 
-						<button
-							class="btn btn-block btn-sm btn-warning"
-							onclick={simulatePayment}
-							disabled={isSimulating}
-						>
-							{#if isSimulating}
-								<span class="loading loading-sm loading-spinner"></span>
-								Memproses simulasi...
-							{:else}
-								🧪 Simulasi Pembayaran (Development Only)
-							{/if}
-						</button>
+							<button
+								class="btn btn-block btn-sm btn-warning"
+								onclick={simulatePayment}
+								disabled={isSimulating}
+							>
+								{#if isSimulating}
+									<span class="loading loading-sm loading-spinner"></span>
+									Memproses simulasi...
+								{:else}
+									🧪 Simulasi Pembayaran (Development Only)
+								{/if}
+							</button>
+						{/if}
 
 						<div class="mt-4 flex items-center justify-center gap-2 text-warning">
 							<span class="loading loading-sm loading-spinner"></span>
