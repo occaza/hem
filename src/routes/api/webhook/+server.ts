@@ -66,7 +66,31 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ received: true, message: 'Already processed' });
 		}
 
-		// ✅ ATOMIC STOCK REDUCTION - PREVENTS RACE CONDITION
+		// ⭐ UPDATE STATUS FIRST - Prevents duplicate webhooks from processing
+		// This MUST happen BEFORE stock reduction to prevent race condition
+		const { data: updated, error: updateErr } = await supabaseAdmin
+			.from('transactions')
+			.update({
+				status: 'processing',
+				payment_method: payment_method || existingTransaction.payment_method,
+				completed_at: null,
+				processing_started_at: new Date().toISOString()
+			})
+			.eq('order_id', order_id)
+			.eq('status', 'pending') // Only update if still pending
+			.select('product_id, amount, user_id, quantity');
+
+		if (updateErr || !updated || updated.length === 0) {
+			console.error('❌ Failed to update transaction or already processed:', {
+				order_id,
+				error: updateErr
+			});
+			return json({ received: true, message: 'Already processed or update failed' });
+		}
+
+		console.log('✅ Transaction status updated to processing');
+
+		// Now reduce stock atomically
 		const quantity = existingTransaction.quantity || 1;
 		const product_id = existingTransaction.product_id;
 
@@ -111,46 +135,6 @@ export const POST: RequestHandler = async ({ request }) => {
 				},
 				{ status: 400 }
 			);
-		}
-
-		// Update transaction status to processing
-		const { data: updated, error: updateErr } = await supabaseAdmin
-			.from('transactions')
-			.update({
-				status: 'processing',
-				payment_method: payment_method || existingTransaction.payment_method,
-				completed_at: null, // Belum selesai, masih processing
-				processing_started_at: new Date().toISOString()
-			})
-			.eq('order_id', order_id)
-			.eq('status', 'pending') // Double check masih pending
-			.select('product_id, amount, user_id, quantity');
-
-		if (updateErr) {
-			console.error('❌ Failed to update transaction:', {
-				order_id,
-				error: updateErr
-			});
-
-			// Rollback stock if transaction update failed
-			await supabaseAdmin.rpc('rollback_stock_reduction', {
-				p_product_id: product_id,
-				p_quantity: quantity
-			});
-
-			return json({ received: false, error: 'Update failed' }, { status: 500 });
-		}
-
-		if (!updated || updated.length === 0) {
-			console.error('❌ No transaction updated (race condition?)', { order_id });
-
-			// Rollback stock
-			await supabaseAdmin.rpc('rollback_stock_reduction', {
-				p_product_id: product_id,
-				p_quantity: quantity
-			});
-
-			return json({ received: false, error: 'Update failed' }, { status: 500 });
 		}
 
 		console.log(`✅ Payment confirmed and stock reduced atomically`, {
