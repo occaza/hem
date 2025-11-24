@@ -20,11 +20,10 @@
 			const res = await fetch('/api/profile');
 			if (res.ok) {
 				const profile = await res.json();
-				// Jika superadmin, ke dashboard. Jika user biasa, ke shop
 				if (profile.role === 'superadmin') {
 					await goto('/dashboard');
 				} else {
-					await goto('/shop');
+					await goto('/account');
 				}
 			}
 		}
@@ -67,11 +66,11 @@
 						if (profile.role === 'superadmin') {
 							goto('/dashboard');
 						} else {
-							goto('/shop');
+							goto('/account');
 						}
 					} else {
 						// Fallback ke shop jika gagal cek role
-						goto('/shop');
+						goto('/account');
 					}
 				} else {
 					error = 'Gagal menyimpan session';
