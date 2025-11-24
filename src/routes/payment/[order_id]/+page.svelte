@@ -134,13 +134,20 @@
 
 			const data = await res.json();
 
+			// DEBUG: Log response untuk troubleshooting
+			console.log('💳 Payment status check:', data);
+
 			if (data.status === 'completed') {
+				console.log('✅ Status completed - redirecting to success');
 				cleanup();
 				goto(`/success?order_id=${orderId}`);
 			} else if (data.status === 'processing') {
+				console.log('⚡ Status processing - redirecting to success');
 				// Redirect ke success dengan status processing
 				cleanup();
 				goto(`/success?order_id=${orderId}&simulated=true`);
+			} else {
+				console.log('⏳ Status still pending:', data.status);
 			}
 		} catch (error) {
 			console.error('Check status error:', error);
