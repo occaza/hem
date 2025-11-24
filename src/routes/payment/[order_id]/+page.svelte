@@ -111,12 +111,25 @@
 
 				const data = await res.json();
 
+				// DEBUG: Log response untuk troubleshooting
+				console.log('💳 Payment status check:', data);
+
 				if (data.status === 'completed') {
+					console.log('✅ Status completed - redirecting to success');
 					if (pollingInterval) {
 						clearInterval(pollingInterval);
 						pollingInterval = null;
 					}
 					goto(`/success?order_id=${orderId}`);
+				} else if (data.status === 'processing') {
+					console.log('⚡ Status processing - redirecting to success');
+					if (pollingInterval) {
+						clearInterval(pollingInterval);
+						pollingInterval = null;
+					}
+					goto(`/success?order_id=${orderId}&simulated=true`);
+				} else {
+					console.log('⏳ Status still pending:', data.status);
 				}
 			} catch (error) {
 				console.error('Polling error:', error);
