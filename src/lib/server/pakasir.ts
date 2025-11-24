@@ -29,7 +29,13 @@ function getEnv() {
 }
 
 export const pakasir = {
-	async createTransaction(orderId: string, amount: number, paymentMethod: PaymentMethod) {
+	async createTransaction(
+		orderId: string,
+		amount: number,
+		paymentMethod: PaymentMethod,
+		customerName: string,
+		customerEmail: string
+	) {
 		const { SLUG, API_KEY, IS_PROD } = getEnv();
 		const endpoint = `${PAKASIR_BASE}/api/transactioncreate/${paymentMethod}`;
 
@@ -37,6 +43,8 @@ export const pakasir = {
 			orderId,
 			amount,
 			paymentMethod,
+			customerName,
+			customerEmail,
 			mode: IS_PROD ? 'PRODUCTION' : 'SANDBOX',
 			endpoint
 		});
@@ -51,6 +59,8 @@ export const pakasir = {
 					project: SLUG,
 					order_id: orderId,
 					amount,
+					customer_name: customerName,
+					customer_email: customerEmail,
 					api_key: API_KEY
 				})
 			});

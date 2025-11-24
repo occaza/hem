@@ -61,17 +61,34 @@ export const POST: RequestHandler = async ({ request }) => {
 			.eq('order_id', order_id)
 			.single();
 
+		// Get user details for Pakasir (required for VA/Retail)
+		const { data: profile } = await supabaseAdmin
+			.from('profiles')
+			.select('full_name')
+			.eq('id', user_id)
+			.single();
+
+		const { data: userData, error: userError } =
+			await supabaseAdmin.auth.admin.getUserById(user_id);
+
+		const customerName = profile?.full_name || 'Customer';
+		const customerEmail = userData?.user?.email || 'customer@example.com';
+
 		// Create payment via Pakasir
 		console.log('Creating payment via Pakasir:', {
 			order_id,
 			amount,
 			payment_method,
-			quantity: qty
+			quantity: qty,
+			customerName,
+			customerEmail
 		});
 		const payment = await pakasir.createTransaction(
 			order_id,
 			amount,
-			payment_method as PaymentMethod
+			payment_method as PaymentMethod,
+			customerName,
+			customerEmail
 		);
 
 		console.log('Payment created:', payment);
