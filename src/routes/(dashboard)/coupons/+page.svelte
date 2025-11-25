@@ -9,6 +9,7 @@
 	import { formatDate } from '$lib/utils/format.utils';
 	import { Plus } from '@lucide/svelte';
 	import { toast } from '$lib/stores/toast.store';
+	import { confirmDelete } from '$lib/utils/swal.utils';
 
 	let coupons = $state<Coupon[]>([]);
 	let loading = $state(true);
@@ -54,6 +55,9 @@
 	}
 
 	async function deleteCoupon(couponId: string) {
+		const confirmed = await confirmDelete('kupon');
+		if (!confirmed) return;
+
 		actionLoading = couponId;
 		try {
 			const res = await fetch(`/api/admin/coupons/${couponId}`, {
@@ -61,13 +65,14 @@
 			});
 
 			if (res.ok) {
+				toast.success('Kupon berhasil dihapus');
 				await loadCoupons();
 			} else {
 				toast.error('Gagal menghapus kupon');
 			}
 		} catch (error) {
 			console.error('Delete error:', error);
-			alert('Terjadi kesalahan');
+			toast.error('Terjadi kesalahan');
 		} finally {
 			actionLoading = null;
 		}
