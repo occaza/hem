@@ -16,6 +16,7 @@
 	import { Trash2, NotebookPen } from '@lucide/svelte';
 	import { authUser } from '$lib/stores/auth.store';
 	import { toast } from '$lib/stores/toast.store';
+	import { confirmClearCart } from '$lib/utils/swal.utils';
 
 	const user = $derived($authUser);
 
@@ -88,7 +89,9 @@
 	}
 
 	async function clearCart() {
-		if (!confirm('Hapus semua item dari keranjang?')) return;
+		const confirmed = await confirmClearCart();
+		if (!confirmed) return;
+
 		const success = await cartStore.clear();
 		if (success) {
 			selectedItems = new Set();

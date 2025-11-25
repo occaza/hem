@@ -14,6 +14,7 @@
 		Save,
 		Plus
 	} from '@lucide/svelte';
+	import { confirmDelete } from '$lib/utils/swal.utils';
 
 	let name = $state('');
 	let description = $state('');
@@ -117,8 +118,10 @@
 		reader.readAsDataURL(file);
 	}
 
-	function removeExistingImage(imageUrl: string) {
-		if (!confirm('Hapus gambar ini?')) return;
+	async function removeExistingImage(imageUrl: string) {
+		const confirmed = await confirmDelete('gambar');
+		if (!confirmed) return;
+
 		existingImages = existingImages.filter((img) => img !== imageUrl);
 	}
 

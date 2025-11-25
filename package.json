@@ -42,6 +42,7 @@
 		"@supabase/storage-js": "^2.80.0",
 		"@supabase/supabase-js": "^2.80.0",
 		"daisyui": "^5.4.7",
-		"qrcode": "^1.5.4"
+		"qrcode": "^1.5.4",
+		"sweetalert2": "^11.26.3"
 	}
 }

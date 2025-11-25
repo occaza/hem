@@ -4,6 +4,7 @@
 	import { formatCurrency, formatDate } from '$lib/utils/format.utils';
 	import { formatPaymentMethod } from '$lib/utils/payment.utils';
 	import { toast } from '$lib/stores/toast.store';
+	import { confirmAction } from '$lib/utils/swal.utils';
 
 	let { data } = $props();
 
@@ -61,7 +62,11 @@
 	}
 
 	async function completeOrder(orderId: string) {
-		if (!confirm('Tandai pesanan ini sebagai selesai?')) return;
+		const confirmed = await confirmAction(
+			'Tandai pesanan ini sebagai selesai?',
+			'Konfirmasi Penyelesaian'
+		);
+		if (!confirmed) return;
 
 		completing = orderId;
 		try {

@@ -5,6 +5,7 @@
 	import { authUser } from '$lib/stores/auth.store';
 	import { uploadAvatar, deleteAvatar } from '$lib/utils/avatar.utils';
 	import { toast } from '$lib/stores/toast.store';
+	import { confirmDelete } from '$lib/utils/swal.utils';
 
 	let { data } = $props();
 
@@ -72,7 +73,8 @@
 	}
 
 	async function handleRemoveAvatar() {
-		if (!confirm('Hapus foto profile?')) return;
+		const confirmed = await confirmDelete('foto profile');
+		if (!confirmed) return;
 		if (!user) return;
 
 		uploadingAvatar = true;
