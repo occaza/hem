@@ -16,7 +16,7 @@
 	import { Trash2, NotebookPen } from '@lucide/svelte';
 	import { authUser } from '$lib/stores/auth.store';
 	import { toast } from '$lib/stores/toast.store';
-	import { confirmClearCart } from '$lib/utils/swal.utils';
+	import { confirmClearCart, confirmDelete } from '$lib/utils/swal.utils';
 
 	const user = $derived($authUser);
 
@@ -80,11 +80,15 @@
 	}
 
 	async function removeItem(item: CartItem) {
+		const confirmed = await confirmDelete('item dari keranjang');
+		if (!confirmed) return;
+
 		const success = await cartStore.removeItem(item.id);
 		if (!success) {
 			toast.error('Gagal menghapus item');
 		} else {
 			selectedItems.delete(item.id);
+			toast.success('Item berhasil dihapus');
 		}
 	}
 
