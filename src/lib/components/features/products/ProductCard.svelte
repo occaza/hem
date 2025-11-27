@@ -7,6 +7,7 @@
 	import { authUser } from '$lib/stores/auth.store';
 	import { ShoppingCart, Zap } from '@lucide/svelte';
 	import { toast } from '$lib/stores/toast.store';
+	import { confirmLogin } from '$lib/utils/swal.utils';
 
 	type Props = {
 		product: Product;
@@ -31,8 +32,10 @@
 
 	async function handleAddToCart() {
 		if (!user) {
-			toast.error('Silakan login terlebih dahulu untuk menambahkan ke keranjang');
-			goto('/login');
+			const confirmed = await confirmLogin('menambahkan produk ke keranjang');
+			if (confirmed) {
+				goto('/login');
+			}
 			return;
 		}
 
@@ -47,11 +50,8 @@
 	}
 
 	function handleBuyNow() {
-		if (!user) {
-			toast.error('Silakan login terlebih dahulu untuk membeli produk');
-			goto('/login');
-			return;
-		}
+		// Guest user can view product details
+		// if (!user) { ... } check removed
 
 		const identifier = product.slug || product.id;
 		goto(`/shop/${identifier}`);
@@ -102,41 +102,59 @@
 	</figure>
 
 	<div class="card-body">
-		<h2 class="card-title">
+		<span class="card-title text-lg">
 			{product.name}
 			{#if product.stock > 0 && product.stock < 10}
 				<span class="badge badge-sm badge-warning">Terbatas!</span>
 			{/if}
-		</h2>
+		</span>
 
-		<p class="line-clamp-2 text-base-content/70">{product.description}</p>
+		<p class="line-clamp-2 hidden text-base-content/70 md:block">{product.description}</p>
 
 		<div class="my-2">
 			{#if hasDiscount}
-				<div class="flex items-center gap-2">
-					<span class="text-2xl font-bold text-primary">
+				<div class="flex flex-col gap-1">
+					<span class="text-lg font-bold text-primary">
 						{formatCurrency(finalPrice)}
 					</span>
-					<span class="text-sm text-base-content/50 line-through">
+					<span class="text-xs text-base-content/50 line-through">
 						{formatCurrency(product.price)}
 					</span>
 				</div>
 			{:else}
-				<div class="text-2xl font-bold text-primary">
+				<div class="text-lg font-bold text-primary">
 					{formatCurrency(product.price)}
 				</div>
 			{/if}
 
-			<div class="mt-1 text-sm text-base-content/70">
+			<div class="mt-1 hidden text-sm text-base-content/70 md:block">
 				{formatStock(product.stock)}
 			</div>
 		</div>
 
 		<div class="card-actions justify-end">
 			{#if inStock}
+				<!-- Mobile: Always show Add to Cart icon button (Icon Only) -->
+				<button
+					class="btn w-full btn-sm btn-primary md:hidden"
+					onclick={(e) => {
+						e.stopPropagation();
+						handleAddToCart();
+					}}
+					disabled={addingToCart}
+					aria-label="Tambah ke Keranjang"
+				>
+					{#if addingToCart}
+						<span class="loading loading-xs loading-spinner"></span>
+					{:else}
+						<ShoppingCart size={18} />
+					{/if}
+				</button>
+
+				<!-- Desktop: Show Add to Cart if enabled -->
 				{#if showAddToCart}
 					<button
-						class="btn btn-outline btn-sm"
+						class="btn hidden btn-outline btn-sm md:flex"
 						onclick={(e) => {
 							e.stopPropagation();
 							handleAddToCart();
@@ -152,7 +170,7 @@
 				{/if}
 
 				<button
-					class="btn flex-1 btn-sm btn-primary"
+					class="btn hidden flex-1 btn-sm btn-primary md:flex"
 					onclick={(e) => {
 						e.stopPropagation();
 						handleBuyNow();

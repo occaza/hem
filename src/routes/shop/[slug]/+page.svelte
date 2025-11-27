@@ -15,6 +15,7 @@
 	import { calculateDiscountedPrice, isDiscountActive, isInStock } from '$lib/utils/product.utils';
 	import { generateOrderId, encodeOrderId } from '$lib/utils/order.utils';
 	import { toast } from '$lib/stores/toast.store';
+	import { confirmLogin } from '$lib/utils/swal.utils';
 
 	let product = $state<Product | null>(null);
 	let loading = $state(true);
@@ -73,8 +74,10 @@
 		if (!product) return;
 
 		if (!user) {
-			toast.error('Silakan login terlebih dahulu untuk menambahkan ke keranjang');
-			goto('/login');
+			const confirmed = await confirmLogin('menambahkan produk ke keranjang');
+			if (confirmed) {
+				goto('/login');
+			}
 			return;
 		}
 
@@ -88,12 +91,14 @@
 		addingToCart = false;
 	}
 
-	function handleBuyNow() {
+	async function handleBuyNow() {
 		if (!product) return;
 
 		if (!user) {
-			toast.error('Silakan login terlebih dahulu untuk membeli produk');
-			goto('/login');
+			const confirmed = await confirmLogin('membeli produk ini');
+			if (confirmed) {
+				goto('/login');
+			}
 			return;
 		}
 

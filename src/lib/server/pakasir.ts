@@ -13,8 +13,7 @@ export type PaymentMethod =
 	| 'maybank_va'
 	| 'permata_va'
 	| 'atm_bersama_va'
-	| 'artha_graha_va'
-	| 'retail';
+	| 'artha_graha_va';
 
 function getEnv() {
 	if (!PAKASIR_SLUG || !PAKASIR_API_KEY) {
@@ -206,6 +205,49 @@ export const pakasir = {
 				error: error instanceof Error ? error.message : String(error),
 				orderId,
 				amount
+			});
+			throw error;
+		}
+	},
+
+	async cancelTransaction(orderId: string, amount: number) {
+		const { SLUG, API_KEY } = getEnv();
+		const endpoint = `${PAKASIR_BASE}/api/transactioncancel`;
+
+		console.log('🚫 Cancelling PAKASIR transaction:', { orderId, amount });
+
+		try {
+			const res = await fetch(endpoint, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					project: SLUG,
+					order_id: orderId,
+					amount,
+					api_key: API_KEY
+				})
+			});
+
+			if (!res.ok) {
+				const text = await res.text();
+				console.error('❌ PAKASIR cancel error:', {
+					status: res.status,
+					statusText: res.statusText,
+					response: text,
+					orderId
+				});
+				throw new Error(`PAKASIR cancel failed: ${res.status} - ${text}`);
+			}
+
+			const data = await res.json();
+			console.log('✅ PAKASIR transaction cancelled:', data);
+			return data;
+		} catch (error) {
+			console.error('❌ PAKASIR cancelTransaction exception:', {
+				error: error instanceof Error ? error.message : String(error),
+				orderId
 			});
 			throw error;
 		}

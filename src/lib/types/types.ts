@@ -20,7 +20,7 @@ export type Product = {
 export type Transaction = {
 	order_id: string;
 	amount: number;
-	status: 'pending' | 'processing' | 'completed' | 'expired' | 'failed'; // Tambah 'processing'
+	status: 'pending' | 'processing' | 'completed' | 'expired' | 'failed' | 'cancelled'; // Tambah 'processing' dan 'cancelled'
 	product_id: string;
 	payment_method?: string;
 	completed_at?: string;

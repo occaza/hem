@@ -19,7 +19,7 @@
 	};
 </script>
 
-<div class="toast toast-center toast-top z-[9999] w-full max-w-md p-4 sm:toast-end sm:p-0">
+<div class="toast toast-end toast-top z-40 mt-20 w-full max-w-md p-4 sm:p-0">
 	{#each $toast as t (t.id)}
 		<div
 			animate:flip={{ duration: 300 }}

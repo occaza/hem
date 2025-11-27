@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { ShoppingBag, Mail, Phone, MapPin, Facebook, Twitter, Instagram } from '@lucide/svelte';
+
+	// let { marginTop = true } = $props(); {marginTop ? 'mt-24' : ''}
 </script>
 
-<footer class="mt-24 bg-base-300 pt-10 text-base-content">
+<footer class=" bg-base-300 pt-10 text-base-content">
 	<div class="container mx-auto px-4">
 		<div class="mb-10 footer grid-cols-1 gap-10 md:grid-cols-4">
 			<!-- Brand Section -->
@@ -81,11 +83,11 @@
 				<h6 class="footer-title mb-4 text-lg text-base-content opacity-100">Kontak</h6>
 				<div class="mb-3 flex items-start gap-3">
 					<MapPin size={20} class="mt-1 flex-shrink-0 text-primary" />
-					<span class="text-base-content/80">Jl. Digital No. 123, Jakarta Selatan, Indonesia</span>
+					<span class="text-base-content/80">Gatak, Sukoharjo</span>
 				</div>
 				<div class="mb-3 flex items-center gap-3">
 					<Phone size={20} class="flex-shrink-0 text-primary" />
-					<span class="text-base-content/80">+62 812-3456-7890</span>
+					<span class="text-base-content/80">+62 816-1666-202</span>
 				</div>
 				<div class="mb-3 flex items-center gap-3">
 					<Mail size={20} class="flex-shrink-0 text-primary" />

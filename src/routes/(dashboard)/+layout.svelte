@@ -42,7 +42,7 @@
 <div class="drawer lg:drawer-open">
 	<input id="drawer" type="checkbox" class="drawer-toggle" />
 	<div class="drawer-content flex flex-col">
-		<div class="navbar bg-base-300 lg:hidden">
+		<div class="navbar sticky top-0 z-50 bg-base-300 lg:hidden">
 			<div class="flex-none">
 				<label for="drawer" class="btn btn-square btn-ghost">
 					<svg

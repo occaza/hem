@@ -60,12 +60,75 @@
 		})
 	);
 
+	import { toast } from '$lib/stores/toast.store';
+	import { confirmAction } from '$lib/utils/swal.utils';
+
+	// ... imports ...
+
 	const tabs = [
 		{ id: 'all', label: 'Semua', icon: Package },
 		{ id: 'pending', label: 'Menunggu', icon: Clock },
 		{ id: 'completed', label: 'Selesai', icon: CheckCircle },
-		{ id: 'failed', label: 'Gagal', icon: XCircle }
+		{ id: 'failed', label: 'Gagal', icon: XCircle },
+		{ id: 'cancelled', label: 'Dibatalkan', icon: XCircle }
 	];
+
+	async function handleCancelOrder(orderId: string) {
+		const confirmed = await confirmAction(
+			'Apakah Anda yakin ingin membatalkan pesanan ini?',
+			'Batalkan Pesanan?'
+		);
+
+		if (!confirmed) return;
+
+		try {
+			const res = await fetch('/api/transaction/cancel', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ order_id: orderId, user_id: user.id })
+			});
+
+			const data = await res.json();
+
+			if (res.ok) {
+				toast.success('Pesanan berhasil dibatalkan');
+				window.location.reload();
+			} else {
+				toast.error(data.error || 'Gagal membatalkan pesanan');
+			}
+		} catch (error) {
+			console.error('Cancel error:', error);
+			toast.error('Terjadi kesalahan saat membatalkan pesanan');
+		}
+	}
+
+	async function handleCheckStatus(orderId: string) {
+		try {
+			const res = await fetch('/api/check-payment', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ order_id: orderId })
+			});
+
+			const data = await res.json();
+
+			if (res.ok) {
+				if (data.status === 'expired') {
+					toast.error('Transaksi telah kadaluarsa');
+				} else if (data.status === 'completed') {
+					toast.success('Pembayaran berhasil dikonfirmasi!');
+				} else {
+					toast.info('Status pesanan diperbarui: ' + getStatusText(data.status));
+				}
+				window.location.reload();
+			} else {
+				toast.error(data.error || 'Gagal mengecek status');
+			}
+		} catch (error) {
+			console.error('Check status error:', error);
+			toast.error('Terjadi kesalahan saat mengecek status');
+		}
+	}
 </script>
 
 <svelte:head>
@@ -291,12 +354,20 @@
 											>
 												Bayar Sekarang <ArrowRight size={16} />
 											</a>
-											<button
-												class="btn w-full btn-outline btn-sm"
-												onclick={() => window.location.reload()}
-											>
-												Cek Status
-											</button>
+											<div class="grid grid-cols-2 gap-2">
+												<button
+													class="btn w-full btn-outline btn-sm"
+													onclick={() => handleCheckStatus(order.order_id)}
+												>
+													Cek Status
+												</button>
+												<button
+													class="btn w-full btn-outline btn-sm btn-error"
+													onclick={() => handleCancelOrder(order.order_id)}
+												>
+													Batalkan
+												</button>
+											</div>
 										{:else if order.status === 'completed'}
 											<a href="/shop" class="btn w-full btn-outline btn-sm"> Beli Lagi </a>
 										{/if}

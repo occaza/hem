@@ -88,10 +88,10 @@
 	<title>Login - adverFI</title>
 </svelte:head>
 
-<div class="flex min-h-screen items-center justify-center bg-base-200">
-	<div class="card w-96 bg-base-100 shadow-xl">
+<div class="flex min-h-screen w-full items-center justify-center bg-base-200 px-4 py-8">
+	<div class="card w-full max-w-md bg-base-100 shadow-xl">
 		<div class="card-body">
-			<h2 class="card-title text-center text-2xl font-bold">Login</h2>
+			<h2 class="card-title justify-center text-center text-2xl font-bold">Login</h2>
 
 			{#if error}
 				<div class="alert alert-error">
@@ -118,7 +118,7 @@
 					handleLogin();
 				}}
 			>
-				<div class="form-control">
+				<div class="form-control flex flex-col gap-2">
 					<label class="label" for="email">
 						<span class="label-text">Email</span>
 					</label>
@@ -126,14 +126,14 @@
 						id="email"
 						type="email"
 						placeholder="admin@example.com"
-						class="input-bordered input"
+						class="input-bordered input w-full"
 						autocomplete="username"
 						bind:value={email}
 						required
 					/>
 				</div>
 
-				<div class="form-control mt-4">
+				<div class="form-control mt-4 flex flex-col gap-2">
 					<label class="label" for="password">
 						<span class="label-text">Password</span>
 					</label>
@@ -141,13 +141,13 @@
 						id="password"
 						type="password"
 						placeholder="••••••••"
-						class="input-bordered input"
+						class="input-bordered input w-full"
 						autocomplete="current-password"
 						bind:value={password}
 						required
 					/>
 				</div>
-				<div class="label">
+				<div class="my-2 label">
 					<a href="/forgot-password" class="label-text-alt link link-primary link-hover">
 						Lupa password?
 					</a>

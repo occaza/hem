@@ -102,3 +102,22 @@ export function successPayment(orderId: string) {
 		}
 	});
 }
+
+/**
+ * Confirm login required action
+ */
+export async function confirmLogin(action: string = 'melakukan aksi ini'): Promise<boolean> {
+	const result = await Swal.fire({
+		title: 'Login Diperlukan',
+		text: `Anda harus login terlebih dahulu untuk ${action}`,
+		icon: 'info',
+		showCancelButton: true,
+		confirmButtonColor: '#3b82f6',
+		cancelButtonColor: '#6b7280',
+		confirmButtonText: 'Login Sekarang',
+		cancelButtonText: 'Batal',
+		reverseButtons: true
+	});
+
+	return result.isConfirmed;
+}

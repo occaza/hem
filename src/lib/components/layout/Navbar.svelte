@@ -2,7 +2,14 @@
 	import { cartCount } from '$lib/stores/cart.store';
 	import { authUser } from '$lib/stores/auth.store';
 	import { page } from '$app/stores';
-	import { CircleUserRound, House, ShoppingBasket } from '@lucide/svelte';
+	import {
+		CircleUserRound,
+		House,
+		ShoppingBasket,
+		ShoppingCart,
+		User,
+		LogOut
+	} from '@lucide/svelte';
 
 	type Props = {
 		showCart?: boolean;
@@ -15,13 +22,15 @@
 	const user = $derived($authUser);
 </script>
 
-<nav class="navbar fixed top-0 z-50 bg-base-100 shadow-md">
+<!-- Desktop/Tablet Navbar - Hidden on mobile -->
+<nav class="navbar fixed top-0 z-50 !hidden bg-base-100 shadow-md lg:!flex">
 	<div class="container mx-auto flex items-center justify-between px-4">
 		<a href="/" class="flex items-center gap-2 text-xl font-semibold text-primary">
-			<span class="text-2xl">🛒</span>
+			<ShoppingCart class="h-6 w-6" />
 			<span class="hidden sm:inline">AdverFI</span>
 		</a>
 
+		<!-- Desktop Menu -->
 		<ul class="hidden items-center gap-6 text-sm font-medium lg:flex">
 			<li>
 				<a
@@ -29,7 +38,7 @@
 					class="flex items-center gap-1 rounded-md px-3 py-2 transition hover:bg-base-200"
 					class:text-primary={isActive('/')}
 				>
-					<House /> Beranda
+					<House class="h-4 w-4" /> Beranda
 				</a>
 			</li>
 			<li>
@@ -38,28 +47,16 @@
 					class="flex items-center gap-1 rounded-md px-3 py-2 transition hover:bg-base-200"
 					class:text-primary={isActive('/shop')}
 				>
-					<ShoppingBasket /> Belanja
+					<ShoppingBasket class="h-4 w-4" /> Belanja
 				</a>
 			</li>
 		</ul>
 
-		<div class="flex items-center gap-2">
-			{#if showCart && user}
+		<!-- Desktop Right Actions -->
+		<div class="hidden items-center gap-2 lg:flex">
+			{#if showCart}
 				<a href="/cart" class="btn relative btn-circle btn-ghost">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-6 w-6"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-						/>
-					</svg>
+					<ShoppingCart class="h-6 w-6" />
 					{#if $cartCount > 0}
 						<span class="absolute top-0 right-0 badge badge-sm badge-primary">{$cartCount}</span>
 					{/if}
@@ -72,17 +69,21 @@
 						<div
 							class="flex w-10 items-center justify-center rounded-full bg-primary text-primary-content"
 						>
-							<span class="text-xl"><CircleUserRound /> </span>
+							<CircleUserRound class="h-6 w-6" />
 						</div>
 					</button>
 					<ul
-						class="dropdown-content menu z-1 mt-3 w-52 menu-sm rounded-box bg-base-100 p-2 shadow"
+						class="dropdown-content menu z-[60] mt-3 w-52 menu-sm rounded-box bg-base-100 p-2 shadow"
 					>
 						<li class="menu-title">
 							<span>{user.email}</span>
 						</li>
-						<li><a href="/account">Dashboard</a></li>
-						<li><a href="/my-orders">Pesanan Saya</a></li>
+						<li>
+							<a href="/account">Dashboard</a>
+						</li>
+						<li>
+							<a href="/my-orders">Pesanan Saya</a>
+						</li>
 						<li>
 							<button
 								onclick={async () => {
@@ -90,76 +91,86 @@
 									window.location.href = '/';
 								}}
 							>
-								Logout
+								<LogOut class="h-4 w-4" /> Logout
 							</button>
 						</li>
 					</ul>
 				</div>
 			{:else}
-				<a href="/login" class="btn hidden items-center btn-outline btn-sm sm:flex"> 👤 Login </a>
+				<a href="/login" class="btn items-center gap-2 btn-outline btn-sm">
+					<User class="h-4 w-4" /> Login
+				</a>
+			{/if}
+		</div>
+
+		<!-- Mobile: Only show cart and user icons -->
+		<div class="flex items-center gap-2 lg:hidden">
+			{#if showCart && user}
+				<a href="/cart" class="btn relative btn-circle btn-ghost btn-sm">
+					<ShoppingCart class="h-5 w-5" />
+					{#if $cartCount > 0}
+						<span class="absolute -top-1 -right-1 badge badge-xs badge-primary">{$cartCount}</span>
+					{/if}
+				</a>
 			{/if}
 
-			<label for="mobile-menu" class="btn btn-square btn-ghost lg:hidden">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					class="inline-block h-6 w-6 stroke-current"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M4 6h16M4 12h16M4 18h16"
-					/>
-				</svg>
-			</label>
+			{#if user}
+				<a href="/account" class="btn btn-circle btn-ghost btn-sm">
+					<CircleUserRound class="h-5 w-5" />
+				</a>
+			{:else}
+				<a href="/login" class="btn btn-circle btn-ghost btn-sm">
+					<User class="h-5 w-5" />
+				</a>
+			{/if}
 		</div>
 	</div>
 </nav>
 
-<input id="mobile-menu" type="checkbox" class="drawer-toggle" />
-<div class="drawer z-40 drawer-end">
-	<div class="drawer-side">
-		<label for="mobile-menu" class="drawer-overlay"></label>
-		<ul class="menu min-h-full w-72 bg-base-200 p-6 text-base-content">
-			<li class="mb-4 text-lg font-semibold">Menu</li>
-			<li>
-				<a href="/" class:active={isActive('/')}>🏠 Beranda</a>
-			</li>
-			<li>
-				<a href="/shop" class:active={isActive('/shop')}>🛍️ Belanja</a>
-			</li>
-			{#if user}
-				<li>
-					<a href="/cart" class:active={isActive('/cart')}>
-						🛒 Keranjang
-						{#if $cartCount > 0}
-							<span class="ml-auto badge badge-primary">{$cartCount}</span>
-						{/if}
-					</a>
-				</li>
-				<li><a href="/account">📊 Dashboard</a></li>
-				<li><a href="/profile">👤 Profile Saya</a></li>
-				<li><a href="/my-orders">📦 Pesanan Saya</a></li>
-				<li>
-					<button
-						onclick={async () => {
-							await authUser.signOut();
-							window.location.href = '/';
-						}}
-					>
-						Logout
-					</button>
-				</li>
-			{:else}
-				<div class="divider"></div>
-				<li>
-					<a href="/login">👤 Login</a>
-				</li>
-			{/if}
-		</ul>
-	</div>
-</div>
+<!-- Spacer for fixed navbar - Only on desktop/tablet -->
+<div class="!hidden h-16 lg:!block"></div>
 
-<div class="h-16"></div>
+<!-- Mobile Bottom Dock Navigation - DaisyUI dock -->
+<div
+	class="dock fixed bottom-0 left-1/2 z-40 -translate-x-1/2 bg-neutral text-neutral-content lg:hidden"
+>
+	<button class:dock-active={isActive('/')} onclick={() => (window.location.href = '/')}>
+		<House class="size-[1.2em]" />
+		<span class="dock-label">Beranda</span>
+	</button>
+
+	<button class:dock-active={isActive('/shop')} onclick={() => (window.location.href = '/shop')}>
+		<ShoppingBasket class="size-[1.2em]" />
+		<span class="dock-label">Belanja</span>
+	</button>
+
+	<button
+		class:dock-active={isActive('/cart')}
+		onclick={() => (window.location.href = '/cart')}
+		class="relative"
+	>
+		<ShoppingCart class="size-[1.2em]" />
+		{#if $cartCount > 0}
+			<span class="absolute -top-1 -right-1 badge badge-xs badge-primary">{$cartCount}</span>
+		{/if}
+		<span class="dock-label">Keranjang</span>
+	</button>
+
+	{#if user}
+		<button
+			class:dock-active={isActive('/account') || isActive('/profile') || isActive('/my-orders')}
+			onclick={() => (window.location.href = '/account')}
+		>
+			<CircleUserRound class="size-[1.2em]" />
+			<span class="dock-label">Akun</span>
+		</button>
+	{:else}
+		<button
+			class:dock-active={isActive('/login')}
+			onclick={() => (window.location.href = '/login')}
+		>
+			<User class="size-[1.2em]" />
+			<span class="dock-label">Login</span>
+		</button>
+	{/if}
+</div>

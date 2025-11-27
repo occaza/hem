@@ -12,140 +12,91 @@
 	<title>{status} - AdverFI</title>
 </svelte:head>
 
-<div class="flex min-h-screen flex-col bg-base-200">
+<div class="flex min-h-screen flex-col bg-base-200 font-sans selection:bg-primary/30">
 	<Navbar />
 
-	<div class="relative flex flex-1 items-center justify-center overflow-hidden">
-		<!-- Background Elements -->
-		<div class="pointer-events-none absolute inset-0 overflow-hidden">
+	<div class="relative flex flex-1 items-center justify-center overflow-hidden p-4">
+		<!-- Animated Background -->
+		<div class="absolute inset-0 overflow-hidden">
 			<div
-				class="absolute -top-24 -left-24 h-96 w-96 animate-pulse rounded-full bg-primary/20 blur-3xl"
+				class="absolute -top-[20%] -left-[10%] h-[70vh] w-[70vh] animate-pulse rounded-full bg-primary/20 blur-[120px]"
 			></div>
 			<div
-				class="absolute top-1/2 -right-24 h-80 w-80 animate-pulse rounded-full bg-secondary/20 blur-3xl"
-				style="animation-delay: 1s;"
-			></div>
-			<div
-				class="absolute -bottom-24 left-1/2 h-96 w-96 animate-pulse rounded-full bg-accent/20 blur-3xl"
+				class="absolute top-[40%] -right-[10%] h-[60vh] w-[60vh] animate-pulse rounded-full bg-secondary/20 blur-[100px]"
 				style="animation-delay: 2s;"
+			></div>
+			<div
+				class="absolute -bottom-[10%] left-[20%] h-[50vh] w-[50vh] animate-pulse rounded-full bg-accent/20 blur-[100px]"
+				style="animation-delay: 4s;"
 			></div>
 		</div>
 
-		<div class="relative z-10 container mx-auto px-4 text-center">
-			<div class="mx-auto max-w-2xl">
-				<!-- 404 Glitch Effect -->
-				<h1
-					class="relative inline-block text-[150px] leading-none font-black select-none md:text-[500px]"
-				>
+		<!-- Glass Card Content -->
+		<div
+			class="relative z-10 mx-auto w-full max-w-3xl overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl backdrop-blur-xl md:p-12"
+		>
+			<!-- Status Code with Gradient & Glitch -->
+			<div class="relative mb-2 select-none">
+				<h1 class="text-[120px] leading-none font-black tracking-tighter md:text-[200px]">
 					<span
-						class="animate-gradient bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent"
+						class="bg-gradient-to-br from-primary via-secondary to-accent bg-clip-text text-transparent"
 					>
 						{status}
 					</span>
-					<span
-						class="animate-glitch-1 absolute top-0 left-0 -ml-1 text-primary/30"
-						aria-hidden="true">{status}</span
-					>
-					<span
-						class="animate-glitch-2 absolute top-0 left-0 ml-1 text-secondary/30"
-						aria-hidden="true">{status}</span
-					>
 				</h1>
+				<!-- Decorative Elements -->
+				<div
+					class="absolute top-1/2 left-1/2 -z-10 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/30 blur-3xl"
+				></div>
+			</div>
 
-				<h2 class="mt-[-20px] mb-6 text-3xl font-bold md:text-4xl">
-					Oops! {message}
-				</h2>
+			<!-- Error Message -->
+			<h2 class="mb-4 text-3xl font-bold text-base-content md:text-4xl">
+				Oops! {message}
+			</h2>
 
-				<p class="mx-auto mb-10 max-w-lg text-lg text-base-content/70">
-					Sepertinya Anda tersesat di dunia digital. Halaman yang Anda cari mungkin telah
-					dipindahkan, dihapus, atau tidak pernah ada.
-				</p>
+			<p class="mx-auto mb-10 max-w-lg text-lg leading-relaxed text-base-content/70">
+				Sepertinya Anda tersesat di antah berantah digital. Halaman yang Anda cari mungkin telah
+				berpindah dimensi atau tidak pernah ada.
+			</p>
 
-				<div class="flex flex-col items-center justify-center gap-4 sm:flex-row">
-					<a
-						href="/"
-						class="btn gap-2 shadow-lg transition-all btn-lg btn-primary hover:-translate-y-1 hover:shadow-primary/50"
-					>
-						<Home size={20} />
-						Kembali ke Beranda
-					</a>
-					<a href="/shop" class="btn gap-2 btn-outline btn-lg hover:bg-base-content/5">
-						<Search size={20} />
-						Cari Produk
-					</a>
-				</div>
+			<!-- Action Buttons -->
+			<div class="flex flex-col items-center justify-center gap-4 sm:flex-row">
+				<a
+					href="/"
+					class="group btn gap-3 border-none bg-gradient-to-r from-primary to-secondary text-white shadow-lg transition-all btn-lg btn-primary hover:-translate-y-1 hover:shadow-primary/30"
+				>
+					<Home size={20} class="transition-transform group-hover:scale-110" />
+					Kembali ke Beranda
+				</a>
+				<a
+					href="/shop"
+					class="group btn gap-3 border-base-content/20 btn-outline btn-lg hover:border-base-content/40 hover:bg-base-content/5"
+				>
+					<Search size={20} class="transition-transform group-hover:scale-110" />
+					Cari Produk
+				</a>
 			</div>
 		</div>
 	</div>
 
-	<Footer />
+	<Footer marginTop={false} />
 </div>
 
 <style>
-	@keyframes gradient {
-		0% {
-			background-position: 0% 50%;
-		}
-		50% {
-			background-position: 100% 50%;
-		}
-		100% {
-			background-position: 0% 50%;
-		}
+	/* Smooth fade in animation */
+	div {
+		animation: fadeIn 0.5s ease-out;
 	}
 
-	.animate-gradient {
-		background-size: 200% auto;
-		animation: gradient 4s linear infinite;
-	}
-
-	@keyframes glitch-1 {
-		0% {
-			transform: translate(0);
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
 		}
-		20% {
-			transform: translate(-2px, 2px);
+		to {
+			opacity: 1;
+			transform: translateY(0);
 		}
-		40% {
-			transform: translate(-2px, -2px);
-		}
-		60% {
-			transform: translate(2px, 2px);
-		}
-		80% {
-			transform: translate(2px, -2px);
-		}
-		100% {
-			transform: translate(0);
-		}
-	}
-
-	@keyframes glitch-2 {
-		0% {
-			transform: translate(0);
-		}
-		20% {
-			transform: translate(2px, -2px);
-		}
-		40% {
-			transform: translate(2px, 2px);
-		}
-		60% {
-			transform: translate(-2px, -2px);
-		}
-		80% {
-			transform: translate(-2px, 2px);
-		}
-		100% {
-			transform: translate(0);
-		}
-	}
-
-	.animate-glitch-1 {
-		animation: glitch-1 2.5s infinite linear alternate-reverse;
-	}
-
-	.animate-glitch-2 {
-		animation: glitch-2 3s infinite linear alternate-reverse;
 	}
 </style>

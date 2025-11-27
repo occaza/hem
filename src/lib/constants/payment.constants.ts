@@ -10,8 +10,7 @@ export const PAYMENT_METHODS = [
 	{ value: 'maybank_va', label: 'Virtual Account Maybank', icon: '🏦' },
 	{ value: 'bnc_va', label: 'Virtual Account BNC', icon: '🏦' },
 	{ value: 'atm_bersama_va', label: 'Virtual Account ATM Bersama', icon: '🏦' },
-	{ value: 'artha_graha_va', label: 'Virtual Account Artha Graha', icon: '🏦' },
-	{ value: 'retail', label: 'Retail (Indomaret/Alfamart)', icon: '🏪' }
+	{ value: 'artha_graha_va', label: 'Virtual Account Artha Graha', icon: '🏦' }
 ] as const;
 
 export type PaymentMethodValue = (typeof PAYMENT_METHODS)[number]['value'];
