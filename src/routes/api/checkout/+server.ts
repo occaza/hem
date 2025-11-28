@@ -1,6 +1,8 @@
 import { json } from '@sveltejs/kit';
 import { getSupabaseAdmin } from '$lib/server/supabase';
 import { pakasir, type PaymentMethod } from '$lib/server/pakasir';
+import { calculateDiscountedPrice } from '$lib/utils/product.utils';
+
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -34,7 +36,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		const { data: product, error: productError } = await supabaseAdmin
 			.from('products')
-			.select('price, stock')
+			.select('price, stock, discount_percentage, discount_end_date')
 			.eq('id', product_id)
 			.single();
 
@@ -47,10 +49,11 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ error: 'Insufficient stock' }, { status: 400 });
 		}
 
-		// Hitung amount berdasarkan quantity
-		const amount = product.price * qty;
+		// Hitung amount berdasarkan quantity (dengan diskon jika ada)
+		const finalPrice = calculateDiscountedPrice(product as any);
+		const amount = Math.round(finalPrice * qty);
 
-		if (!Number.isInteger(amount) || amount <= 0 || amount > 100_000_000) {
+		if (!amount || amount <= 0 || amount > 100_000_000) {
 			return json({ error: 'Invalid product price or quantity' }, { status: 500 });
 		}
 
@@ -169,8 +172,8 @@ export const POST: RequestHandler = async ({ request }) => {
 		console.error('Checkout error:', error);
 		return json(
 			{
-				error: 'Internal server error',
-				message: error instanceof Error ? error.message : String(error)
+				error: error instanceof Error ? error.message : String(error),
+				message: 'Checkout failed'
 			},
 			{ status: 500 }
 		);
