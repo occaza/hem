@@ -124,6 +124,7 @@
 					</label>
 					<input
 						id="email"
+						name="email"
 						type="email"
 						placeholder="admin@example.com"
 						class="input-bordered input w-full"
@@ -139,6 +140,7 @@
 					</label>
 					<input
 						id="password"
+						name="password"
 						type="password"
 						placeholder="••••••••"
 						class="input-bordered input w-full"

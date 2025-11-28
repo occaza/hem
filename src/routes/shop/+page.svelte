@@ -9,14 +9,17 @@
 	import Navbar from '$lib/components/layout/Navbar.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
 	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
-	import ProductCard from '$lib/components/features/products/ProductCard.svelte';
 	import MethodSelectorModal from '$lib/components/features/payment/MethodSelectorModal.svelte';
 	import PaymentModal from '$lib/components/features/payment/PaymentModal.svelte';
+	import ProductCard from '$lib/components/features/products/ProductCard.svelte';
+	import SidebarFilter from '$lib/components/features/shop/SidebarFilter.svelte';
 	import DynamicIcon from '$lib/components/ui/DynamicIcon.svelte';
 
 	let products = $state<Product[]>([]);
 	let categories = $state<Category[]>([]);
 	let selectedCategory = $state<string | null>(null);
+	let minPrice = $state<number | null>(null);
+	let maxPrice = $state<number | null>(null);
 	let loading = $state(true);
 	let showPayment = $state(false);
 	let showMethodSelector = $state(false);
@@ -53,18 +56,32 @@
 	});
 
 	async function loadProducts() {
+		loading = true;
 		try {
-			const url = selectedCategory ? `/api/products?category=${selectedCategory}` : '/api/products';
+			const params = new URLSearchParams();
+			if (selectedCategory) params.append('category', selectedCategory);
+			if (minPrice) params.append('min_price', minPrice.toString());
+			if (maxPrice) params.append('max_price', maxPrice.toString());
+
+			const url = `/api/products?${params.toString()}`;
 			const res = await fetch(url);
 			const data = await res.json();
 			products = data;
 		} catch (error) {
 			console.error('Failed to fetch products:', error);
+		} finally {
+			loading = false;
 		}
 	}
 
 	async function selectCategory(slug: string | null) {
 		selectedCategory = slug;
+		await loadProducts();
+	}
+
+	async function applyFilter(min: number | null, max: number | null) {
+		minPrice = min;
+		maxPrice = max;
 		await loadProducts();
 	}
 
@@ -209,52 +226,47 @@
 	<Navbar />
 
 	<!-- Main Content -->
-	<div class="container mx-auto px-4 py-12">
+	<div class="container mx-auto px-4 py-8 lg:py-12">
 		<div class="mb-8 text-center">
-			<h1 class="mb-4 text-4xl font-bold">Produk Kami</h1>
-			<p class="text-lg text-base-content/70">
+			<h1 class="mb-4 text-3xl font-bold lg:text-4xl">Produk Kami</h1>
+			<p class="text-base text-base-content/70 lg:text-lg">
 				Pilih produk yang Anda inginkan dan nikmati kemudahan berbelanja
 			</p>
 		</div>
 
-		<!-- Category Filter -->
-		<!-- Category Filter -->
-		{#if categories.length > 0}
-			<div class="mb-6 flex flex-wrap items-center justify-center gap-2">
-				<button
-					class="btn btn-sm {selectedCategory === null ? 'btn-primary' : 'btn-outline'}"
-					onclick={() => selectCategory(null)}
-				>
-					Semua Produk
-				</button>
-				{#each categories as category}
-					<button
-						class="btn btn-sm {selectedCategory === category.slug ? 'btn-primary' : 'btn-outline'}"
-						onclick={() => selectCategory(category.slug)}
-					>
-						{category.name}
-					</button>
-				{/each}
+		<div class="grid grid-cols-1 gap-8 lg:grid-cols-4">
+			<!-- Sidebar Filter (Desktop: Left Column, Mobile: Top Stack) -->
+			<div class="lg:col-span-1">
+				<SidebarFilter
+					{categories}
+					{selectedCategory}
+					{minPrice}
+					{maxPrice}
+					onSelectCategory={selectCategory}
+					onApplyFilter={applyFilter}
+				/>
 			</div>
-		{/if}
 
-		<!-- Products Grid -->
-		{#if loading}
-			<div class="flex justify-center py-12">
-				<span class="loading loading-lg loading-spinner text-primary"></span>
+			<!-- Products Grid (Desktop: Right Column) -->
+			<div class="lg:col-span-3">
+				{#if loading}
+					<div class="flex justify-center py-12">
+						<span class="loading loading-lg loading-spinner text-primary"></span>
+					</div>
+				{:else if products.length > 0}
+					<div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+						{#each products as product}
+							<ProductCard {product} showAddToCart={true} />
+						{/each}
+					</div>
+				{:else}
+					<div class="alert alert-info">
+						<DynamicIcon name="info" class="h-6 w-6" />
+						<span>Belum ada produk yang sesuai dengan filter Anda.</span>
+					</div>
+				{/if}
 			</div>
-		{:else if products.length > 0}
-			<div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-				{#each products as product}
-					<ProductCard {product} showAddToCart={true} />
-				{/each}
-			</div>
-		{:else}
-			<div class="alert alert-info">
-				<DynamicIcon name="info" class="h-6 w-6" />
-				<span>Belum ada produk tersedia saat ini. Silakan cek kembali nanti.</span>
-			</div>
-		{/if}
+		</div>
 	</div>
 	<Footer />
 </div>

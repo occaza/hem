@@ -7,6 +7,8 @@ export async function GET({ url }) {
 	try {
 		const supabaseAdmin = getSupabaseAdmin();
 		const categorySlug = url.searchParams.get('category');
+		const minPrice = url.searchParams.get('min_price');
+		const maxPrice = url.searchParams.get('max_price');
 
 		let query = supabaseAdmin
 			.from('products')
@@ -37,6 +39,14 @@ export async function GET({ url }) {
 				)
 				.eq('status', 'active')
 				.eq('product_categories.categories.slug', categorySlug);
+		}
+
+		// Filter by price range
+		if (minPrice) {
+			query = query.gte('price', parseInt(minPrice));
+		}
+		if (maxPrice) {
+			query = query.lte('price', parseInt(maxPrice));
 		}
 
 		const { data, error } = await query.order('created_at', { ascending: false });

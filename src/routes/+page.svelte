@@ -186,7 +186,7 @@
 		<div class="relative z-10 container mx-auto px-4 text-center">
 			<div class="mx-auto max-w-4xl">
 				<h2 class="mb-6 text-4xl font-black md:text-5xl lg:text-6xl">
-					Siap Untuk <span class="text-yellow-300">Memulai?</span>
+					Siap Untuk <span class="text-yellow-300">Belanja?</span>
 				</h2>
 				<p class="mx-auto mb-10 max-w-2xl text-lg text-white/90 md:text-xl">
 					Jelajahi koleksi produk digital kami dan nikmati kemudahan berbelanja dengan sistem

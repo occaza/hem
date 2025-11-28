@@ -201,7 +201,7 @@
 			}
 
 			const allImages = [...existingImages, ...uploadedUrls];
-			console.log('FAQ items before submit:', faqItems);
+			console.log('FAQ items before submit:', $state.snapshot(faqItems));
 
 			const res = await fetch(`/api/admin/products/${productId}`, {
 				method: 'PUT',
@@ -448,7 +448,9 @@
 							</label>
 							<input
 								id="name"
+								name="name"
 								type="text"
+								autocomplete="off"
 								placeholder="Contoh: Paket Premium"
 								class="input-bordered input w-full"
 								bind:value={name}
@@ -463,6 +465,7 @@
 							</label>
 							<textarea
 								id="description"
+								name="description"
 								placeholder="Deskripsi singkat untuk card produk"
 								class="textarea-bordered textarea h-24 w-full resize-none"
 								bind:value={description}
@@ -477,6 +480,7 @@
 							</label>
 							<textarea
 								id="detailDescription"
+								name="detail_description"
 								placeholder="Detail lengkap tentang produk"
 								class="textarea-bordered textarea h-40 w-full resize-none"
 								bind:value={detailDescription}
@@ -516,6 +520,7 @@
 									>
 										<input
 											type="checkbox"
+											name="categories"
 											class="checkbox checkbox-sm checkbox-primary"
 											value={category.id}
 											checked={selectedCategoryIds.includes(category.id)}
@@ -565,7 +570,9 @@
 									<span class="btn btn-disabled join-item">Rp</span>
 									<input
 										id="price"
+										name="price"
 										type="number"
+										autocomplete="off"
 										placeholder="1000"
 										class="input-bordered input join-item w-full"
 										bind:value={price}
@@ -582,7 +589,9 @@
 								</label>
 								<input
 									id="stock"
+									name="stock"
 									type="number"
+									autocomplete="off"
 									placeholder="100"
 									class="input-bordered input w-full"
 									bind:value={stock}
@@ -602,7 +611,9 @@
 								<div class="join w-full">
 									<input
 										id="discount"
+										name="discount_percentage"
 										type="number"
+										autocomplete="off"
 										placeholder="0"
 										class="input-bordered input join-item w-full"
 										bind:value={discountPercentage}
@@ -638,7 +649,9 @@
 									</label>
 									<input
 										id="discountEndDate"
+										name="discount_end_date"
 										type="datetime-local"
+										autocomplete="off"
 										class="input-bordered input w-full"
 										bind:value={discountEndDate}
 									/>
@@ -698,11 +711,14 @@
 										</div>
 										<input
 											type="text"
+											name="faq_question_{index}"
+											autocomplete="off"
 											placeholder="Pertanyaan"
 											class="input-bordered input input-sm mb-2 w-full"
 											bind:value={item.question}
 										/>
 										<textarea
+											name="faq_answer_{index}"
 											placeholder="Jawaban"
 											class="textarea-bordered textarea w-full textarea-sm"
 											bind:value={item.answer}
