@@ -70,27 +70,28 @@
 	<Navbar />
 
 	<!-- Hero Section -->
-	<div class="hero-gradient relative flex min-h-[90vh] items-center justify-center overflow-hidden">
-		<!-- Animated Background Blobs -->
-		<div class="blob blob-1"></div>
-		<div class="blob blob-2"></div>
-		<div class="blob blob-3"></div>
+	<div class="hero-section relative flex min-h-[90vh] items-center justify-center overflow-hidden">
+		<!-- Background Image with Overlay -->
+		<div class="hero-bg"></div>
+		<div class="hero-overlay"></div>
 
 		<div class="relative z-10 w-full px-4 py-20 text-center text-white">
 			<div class="mx-auto max-w-5xl" class:fade-in-up={heroVisible}>
 				<div
-					class="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-2 backdrop-blur-md"
+					class="mb-6 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-2 backdrop-blur-md"
 				>
 					<Sparkles size={20} class="text-yellow-300" />
 					<span class="text-sm font-medium">Platform Digital Terpercaya</span>
 				</div>
 
 				<h1 class="mb-6 text-5xl leading-tight font-black md:text-6xl lg:text-7xl xl:text-8xl">
-					<span class="gradient-text">Belanja Digital</span><br />
-					<span class="text-white">Lebih Mudah & Cepat</span>
+					<span class="text-white drop-shadow-lg">Belanja Digital</span><br />
+					<span class="text-white drop-shadow-lg">Lebih Mudah & Cepat</span>
 				</h1>
 
-				<p class="mx-auto mb-10 max-w-3xl text-lg font-medium text-white/90 md:text-xl lg:text-2xl">
+				<p
+					class="mx-auto mb-10 max-w-3xl text-lg font-medium text-white/95 drop-shadow-md md:text-xl lg:text-2xl"
+				>
 					Platform terpercaya untuk membeli produk digital dengan proses pembayaran yang simpel,
 					aman, dan instan
 				</p>
@@ -110,16 +111,16 @@
 				<!-- Stats -->
 				<div class="mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-8 sm:grid-cols-3">
 					<div class="stat-card">
-						<div class="gradient-text text-3xl font-black md:text-4xl">1000+</div>
-						<div class="mt-1 text-sm text-white/80 md:text-base">Produk Digital</div>
+						<div class="text-3xl font-black text-white md:text-4xl">1000+</div>
+						<div class="mt-1 text-sm text-white/90 md:text-base">Produk Digital</div>
 					</div>
 					<div class="stat-card">
-						<div class="gradient-text text-3xl font-black md:text-4xl">5000+</div>
-						<div class="mt-1 text-sm text-white/80 md:text-base">Pelanggan Puas</div>
+						<div class="text-3xl font-black text-white md:text-4xl">5000+</div>
+						<div class="mt-1 text-sm text-white/90 md:text-base">Pelanggan Puas</div>
 					</div>
 					<div class="stat-card">
-						<div class="gradient-text text-3xl font-black md:text-4xl">24/7</div>
-						<div class="mt-1 text-sm text-white/80 md:text-base">Layanan Support</div>
+						<div class="text-3xl font-black text-white md:text-4xl">24/7</div>
+						<div class="mt-1 text-sm text-white/90 md:text-base">Layanan Support</div>
 					</div>
 				</div>
 			</div>
@@ -202,7 +203,6 @@
 	</div>
 
 	<!-- Footer -->
-	<!-- Footer -->
 	<Footer />
 </div>
 
@@ -225,16 +225,37 @@
 			sans-serif;
 	}
 
-	/* Hero Gradient Background */
-	.hero-gradient {
+	/* Hero Section with Image Background */
+	.hero-section {
+		position: relative;
+	}
+
+	.hero-bg {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-image: url('/pexels-johnpet-2115257.jpg');
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+		z-index: 0;
+	}
+
+	.hero-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
 		background: linear-gradient(
-			135deg,
-			hsl(262, 83%, 58%) 0%,
-			hsl(270, 70%, 50%) 25%,
-			hsl(280, 80%, 45%) 50%,
-			hsl(290, 75%, 50%) 75%,
-			hsl(300, 70%, 55%) 100%
+			to bottom,
+			rgba(0, 0, 0, 0.5) 0%,
+			rgba(0, 0, 0, 0.6) 50%,
+			rgba(0, 0, 0, 0.7) 100%
 		);
+		z-index: 1;
 	}
 
 	/* CTA Gradient Background */
@@ -245,98 +266,6 @@
 			hsl(230, 85%, 50%) 50%,
 			hsl(240, 80%, 55%) 100%
 		);
-	}
-
-	/* Animated Blobs */
-	.blob {
-		position: absolute;
-		border-radius: 50%;
-		filter: blur(60px);
-		opacity: 0.3;
-		animation: float 20s infinite ease-in-out;
-	}
-
-	.blob-1 {
-		width: 500px;
-		height: 500px;
-		background: hsl(280, 100%, 70%);
-		top: -250px;
-		left: -250px;
-		animation-delay: 0s;
-	}
-
-	.blob-2 {
-		width: 400px;
-		height: 400px;
-		background: hsl(200, 100%, 70%);
-		bottom: -200px;
-		right: -200px;
-		animation-delay: -7s;
-	}
-
-	.blob-3 {
-		width: 350px;
-		height: 350px;
-		background: hsl(320, 100%, 70%);
-		top: 50%;
-		right: 10%;
-		animation-delay: -14s;
-	}
-
-	.blob-4 {
-		width: 400px;
-		height: 400px;
-		background: hsl(200, 100%, 60%);
-		top: -200px;
-		right: -200px;
-		animation-delay: -3s;
-	}
-
-	.blob-5 {
-		width: 350px;
-		height: 350px;
-		background: hsl(280, 100%, 60%);
-		bottom: -150px;
-		left: -150px;
-		animation-delay: -10s;
-	}
-
-	@keyframes float {
-		0%,
-		100% {
-			transform: translate(0, 0) scale(1);
-		}
-		33% {
-			transform: translate(50px, -50px) scale(1.1);
-		}
-		66% {
-			transform: translate(-50px, 50px) scale(0.9);
-		}
-	}
-
-	/* Gradient Text */
-	.gradient-text {
-		background: linear-gradient(
-			135deg,
-			hsl(280, 100%, 70%) 0%,
-			hsl(200, 100%, 70%) 50%,
-			hsl(320, 100%, 70%) 100%
-		);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-		animation: gradient-shift 3s ease infinite;
-		background-size: 200% 200%;
-	}
-
-	@keyframes gradient-shift {
-		0%,
-		100% {
-			background-position: 0% 50%;
-		}
-		50% {
-			background-position: 100% 50%;
-		}
 	}
 
 	/* Custom Buttons */
