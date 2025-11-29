@@ -399,11 +399,19 @@
 							</div>
 						{/if}
 
-						{#if !isProduction}
-							<div class="divider"></div>
+						<div class="divider"></div>
+
+						<div class="flex flex-col gap-2">
+							<button
+								class="btn btn-block btn-primary"
+								onclick={checkPaymentStatus}
+								disabled={loading}
+							>
+								🔄 Cek Status Pembayaran
+							</button>
 
 							<button
-								class="btn btn-block btn-sm btn-warning"
+								class="btn btn-block text-warning btn-ghost btn-sm"
 								onclick={simulatePayment}
 								disabled={isSimulating}
 							>
@@ -411,10 +419,10 @@
 									<span class="loading loading-sm loading-spinner"></span>
 									Memproses simulasi...
 								{:else}
-									🧪 Simulasi Pembayaran (Development Only)
+									🧪 Simulasi Pembayaran (Sandbox)
 								{/if}
 							</button>
-						{/if}
+						</div>
 
 						<div class="mt-4 flex items-center justify-center gap-2 text-warning">
 							<span class="loading loading-sm loading-spinner"></span>
