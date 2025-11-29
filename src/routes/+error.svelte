@@ -2,7 +2,6 @@
 	import { page } from '$app/stores';
 	import { Home, ArrowLeft, Search } from '@lucide/svelte';
 	import Navbar from '$lib/components/layout/Navbar.svelte';
-	import Footer from '$lib/components/layout/Footer.svelte';
 
 	const status = $derived($page.status);
 	const message = $derived($page.error?.message || 'Halaman tidak ditemukan');
@@ -79,8 +78,6 @@
 			</div>
 		</div>
 	</div>
-
-	<Footer marginTop={false} />
 </div>
 
 <style>

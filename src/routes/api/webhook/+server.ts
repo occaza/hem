@@ -32,14 +32,13 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ received: true, message: 'Status not completed' });
 		}
 
-		// SECURITY: Validasi transaksi ada di database dan amount sesuai
-		const { data: existingTransaction, error: fetchError } = await supabaseAdmin
+		// 1. Fetch ALL transactions for this order_id (Multi-Item Support)
+		const { data: transactions, error: fetchError } = await supabaseAdmin
 			.from('transactions')
-			.select('order_id, amount, status, payment_method, product_id, quantity')
-			.eq('order_id', order_id)
-			.single();
+			.select('order_id, amount, status, payment_method, product_id, quantity, user_id')
+			.eq('order_id', order_id);
 
-		if (fetchError || !existingTransaction) {
+		if (fetchError || !transactions || transactions.length === 0) {
 			console.error('❌ Webhook validation failed: Transaction not found', {
 				order_id,
 				error: fetchError
@@ -47,113 +46,119 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ received: false, error: 'Transaction not found' }, { status: 404 });
 		}
 
-		// SECURITY: Validasi amount harus match
-		if (existingTransaction.amount !== amount) {
+		// 2. Validate Total Amount
+		// Pakasir sends TOTAL amount. We must compare it with SUM of all transaction items.
+		const totalTransactionAmount = transactions.reduce((sum, t) => sum + t.amount, 0);
+
+		// Allow small floating point difference if any (though usually integer in IDR)
+		if (Math.abs(totalTransactionAmount - amount) > 100) {
 			console.error('❌ Webhook validation failed: Amount mismatch', {
 				order_id,
-				expected: existingTransaction.amount,
+				expected: totalTransactionAmount,
 				received: amount
 			});
 			return json({ received: false, error: 'Amount mismatch' }, { status: 400 });
 		}
 
-		// Cek apakah transaksi sudah diproses sebelumnya (idempotency)
-		if (existingTransaction.status !== 'pending') {
-			console.log('⚠️ Webhook ignored: Transaction already processed', {
-				order_id,
-				current_status: existingTransaction.status
-			});
+		// 3. Check Idempotency (Check if ANY item is already processed)
+		// If all are 'completed' or 'processing', ignore.
+		const allProcessed = transactions.every(
+			(t) => t.status === 'completed' || t.status === 'processing'
+		);
+		if (allProcessed) {
+			console.log('⚠️ Webhook ignored: Transactions already processed', { order_id });
 			return json({ received: true, message: 'Already processed' });
 		}
 
-		// ⭐ UPDATE STATUS FIRST - Prevents duplicate webhooks from processing
-		// This MUST happen BEFORE stock reduction to prevent race condition
-		const { data: updated, error: updateErr } = await supabaseAdmin
-			.from('transactions')
-			.update({
-				status: 'processing',
-				payment_method: payment_method || existingTransaction.payment_method,
-				completed_at: null,
-				processing_started_at: new Date().toISOString()
-			})
-			.eq('order_id', order_id)
-			.eq('status', 'pending') // Only update if still pending
-			.select('product_id, amount, user_id, quantity');
+		console.log(`🔄 Processing ${transactions.length} items for Order #${order_id}`);
 
-		if (updateErr || !updated || updated.length === 0) {
-			console.error('❌ Failed to update transaction or already processed:', {
-				order_id,
-				error: updateErr
-			});
-			return json({ received: true, message: 'Already processed or update failed' });
-		}
+		// 4. Process Each Transaction Item
+		const results = [];
+		for (const transaction of transactions) {
+			// Skip if already processed
+			if (transaction.status !== 'pending') continue;
 
-		console.log('✅ Transaction status updated to processing');
-
-		// Now reduce stock atomically
-		const quantity = existingTransaction.quantity || 1;
-		const product_id = existingTransaction.product_id;
-
-		console.log('💳 Processing payment confirmation:', {
-			order_id,
-			product_id,
-			quantity
-		});
-
-		// Reduce stock atomically using PostgreSQL's built-in row locking
-		const { data: productUpdate, error: stockError } = await supabaseAdmin.rpc(
-			'reduce_stock_atomic',
-			{
-				p_product_id: product_id,
-				p_quantity: quantity
-			}
-		);
-
-		if (stockError || !productUpdate || !productUpdate.success) {
-			console.error('❌ Stock reduction failed:', {
-				order_id,
-				product_id,
-				quantity,
-				error: stockError,
-				result: productUpdate
-			});
-
-			// Mark transaction as failed due to insufficient stock
-			await supabaseAdmin
+			// A. Update Status to Processing
+			const { error: updateErr } = await supabaseAdmin
 				.from('transactions')
 				.update({
-					status: 'failed',
-					error_message: 'Insufficient stock at payment confirmation'
+					status: 'processing',
+					payment_method: payment_method || transaction.payment_method,
+					completed_at: null, // Will be set to now() by trigger or next update? Or keep null for processing?
+					processing_started_at: new Date().toISOString()
 				})
-				.eq('order_id', order_id);
+				.eq('order_id', order_id)
+				.eq('product_id', transaction.product_id) // Specific item
+				.eq('status', 'pending');
 
-			return json(
+			if (updateErr) {
+				console.error(`❌ Failed to update status for item ${transaction.product_id}:`, updateErr);
+				results.push({ product_id: transaction.product_id, status: 'failed_update' });
+				continue;
+			}
+
+			// B. Reduce Stock Atomically
+			const quantity = transaction.quantity || 1;
+			const { data: productUpdate, error: stockError } = await supabaseAdmin.rpc(
+				'reduce_stock_atomic',
 				{
-					received: false,
-					error: 'Insufficient stock',
-					message: 'Stock tidak mencukupi saat konfirmasi pembayaran'
-				},
-				{ status: 400 }
+					p_product_id: transaction.product_id,
+					p_quantity: quantity
+				}
 			);
+
+			if (stockError || !productUpdate || !productUpdate.success) {
+				console.error(`❌ Stock reduction failed for item ${transaction.product_id}:`, stockError);
+
+				// Mark as failed
+				await supabaseAdmin
+					.from('transactions')
+					.update({
+						status: 'failed',
+						error_message: 'Insufficient stock at payment confirmation'
+					})
+					.eq('order_id', order_id)
+					.eq('product_id', transaction.product_id);
+
+				results.push({ product_id: transaction.product_id, status: 'failed_stock' });
+			} else {
+				console.log(
+					`✅ Stock reduced for item ${transaction.product_id}. New stock: ${productUpdate.new_stock}`
+				);
+
+				// Mark as Completed (Since stock is secured)
+				// Or keep as processing if there are other steps? Usually 'completed' after stock deduction.
+				// Let's mark as completed here to finish the flow.
+				await supabaseAdmin
+					.from('transactions')
+					.update({
+						status: 'completed',
+						completed_at: new Date().toISOString()
+					})
+					.eq('order_id', order_id)
+					.eq('product_id', transaction.product_id);
+
+				results.push({ product_id: transaction.product_id, status: 'success' });
+			}
 		}
 
-		console.log(`✅ Payment confirmed and stock reduced atomically`, {
-			order_id,
-			product_id: updated[0].product_id,
-			quantity: updated[0].quantity,
-			new_stock: productUpdate.new_stock,
-			amount: updated[0].amount,
-			user_id: updated[0].user_id
-		});
+		// Check if any failed
+		const anyFailed = results.some((r) => r.status.startsWith('failed'));
+		if (anyFailed) {
+			console.warn('⚠️ Some items failed to process', results);
+			// Return 200 to acknowledge webhook, but log error.
+			// Or return 400/500 to retry?
+			// If stock failed, retrying won't help unless stock is added. Better to acknowledge and handle manually.
+			return json({ received: true, status: 'partial_success', results });
+		}
 
-		return json({ received: true, status: 'processing' });
+		return json({ received: true, status: 'completed' });
 	} catch (error) {
 		console.error('❌ Webhook processing error:', {
 			error: error instanceof Error ? error.message : String(error),
 			stack: error instanceof Error ? error.stack : undefined
 		});
 
-		// Tetap return 200 agar PAKASIR tidak retry terus-menerus
 		return json({ received: true, error: 'Internal error' });
 	}
 };

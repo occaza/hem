@@ -21,12 +21,12 @@ User-agent: DataForSeoBot
 Disallow: /
 
 # Block AI scrapers (optional - uncomment if needed)
- User-agent: GPTBot
- User-agent: ChatGPT-User
- User-agent: CCBot
- User-agent: anthropic-ai
- User-agent: Claude-Web
- Disallow: /
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: CCBot
+User-agent: anthropic-ai
+User-agent: Claude-Web
+Disallow: /
 
 # Allow all other bots (default)
 User-agent: *

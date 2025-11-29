@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Category } from '$lib/types/types';
 	import { formatCurrency } from '$lib/utils/format.utils';
+	import { ChevronDown, ChevronUp } from '@lucide/svelte';
 
 	type Props = {
 		categories: Category[];
@@ -22,6 +23,7 @@
 
 	let localMin = $state(minPrice);
 	let localMax = $state(maxPrice);
+	let isOpen = $state(false);
 
 	function handleApply() {
 		onApplyFilter(localMin, localMax);
@@ -33,11 +35,30 @@
 		onApplyFilter(null, null);
 		onSelectCategory(null);
 	}
+
+	function toggleFilter() {
+		isOpen = !isOpen;
+	}
 </script>
 
 <div class="card h-fit bg-base-100 shadow-sm">
-	<div class="card-body p-4">
-		<div class="mb-4 flex items-center justify-between">
+	<!-- Toggle Button for Tablet/Mobile -->
+	<button
+		class="btn w-full justify-between btn-ghost lg:hidden"
+		onclick={toggleFilter}
+		aria-label="Toggle filter"
+	>
+		<span class="text-lg font-bold">Filter</span>
+		{#if isOpen}
+			<ChevronUp size={20} />
+		{:else}
+			<ChevronDown size={20} />
+		{/if}
+	</button>
+
+	<!-- Filter Content -->
+	<div class="card-body p-4 {isOpen ? 'block' : 'hidden lg:block'}">
+		<div class="mb-4 hidden items-center justify-between lg:flex">
 			<h3 class="text-lg font-bold">Filter</h3>
 			{#if selectedCategory || localMin || localMax}
 				<button class="btn text-error btn-ghost btn-xs" onclick={handleReset}> Reset </button>

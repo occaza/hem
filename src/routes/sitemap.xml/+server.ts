@@ -8,8 +8,8 @@ export const GET: RequestHandler = async () => {
 		// Fetch all active products
 		const { data: products, error } = await supabaseAdmin
 			.from('products')
-			.select('slug, updated_at')
-			.order('updated_at', { ascending: false });
+			.select('slug, created_at')
+			.order('created_at', { ascending: false });
 
 		if (error) {
 			console.error('Error fetching products for sitemap:', error);
@@ -57,9 +57,9 @@ export const GET: RequestHandler = async () => {
 	${
 		products
 			? products
-					.map((product: { slug: string; updated_at: string | null }) => {
-						const lastmod = product.updated_at
-							? new Date(product.updated_at).toISOString().split('T')[0]
+					.map((product: { slug: string; created_at: string | null }) => {
+						const lastmod = product.created_at
+							? new Date(product.created_at).toISOString().split('T')[0]
 							: now;
 						return `	<url>
 		<loc>https://jualfb.vercel.app/shop/${product.slug}</loc>

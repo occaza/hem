@@ -189,18 +189,17 @@
 
 			const totalAmount = selectedCartItems.reduce((sum, item) => sum + getItemSubtotal(item), 0);
 
-			const res = await fetch('/api/checkout-cart', {
+			const res = await fetch('/api/checkout', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					cart_items: selectedCartItems.map((item) => ({
+					items: selectedCartItems.map((item) => ({
 						product_id: item.product_id,
 						quantity: item.quantity,
 						note: item.note || null
 					})),
 					order_id: encodedOrderId,
 					payment_method: method,
-					total_amount: totalAmount,
 					user_id: user.id
 				})
 			});
