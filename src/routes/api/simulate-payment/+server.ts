@@ -1,10 +1,10 @@
 // src/routes/api/simulate-payment/+server.ts
 import { json } from '@sveltejs/kit';
 import { pakasir } from '$lib/server/pakasir';
-import { getSupabaseAdmin } from '$lib/server/supabase';
+import { dev } from '$app/environment';
 import type { RequestHandler } from './$types';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, fetch }) => {
 	try {
 		const body = await request.json();
 		const { order_id, amount } = body;
@@ -15,41 +15,49 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		console.log('Simulating payment for:', order_id);
 
-		// Panggil Pakasir simulation
+		// 1. Panggil Pakasir simulation (agar status di dashboard Pakasir berubah)
+		// Ini akan memicu webhook ke URL production jika dikonfigurasi
 		await pakasir.simulatePayment(order_id, amount);
 
-		// Tunggu sebentar supaya webhook keburu jalan
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+		// 2. JIKA DI LOCALHOST (DEV):
+		// Webhook dari Pakasir TIDAK AKAN MASUK ke localhost.
+		// Jadi kita harus tembak endpoint webhook kita sendiri secara manual.
+		if (dev) {
+			console.log('🔧 Dev environment detected: Manually triggering webhook...');
 
-		const supabaseAdmin = getSupabaseAdmin();
+			const webhookPayload = {
+				order_id,
+				amount,
+				status: 'completed',
+				payment_method: 'qris', // Default simulation method
+				project: 'simulation',
+				completed_at: new Date().toISOString(),
+				is_sandbox: true
+			};
 
-		// UBAH: Hapus filter .eq('status', 'pending')
-		const { data: updated, error: updateErr } = await supabaseAdmin
-			.from('transactions')
-			.update({
-				status: 'processing',
-				processing_started_at: new Date().toISOString()
-			})
-			.eq('order_id', order_id)
-			.in('status', ['pending', 'processing']) // Tambah ini, terima pending atau processing
-			.select('product_id, amount');
+			// Panggil endpoint webhook internal
+			const webhookRes = await fetch('/api/webhook', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(webhookPayload)
+			});
 
-		if (updateErr) {
-			console.error('Failed to update transaction:', updateErr);
-			return json({ error: 'Failed to update status' }, { status: 500 });
+			const webhookResult = await webhookRes.json();
+			console.log('🔧 Manual webhook result:', webhookResult);
+
+			if (!webhookRes.ok) {
+				throw new Error(`Manual webhook failed: ${webhookResult.error || 'Unknown error'}`);
+			}
+		} else {
+			// Di Production, kita tunggu sebentar biar webhook asli punya kesempatan jalan
+			// Tapi kita JANGAN update status manual di sini, biar webhook yang handle.
+			console.log('🚀 Production environment: Waiting for real webhook...');
 		}
-
-		if (!updated || updated.length === 0) {
-			console.error('No transaction found for order:', order_id);
-			return json({ error: 'Transaction not found' }, { status: 404 });
-		}
-
-		console.log(`✅ Order ${order_id} moved to PROCESSING`);
 
 		return json({
 			success: true,
-			message: 'Payment simulated successfully',
-			status: 'processing'
+			message: 'Payment simulation triggered',
+			status: 'processing' // Frontend akan polling status asli nanti
 		});
 	} catch (error) {
 		console.error('Simulate payment error:', error);
