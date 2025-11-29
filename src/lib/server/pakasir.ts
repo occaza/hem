@@ -164,11 +164,8 @@ export const pakasir = {
 	async simulatePayment(orderId: string, amount: number): Promise<void> {
 		const { SLUG, API_KEY, IS_PROD } = getEnv();
 
-		if (IS_PROD) {
-			console.log('⚠️ Skipping payment simulation in PRODUCTION mode');
-			return;
-		}
-
+		// Remove the IS_PROD check to allow simulation in deployed sandbox environments
+		// Pakasir API will handle rejection if trying to simulate on a real production project
 		console.log('💳 Simulating payment via PAKASIR:', { orderId, amount });
 
 		try {
