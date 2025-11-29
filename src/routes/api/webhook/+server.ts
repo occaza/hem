@@ -99,7 +99,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			// B. Reduce Stock Atomically
 			const quantity = transaction.quantity || 1;
-			const { data: productUpdate, error: stockError } = await supabaseAdmin.rpc(
+			const { data: rpcResult, error: stockError } = await supabaseAdmin.rpc(
 				'reduce_stock_atomic',
 				{
 					p_product_id: transaction.product_id,
@@ -107,8 +107,14 @@ export const POST: RequestHandler = async ({ request }) => {
 				}
 			);
 
+			// RPC with RETURNS TABLE returns an array
+			const productUpdate = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult;
+
 			if (stockError || !productUpdate || !productUpdate.success) {
-				console.error(`❌ Stock reduction failed for item ${transaction.product_id}:`, stockError);
+				console.error(`❌ Stock reduction failed for item ${transaction.product_id}:`, {
+					stockError,
+					productUpdate
+				});
 
 				// Mark as failed
 				await supabaseAdmin
@@ -127,8 +133,6 @@ export const POST: RequestHandler = async ({ request }) => {
 				);
 
 				// Mark as Completed (Since stock is secured)
-				// Or keep as processing if there are other steps? Usually 'completed' after stock deduction.
-				// Let's mark as completed here to finish the flow.
 				await supabaseAdmin
 					.from('transactions')
 					.update({
