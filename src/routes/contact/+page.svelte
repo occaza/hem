@@ -18,17 +18,38 @@
 			return;
 		}
 
+		if (message.length < 10) {
+			toast.error('Pesan minimal 10 karakter');
+			return;
+		}
+
 		isSubmitting = true;
 
-		// Simulate sending email
-		setTimeout(() => {
+		try {
+			const res = await fetch('/api/contact', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name, email, subject, message })
+			});
+
+			const data = await res.json();
+
+			if (!res.ok) {
+				toast.error(data.error || 'Gagal mengirim pesan');
+				return;
+			}
+
 			toast.success('Pesan berhasil dikirim! Kami akan segera menghubungi Anda.');
 			name = '';
 			email = '';
 			subject = '';
 			message = '';
+		} catch (error) {
+			console.error('Submit error:', error);
+			toast.error('Terjadi kesalahan. Silakan coba lagi.');
+		} finally {
 			isSubmitting = false;
-		}, 1500);
+		}
 	}
 </script>
 

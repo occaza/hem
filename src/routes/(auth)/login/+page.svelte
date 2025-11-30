@@ -126,7 +126,7 @@
 						id="email"
 						name="email"
 						type="email"
-						placeholder="admin@example.com"
+						placeholder="contohmail@email.com"
 						class="input-bordered input w-full"
 						autocomplete="username"
 						bind:value={email}

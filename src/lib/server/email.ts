@@ -215,7 +215,120 @@ export const sendAdminNewOrderEmail = async ({
 		console.log('Email sent to admin:', data);
 		return data;
 	} catch (error) {
-		console.error('Failed to send admin email:', error);
 		return null;
+	}
+};
+
+export const sendContactEmail = async ({
+	name,
+	email,
+	subject,
+	message
+}: {
+	name: string;
+	email: string;
+	subject: string;
+	message: string;
+}) => {
+	try {
+		// Send email to admin
+		const adminHtml = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+        
+        <!-- Header -->
+        <div style="background-color: #111827; padding: 30px 20px; text-align: center;">
+          <h2 style="color: #ffffff; margin: 0; font-size: 24px;">Pesan Baru dari Contact Form</h2>
+        </div>
+
+        <div style="padding: 30px;">
+          <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin: 25px 0;">
+            <h3 style="margin-top: 0; color: #1f2937; font-size: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">Detail Pengirim</h3>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+              <tr>
+                <td style="padding: 8px 0; color: #4b5563; font-weight: 500; width: 120px;">Nama</td>
+                <td style="padding: 8px 0; color: #1f2937;">${name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #4b5563; font-weight: 500;">Email</td>
+                <td style="padding: 8px 0; color: #1f2937;">${email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #4b5563; font-weight: 500;">Subjek</td>
+                <td style="padding: 8px 0; color: #1f2937;">${subject}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px;">
+            <h3 style="margin-top: 0; color: #1e40af; font-size: 16px;">Pesan</h3>
+            <p style="color: #1e3a8a; white-space: pre-wrap; line-height: 1.6;">${message}</p>
+          </div>
+
+          <p style="margin-top: 30px; text-align: center; color: #6b7280; font-size: 0.9em;">
+            Balas email ini ke <a href="mailto:${email}" style="color: #2563eb;">${email}</a>
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f3f4f6; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+          <p style="margin: 0; color: #9ca3af; font-size: 12px;">&copy; ${new Date().getFullYear()} AdverFI. All rights reserved.</p>
+        </div>
+      </div>
+    `;
+
+		// Send to admin
+		const adminData = await resend.emails.send({
+			from: 'AdverFI Contact Form <no-reply@reg.weddify.biz.id>',
+			to: [ADMIN_EMAIL],
+			replyTo: email,
+			subject: `[Contact Form] ${subject}`,
+			html: adminHtml
+		});
+
+		console.log('Contact email sent to admin:', adminData);
+
+		// Send confirmation to user
+		const userHtml = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+        
+        <!-- Header -->
+        <div style="background-color: #111827; padding: 30px 20px; text-align: center;">
+          <h2 style="color: #ffffff; margin: 0; font-size: 24px;">Terima Kasih Telah Menghubungi Kami</h2>
+        </div>
+
+        <div style="padding: 30px;">
+          <p style="font-size: 16px; color: #374151;">Halo <strong>${name.split(' ')[0]}</strong>,</p>
+          <p style="color: #4b5563; line-height: 1.6;">Terima kasih telah menghubungi AdverFI. Kami telah menerima pesan Anda dan akan segera merespons dalam 1x24 jam.</p>
+          
+          <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin: 25px 0;">
+            <h3 style="margin-top: 0; color: #1f2937; font-size: 16px;">Ringkasan Pesan Anda</h3>
+            <p style="margin: 5px 0; color: #4b5563;"><strong>Subjek:</strong> ${subject}</p>
+            <p style="margin: 10px 0 0 0; color: #6b7280; white-space: pre-wrap; line-height: 1.6;">${message}</p>
+          </div>
+
+          <p style="color: #4b5563; line-height: 1.6;">Jika Anda memiliki pertanyaan mendesak, silakan hubungi kami melalui WhatsApp di <a href="https://wa.me/6281616666202" style="color: #2563eb;">+62 816-1666-202</a>.</p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f3f4f6; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+          <p style="margin: 0; color: #9ca3af; font-size: 12px;">&copy; ${new Date().getFullYear()} AdverFI. All rights reserved.</p>
+        </div>
+      </div>
+    `;
+
+		const userData = await resend.emails.send({
+			from: 'AdverFI <no-reply@reg.weddify.biz.id>',
+			to: [email],
+			subject: 'Pesan Anda Telah Kami Terima - AdverFI',
+			html: userHtml
+		});
+
+		console.log('Confirmation email sent to user:', userData);
+
+		return { success: true, adminData, userData };
+	} catch (error) {
+		console.error('Failed to send contact email:', error);
+		return { success: false, error };
 	}
 };
