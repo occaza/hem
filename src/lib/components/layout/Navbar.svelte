@@ -41,16 +41,16 @@
 		: 'py-0'}"
 >
 	<div
-		class="navbar bg-black/80 shadow-md backdrop-blur-md transition-all duration-300 {isScrolled
+		class="navbar bg-base-100/40 shadow-md backdrop-blur-md transition-all duration-300 {isScrolled
 			? 'container rounded-full'
 			: 'w-full rounded-none'}"
 	>
 		<div
-			class="flex items-center justify-between px-4 text-white {isScrolled
+			class="flex items-center justify-between px-4 text-base-content {isScrolled
 				? 'w-full'
 				: 'container mx-auto'}"
 		>
-			<a href="/" class="flex items-center gap-2 text-xl font-semibold text-white">
+			<a href="/" class="flex items-center gap-2 text-xl font-semibold text-base-content">
 				<ShoppingCart class="h-6 w-6" />
 				<span class="hidden sm:inline">AdverFI</span>
 			</a>
@@ -60,8 +60,8 @@
 				<li>
 					<a
 						href="/"
-						class="flex items-center gap-1 rounded-md px-3 py-2 transition hover:bg-white/10"
-						class:text-yellow-400={isActive('/')}
+						class="flex items-center gap-1 rounded-md px-3 py-2 transition hover:bg-base-content/10"
+						class:text-accent={isActive('/')}
 					>
 						<House class="h-4 w-4" /> Beranda
 					</a>
@@ -69,8 +69,8 @@
 				<li>
 					<a
 						href="/shop"
-						class="flex items-center gap-1 rounded-md px-3 py-2 transition hover:bg-white/10"
-						class:text-yellow-400={isActive('/shop')}
+						class="flex items-center gap-1 rounded-md px-3 py-2 transition hover:bg-base-content/10"
+						class:text-primary={isActive('/shop')}
 					>
 						<ShoppingBasket class="h-4 w-4" /> Belanja
 					</a>
@@ -80,7 +80,10 @@
 			<!-- Desktop Right Actions -->
 			<div class="hidden items-center gap-2 lg:flex">
 				{#if showCart}
-					<a href="/cart" class="btn relative btn-circle text-white btn-ghost hover:bg-white/10">
+					<a
+						href="/cart"
+						class="btn relative btn-circle text-base-content btn-ghost hover:bg-base-content/10"
+					>
 						<ShoppingCart class="h-6 w-6" />
 						{#if $cartCount > 0}
 							<span class="absolute top-0 right-0 badge badge-sm badge-primary">{$cartCount}</span>
@@ -90,9 +93,9 @@
 
 				{#if user}
 					<div class="dropdown dropdown-end">
-						<button tabindex="0" class="btn avatar btn-circle btn-ghost hover:bg-white/10">
+						<button tabindex="0" class="btn avatar btn-circle btn-ghost hover:bg-base-content/10">
 							<div
-								class="flex w-10 items-center justify-center rounded-full bg-white/20 text-white"
+								class="flex w-10 items-center justify-center rounded-full bg-base-content/10 text-base-content"
 							>
 								<CircleUserRound class="h-6 w-6" />
 							</div>
@@ -124,7 +127,7 @@
 				{:else}
 					<a
 						href="/login"
-						class="btn items-center rounded-full border-white text-white btn-outline btn-sm hover:bg-white/10"
+						class="btn items-center rounded-full border-base-content/20 text-base-content btn-outline btn-sm hover:bg-base-content/10"
 					>
 						<User class="h-4 w-4" />
 					</a>

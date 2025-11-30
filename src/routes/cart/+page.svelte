@@ -13,7 +13,7 @@
 	import PaymentModal from '$lib/components/features/payment/PaymentModal.svelte';
 	import { appliedCoupon } from '$lib/stores/coupon.store';
 	import type { CartItem } from '$lib/types/types';
-	import { Trash2, NotebookPen } from '@lucide/svelte';
+	import { Trash2, NotebookPen, PackageOpen, ShoppingCart } from '@lucide/svelte';
 	import { authUser } from '$lib/stores/auth.store';
 	import { toast } from '$lib/stores/toast.store';
 	import { confirmClearCart, confirmDelete } from '$lib/utils/swal.utils';
@@ -350,16 +350,12 @@
 				<div class="card bg-base-100 shadow-xl">
 					<div class="card-body items-center py-16 text-center">
 						<div class="mb-6">
-							<svg class="mx-auto h-32 w-32 text-warning" fill="currentColor" viewBox="0 0 24 24">
-								<path
-									d="M7 4V2h10v2h5v2h-2v13c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2V6H2V4h5zm2 0h6v12H9V4zm11 2H4v13h14V6zM9 8h2v8H9V8zm4 0h2v8h-2V8z"
-								/>
-							</svg>
+							<PackageOpen size={150} />
 						</div>
 						<h2 class="mb-2 text-2xl font-bold">Wah, keranjang belanjamu kosong</h2>
 						<p class="mb-8 text-base-content/70">Yuk, isi dengan Item-Item impianmu!</p>
 						<a href="/shop" class="btn btn-lg btn-primary">
-							<span>🛍️</span>
+							<span><ShoppingCart /></span>
 							Mulai Belanja
 						</a>
 					</div>

@@ -140,13 +140,15 @@
 
 	<!-- Header Section with Gradient -->
 	<div
-		class="relative overflow-hidden bg-gradient-to-br from-primary/90 to-purple-700 pt-24 pb-12 text-white shadow-lg"
+		class="relative overflow-hidden bg-gradient-to-br from-primary to-secondary pt-24 pb-12 text-base-content shadow-lg"
 	>
 		<div
 			class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"
 		></div>
-		<div class="absolute -right-10 -bottom-10 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
-		<div class="absolute top-10 left-10 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
+		<div
+			class="absolute -right-10 -bottom-10 h-64 w-64 rounded-full bg-base-content/5 blur-3xl"
+		></div>
+		<div class="absolute top-10 left-10 h-32 w-32 rounded-full bg-base-content/5 blur-2xl"></div>
 
 		<div class="relative z-10 container mx-auto px-4">
 			<div class="flex flex-col items-end justify-between gap-4 md:flex-row">
@@ -155,7 +157,7 @@
 						<Package class="h-10 w-10" />
 						Pesanan Saya
 					</h1>
-					<p class="max-w-xl text-lg text-white/80">
+					<p class="max-w-xl text-lg text-base-content/80">
 						Kelola dan pantau status semua pesanan Anda di sini.
 					</p>
 				</div>
@@ -164,13 +166,13 @@
 				<div class="w-full md:w-auto">
 					<div class="relative">
 						<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-							<Search class="h-5 w-5 text-white/60" />
+							<Search class="h-5 w-5 text-base-content/60" />
 						</div>
 						<input
 							type="text"
 							bind:value={searchQuery}
 							placeholder="Cari pesanan..."
-							class="input-bordered input w-full border-white/20 bg-white/10 pl-10 text-white placeholder-white/60 transition-all focus:border-white focus:bg-white/20 md:w-64"
+							class="input-bordered input w-full border-base-content/20 bg-base-content/5 pl-10 text-base-content placeholder-base-content/60 transition-all focus:border-base-content focus:bg-base-content/10 md:w-64"
 						/>
 					</div>
 				</div>

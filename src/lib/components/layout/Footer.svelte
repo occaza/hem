@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { ShoppingBag, Mail, Phone, MapPin, Facebook, Twitter, Instagram } from '@lucide/svelte';
-
-	// let { marginTop = true } = $props(); {marginTop ? 'mt-24' : ''}
 </script>
 
 <footer class=" bg-base-300 pt-10 text-base-content">

@@ -70,57 +70,54 @@
 	<Navbar />
 
 	<!-- Hero Section -->
-	<div class="hero-section relative flex min-h-[90vh] items-center justify-center overflow-hidden">
+	<div class="relative -mt-16 flex min-h-screen items-center justify-center overflow-hidden pt-16">
 		<!-- Background Image with Overlay -->
 		<div class="hero-bg"></div>
 		<div class="hero-overlay"></div>
 
-		<div class="relative z-10 w-full px-4 py-20 text-center text-white">
+		<div class="relative z-10 w-full px-4 pt-24 pb-20 text-center text-base-100">
 			<div class="mx-auto max-w-5xl" class:fade-in-up={heroVisible}>
 				<div
-					class="mb-6 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-2 backdrop-blur-md"
+					class="mb-6 inline-flex items-center gap-2 rounded-full border border-base-100/30 bg-base-100/10 px-6 py-2 backdrop-blur-md"
 				>
-					<Sparkles size={20} class="text-yellow-300" />
+					<Sparkles size={20} class="text-primary" />
 					<span class="text-sm font-medium">Platform Digital Terpercaya</span>
 				</div>
 
-				<h1 class="mb-6 text-5xl leading-tight font-black md:text-6xl lg:text-7xl xl:text-8xl">
-					<span class="text-white drop-shadow-lg">Belanja Digital</span><br />
-					<span class="text-white drop-shadow-lg">Lebih Mudah & Cepat</span>
+				<h1 class="mb-6 text-3xl leading-tight font-black md:text-4xl lg:text-5xl xl:text-6xl">
+					<span class="text-base-100 drop-shadow-lg">Belanja Online</span><br />
+					<span class="text-base-100 drop-shadow-lg">Lebih Mudah & Cepat</span>
 				</h1>
 
 				<p
-					class="mx-auto mb-10 max-w-3xl text-lg font-medium text-white/95 drop-shadow-md md:text-xl lg:text-2xl"
+					class="mx-auto mb-10 max-w-3xl text-lg font-medium text-base-100/95 drop-shadow-md md:text-xl lg:text-xl"
 				>
 					Platform terpercaya untuk membeli produk digital dengan proses pembayaran yang simpel,
 					aman, dan instan
 				</p>
 
 				<div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-					<a href="/shop" class="btn-primary-custom group">
+					<a href="/shop" class="group btn gap-3 btn-lg btn-primary">
 						<ShoppingBag size={24} />
 						<span>Mulai Belanja Sekarang</span>
 						<ArrowRight size={20} class="transition-transform group-hover:translate-x-1" />
 					</a>
-					<a href="#features" class="btn-secondary-custom group">
-						<span>Pelajari Lebih Lanjut</span>
-						<ArrowRight size={20} class="transition-transform group-hover:translate-x-1" />
-					</a>
+					<!--  -->
 				</div>
 
 				<!-- Stats -->
 				<div class="mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-8 sm:grid-cols-3">
 					<div class="stat-card">
-						<div class="text-3xl font-black text-white md:text-4xl">1000+</div>
-						<div class="mt-1 text-sm text-white/90 md:text-base">Produk Digital</div>
+						<div class="text-3xl font-black text-base-100 md:text-4xl">1000+</div>
+						<div class="mt-1 text-sm text-base-100/90 md:text-base">Produk Digital</div>
 					</div>
 					<div class="stat-card">
-						<div class="text-3xl font-black text-white md:text-4xl">5000+</div>
-						<div class="mt-1 text-sm text-white/90 md:text-base">Pelanggan Puas</div>
+						<div class="text-3xl font-black text-base-100 md:text-4xl">5000+</div>
+						<div class="mt-1 text-sm text-base-100/90 md:text-base">Pelanggan Puas</div>
 					</div>
 					<div class="stat-card">
-						<div class="text-3xl font-black text-white md:text-4xl">24/7</div>
-						<div class="mt-1 text-sm text-white/90 md:text-base">Layanan Support</div>
+						<div class="text-3xl font-black text-base-100 md:text-4xl">24/7</div>
+						<div class="mt-1 text-sm text-base-100/90 md:text-base">Layanan Support</div>
 					</div>
 				</div>
 			</div>
@@ -180,20 +177,17 @@
 	</div>
 
 	<!-- CTA Section -->
-	<div class="cta-gradient relative overflow-hidden py-24 text-white">
-		<div class="blob blob-4"></div>
-		<div class="blob blob-5"></div>
-
+	<div class="relative overflow-hidden bg-primary py-24">
 		<div class="relative z-10 container mx-auto px-4 text-center">
 			<div class="mx-auto max-w-4xl">
 				<h2 class="mb-6 text-4xl font-black md:text-5xl lg:text-6xl">
-					Siap Untuk <span class="text-yellow-300">Belanja?</span>
+					Siap Untuk <span class="text-success">Belanja?</span>
 				</h2>
-				<p class="mx-auto mb-10 max-w-2xl text-lg text-white/90 md:text-xl">
+				<p class="mx-auto mb-10 max-w-2xl text-lg text-base-content/90 md:text-xl">
 					Jelajahi koleksi produk digital kami dan nikmati kemudahan berbelanja dengan sistem
 					pembayaran yang aman dan cepat
 				</p>
-				<a href="/shop" class="btn-cta-custom group">
+				<a href="/shop" class="group btn gap-2 btn-lg btn-primary">
 					<ShoppingBag size={24} />
 					<span>Lihat Semua Produk</span>
 					<ArrowRight size={20} class="transition-transform group-hover:translate-x-1" />
@@ -216,121 +210,26 @@
 			sans-serif;
 	}
 
-	.font-inter {
-		font-family:
-			'Inter',
-			-apple-system,
-			BlinkMacSystemFont,
-			'Segoe UI',
-			sans-serif;
-	}
-
 	/* Hero Section with Image Background */
-	.hero-section {
-		position: relative;
-	}
-
 	.hero-bg {
 		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background-image: url('/pexels-johnpet-2115257.jpg');
+		inset: 0;
+		background-image: url('/pexels-chris-f-38966-5696974.jpg');
 		background-size: cover;
 		background-position: center;
-		background-repeat: no-repeat;
 		z-index: 0;
 	}
 
 	.hero-overlay {
 		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
+		inset: 0;
 		background: linear-gradient(
 			to bottom,
-			rgba(0, 0, 0, 0.5) 0%,
+			rgba(0, 0, 0, 0.5),
 			rgba(0, 0, 0, 0.6) 50%,
-			rgba(0, 0, 0, 0.7) 100%
+			rgba(0, 0, 0, 0.7)
 		);
 		z-index: 1;
-	}
-
-	/* CTA Gradient Background */
-	.cta-gradient {
-		background: linear-gradient(
-			135deg,
-			hsl(220, 90%, 56%) 0%,
-			hsl(230, 85%, 50%) 50%,
-			hsl(240, 80%, 55%) 100%
-		);
-	}
-
-	/* Custom Buttons */
-	.btn-primary-custom {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 1rem 2rem;
-		font-size: 1.125rem;
-		font-weight: 700;
-		color: white;
-		background: linear-gradient(135deg, hsl(280, 80%, 55%), hsl(240, 80%, 60%));
-		border-radius: 9999px;
-		border: none;
-		cursor: pointer;
-		transition: all 0.3s ease;
-		box-shadow: 0 10px 30px -10px hsl(270, 80%, 50%);
-	}
-
-	.btn-primary-custom:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 20px 40px -10px hsl(270, 80%, 50%);
-	}
-
-	.btn-secondary-custom {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 1rem 2rem;
-		font-size: 1.125rem;
-		font-weight: 700;
-		color: white;
-		background: rgba(255, 255, 255, 0.1);
-		backdrop-filter: blur(10px);
-		border-radius: 9999px;
-		border: 2px solid rgba(255, 255, 255, 0.3);
-		cursor: pointer;
-		transition: all 0.3s ease;
-	}
-
-	.btn-secondary-custom:hover {
-		background: rgba(255, 255, 255, 0.2);
-		border-color: rgba(255, 255, 255, 0.5);
-		transform: translateY(-2px);
-	}
-
-	.btn-cta-custom {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 1.25rem 2.5rem;
-		font-size: 1.25rem;
-		font-weight: 700;
-		color: hsl(240, 80%, 50%);
-		background: white;
-		border-radius: 9999px;
-		border: none;
-		cursor: pointer;
-		transition: all 0.3s ease;
-		box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.3);
-	}
-
-	.btn-cta-custom:hover {
-		transform: translateY(-3px) scale(1.05);
-		box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.4);
 	}
 
 	/* Stats Card */
@@ -362,10 +261,9 @@
 	.feature-card-inner {
 		height: 100%;
 		padding: 2.5rem;
-		background: rgba(255, 255, 255, 0.05);
-		backdrop-filter: blur(10px);
+		background: oklch(var(--b2));
 		border-radius: 1.5rem;
-		border: 1px solid rgba(255, 255, 255, 0.1);
+		border: 1px solid oklch(var(--bc) / 0.1);
 		transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 		position: relative;
 		overflow: hidden;
@@ -373,9 +271,9 @@
 
 	.feature-card:hover .feature-card-inner {
 		transform: translateY(-10px);
-		background: rgba(255, 255, 255, 0.1);
-		border-color: rgba(255, 255, 255, 0.2);
-		box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.3);
+		background: oklch(var(--b3));
+		border-color: oklch(var(--bc) / 0.2);
+		box-shadow: 0 20px 60px -10px oklch(var(--b1) / 0.3);
 	}
 
 	/* Icon Styling */
@@ -422,22 +320,6 @@
 		to {
 			opacity: 1;
 			transform: translateY(0);
-		}
-	}
-
-	/* Responsive adjustments */
-	@media (max-width: 768px) {
-		.blob {
-			filter: blur(40px);
-		}
-
-		.blob-1,
-		.blob-2,
-		.blob-3,
-		.blob-4,
-		.blob-5 {
-			width: 250px;
-			height: 250px;
 		}
 	}
 </style>

@@ -95,7 +95,7 @@
 		{/if}
 
 		{#if !inStock}
-			<div class="absolute bottom-2 left-2 badge badge-ghost bg-black/70 text-white">
+			<div class="absolute bottom-2 left-2 badge badge-ghost bg-base-content/70 text-base-100">
 				Stok Habis
 			</div>
 		{/if}

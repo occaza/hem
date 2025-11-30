@@ -75,21 +75,21 @@
 
 <Navbar />
 
-<div class="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 pt-24 pb-20">
-	<div class="container mx-auto px-4">
+<div class="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 py-24">
+	<div class="container mx-auto px-4 pb-20">
 		<!-- Welcome Section with Gradient -->
-		<div class="gradient-bg card mb-8 overflow-hidden shadow-2xl">
-			<div class="card-body text-white">
+		<div class="card mb-8 overflow-hidden bg-gradient-to-br from-primary to-secondary shadow-2xl">
+			<div class="card-body text-primary-content">
 				<div class="flex flex-col items-center gap-6 md:flex-row">
 					<div class="online avatar">
 						<div
-							class="w-24 rounded-full shadow-xl ring ring-white ring-offset-4 ring-offset-purple-600"
+							class="w-24 rounded-full shadow-xl ring ring-base-content/20 ring-offset-4 ring-offset-primary"
 						>
 							{#if data.user.avatar_url}
 								<img src={data.user.avatar_url} alt="Avatar" />
 							{:else}
 								<div
-									class="flex h-full items-center justify-center bg-white text-4xl font-bold text-purple-600"
+									class="flex h-full items-center justify-center bg-base-100 text-4xl font-bold text-primary"
 								>
 									{data.user.full_name?.charAt(0) || '👤'}
 								</div>
@@ -101,13 +101,15 @@
 							<Sparkles size={24} />
 							<h1 class="text-4xl font-bold">Halo, {firstName}!</h1>
 						</div>
-						<p class="text-lg text-white/90">{data.user.email}</p>
-						<p class="mt-2 text-white/70">Selamat datang kembali di dashboard Anda</p>
+						<p class="text-lg text-primary-content/90">{data.user.email}</p>
+						<p class="mt-2 text-primary-content/70">Selamat datang kembali di dashboard Anda</p>
 					</div>
 					<div class="hidden lg:block">
-						<div class="stats stats-vertical bg-white/10 text-white shadow-lg backdrop-blur-sm">
+						<div
+							class="stats stats-vertical bg-base-content/10 text-primary-content shadow-lg backdrop-blur-sm"
+						>
 							<div class="stat">
-								<div class="stat-title text-white/70">Member Sejak</div>
+								<div class="stat-title text-primary-content/70">Member Sejak</div>
 								<div class="stat-value text-2xl">2025</div>
 							</div>
 						</div>

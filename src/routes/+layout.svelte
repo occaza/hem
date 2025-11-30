@@ -38,7 +38,7 @@
 		property="og:description"
 		content="Platform terpercaya untuk membeli produk digital dengan proses pembayaran yang simpel, aman, dan instan."
 	/>
-	<meta property="og:image" content="https://jualfb.vercel.app/pexels-johnpet-2115257.jpg" />
+	<meta property="og:image" content="https://jualfb.vercel.app/pexels-chris-f-38966-5696974.jpg" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
 	<meta property="og:site_name" content="adverFI" />
@@ -52,13 +52,16 @@
 		property="twitter:description"
 		content="Platform terpercaya untuk membeli produk digital dengan proses pembayaran yang simpel, aman, dan instan."
 	/>
-	<meta property="twitter:image" content="https://jualfb.vercel.app/pexels-johnpet-2115257.jpg" />
+	<meta
+		property="twitter:image"
+		content="https://jualfb.vercel.app/pexels-chris-f-38966-5696974.jpg"
+	/>
 
 	<!-- Additional SEO -->
 	<link rel="canonical" href="https://jualfb.vercel.app/" />
 </svelte:head>
 
-<main data-theme="light">
+<main>
 	<Toast />
 	{@render children()}
 </main>
