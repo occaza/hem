@@ -15,15 +15,47 @@ export const GET: RequestHandler = async ({ params }) => {
 
 		let { data, error } = await supabaseAdmin
 			.from('products')
-			.select('*')
+			.select(
+				`
+				*,
+				product_categories(
+					category_id,
+					categories(id, name, slug, icon)
+				)
+			`
+			)
 			.eq('slug', slug)
 			.single();
 
-		// Jika tidak ketemu by slug, coba by id
+		if (data) {
+			// Transform categories structure
+			data.categories = data.product_categories?.map((pc: any) => pc.categories) || [];
+			delete data.product_categories;
+		}
+
 		if (error || !data) {
-			const result = await supabaseAdmin.from('products').select('*').eq('id', slug).single();
+			const result = await supabaseAdmin
+				.from('products')
+				.select(
+					`
+					*,
+					product_categories(
+						category_id,
+						categories(id, name, slug, icon)
+					)
+				`
+				)
+				.eq('id', slug)
+				.single();
+
 			data = result.data;
 			error = result.error;
+
+			if (data) {
+				// Transform categories structure
+				data.categories = data.product_categories?.map((pc: any) => pc.categories) || [];
+				delete data.product_categories;
+			}
 		}
 
 		if (error || !data) {

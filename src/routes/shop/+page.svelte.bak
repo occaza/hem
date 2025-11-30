@@ -1,9 +1,10 @@
+<!-- src/routes/+page.svelte (REFACTORED - Step 4) -->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Product, Category } from '$lib/types/types';
 	import QRCode from 'qrcode';
 
-	import { cartStore } from '$lib/stores/cart.store';
+	import { cartStore, cartCount } from '$lib/stores/cart.store';
 	import { toast } from '$lib/stores/toast.store';
 	import Navbar from '$lib/components/layout/Navbar.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
@@ -12,16 +13,13 @@
 	import PaymentModal from '$lib/components/features/payment/PaymentModal.svelte';
 	import ProductCard from '$lib/components/features/products/ProductCard.svelte';
 	import SidebarFilter from '$lib/components/features/shop/SidebarFilter.svelte';
-	import FeaturesSection from '$lib/components/features/shop/FeaturesSection.svelte';
 	import DynamicIcon from '$lib/components/ui/DynamicIcon.svelte';
-	import { ChevronDown, X } from '@lucide/svelte';
 
 	let products = $state<Product[]>([]);
 	let categories = $state<Category[]>([]);
 	let selectedCategory = $state<string | null>(null);
 	let minPrice = $state<number | null>(null);
 	let maxPrice = $state<number | null>(null);
-	let availability = $state<string[]>([]);
 	let loading = $state(true);
 	let showPayment = $state(false);
 	let showMethodSelector = $state(false);
@@ -31,24 +29,6 @@
 	let qrImageUrl = $state('');
 	let pollingInterval = $state<any>(null);
 	let isSimulating = $state(false);
-	let sortBy = $state('default');
-
-	// Pagination State
-	let currentPage = $state(1);
-	const itemsPerPage = 20;
-
-	let paginatedProducts = $derived(
-		products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-	);
-
-	let totalPages = $derived(Math.ceil(products.length / itemsPerPage));
-
-	function changePage(page: number) {
-		if (page >= 1 && page <= totalPages) {
-			currentPage = page;
-			window.scrollTo({ top: 0, behavior: 'smooth' });
-		}
-	}
 
 	onMount(() => {
 		(async () => {
@@ -82,21 +62,11 @@
 			if (selectedCategory) params.append('category', selectedCategory);
 			if (minPrice) params.append('min_price', minPrice.toString());
 			if (maxPrice) params.append('max_price', maxPrice.toString());
-			if (availability.length > 0) params.append('availability', availability.join(','));
 
 			const url = `/api/products?${params.toString()}`;
 			const res = await fetch(url);
-			let data = await res.json();
-
-			// Client-side sorting for now
-			if (sortBy === 'price_low') {
-				data.sort((a: Product, b: Product) => a.price - b.price);
-			} else if (sortBy === 'price_high') {
-				data.sort((a: Product, b: Product) => b.price - a.price);
-			}
-
+			const data = await res.json();
 			products = data;
-			currentPage = 1; // Reset to first page on filter change
 		} catch (error) {
 			console.error('Failed to fetch products:', error);
 		} finally {
@@ -113,23 +83,6 @@
 		minPrice = min;
 		maxPrice = max;
 		await loadProducts();
-	}
-
-	async function toggleAvailability(status: string) {
-		if (availability.includes(status)) {
-			availability = availability.filter((s) => s !== status);
-		} else {
-			availability = [...availability, status];
-		}
-		await loadProducts();
-	}
-
-	function clearAllFilters() {
-		selectedCategory = null;
-		minPrice = null;
-		maxPrice = null;
-		availability = [];
-		loadProducts();
 	}
 
 	function showMethodSelection(product: Product) {
@@ -264,171 +217,57 @@
 </script>
 
 <svelte:head>
-	<title>Shop - adverFI</title>
+	<title>Produk - adverFI</title>
 </svelte:head>
 
-<div class="min-h-screen bg-base-100 font-sans">
+<!-- Update Navbar untuk tampilkan cart count -->
+<div class="min-h-screen bg-base-200">
+	<!-- Header/Navbar -->
 	<Navbar />
 
-	<!-- Header -->
-	<div class="bg-base-200/50 py-12 text-center">
-		<h1 class="mb-2 text-4xl font-bold">Shop</h1>
-		<div class="breadcrumbs flex justify-center text-sm">
-			<ul>
-				<li><a href="/">Home</a></li>
-				<li>Shop</li>
-			</ul>
+	<!-- Main Content -->
+	<div class="container mx-auto px-4 py-8 lg:py-12">
+		<div class="mb-8 text-center">
+			<h1 class="mb-4 text-3xl font-bold lg:text-4xl">Produk Kami</h1>
+			<p class="text-base text-base-content/70 lg:text-lg">
+				Pilih produk yang Anda inginkan dan nikmati kemudahan berbelanja
+			</p>
 		</div>
-	</div>
 
-	<div class="container mx-auto px-4 py-12">
-		<div class="grid grid-cols-1 gap-12 lg:grid-cols-4">
-			<!-- Sidebar -->
+		<div class="grid grid-cols-1 gap-8 lg:grid-cols-4">
+			<!-- Sidebar Filter (Desktop: Left Column, Mobile: Top Stack) -->
 			<div class="lg:col-span-1">
 				<SidebarFilter
 					{categories}
 					{selectedCategory}
 					{minPrice}
 					{maxPrice}
-					{availability}
 					onSelectCategory={selectCategory}
 					onApplyFilter={applyFilter}
-					onToggleAvailability={toggleAvailability}
 				/>
 			</div>
 
-			<!-- Main Content -->
+			<!-- Products Grid (Desktop: Right Column) -->
 			<div class="lg:col-span-3">
-				<!-- Top Bar -->
-				<div class="mb-8 flex flex-col items-center justify-between gap-4 md:flex-row">
-					<div class="text-base-content/70">
-						Showing 1-{products.length} of {products.length} results
-					</div>
-
-					<div class="flex items-center gap-4">
-						<span class="text-base-content/70">Sort by :</span>
-						<select
-							class="select-bordered select w-full max-w-xs rounded-full select-sm"
-							bind:value={sortBy}
-							onchange={loadProducts}
-						>
-							<option value="default">Default Sorting</option>
-							<option value="price_low">Price: Low to High</option>
-							<option value="price_high">Price: High to Low</option>
-						</select>
-					</div>
-				</div>
-
-				<!-- Active Filters -->
-				{#if selectedCategory || minPrice || maxPrice || availability.length > 0}
-					<div class="mb-8 flex flex-wrap items-center gap-2">
-						<span class="mr-2 text-sm font-semibold">Active Filter:</span>
-
-						{#if selectedCategory}
-							<div class="badge gap-2 p-3 text-white badge-primary">
-								Category: {categories.find((c) => c.slug === selectedCategory)?.name ||
-									selectedCategory}
-								<button onclick={() => selectCategory(null)}><X size={14} /></button>
-							</div>
-						{/if}
-
-						{#if minPrice || maxPrice}
-							<div class="badge gap-2 p-3 text-white badge-primary">
-								Price: {minPrice ? minPrice : 0} - {maxPrice ? maxPrice : 'Max'}
-								<button onclick={() => applyFilter(null, null)}><X size={14} /></button>
-							</div>
-						{/if}
-
-						{#if availability.length > 0}
-							<div class="badge gap-2 p-3 text-white badge-primary">
-								Availability: {availability
-									.map((s) => (s === 'in_stock' ? 'In Stock' : 'Out of Stock'))
-									.join(', ')}
-								<button
-									onclick={() => {
-										availability = [];
-										loadProducts();
-									}}><X size={14} /></button
-								>
-							</div>
-						{/if}
-
-						<button
-							class="btn text-primary underline btn-ghost btn-xs hover:bg-transparent"
-							onclick={clearAllFilters}
-						>
-							Clear All
-						</button>
-					</div>
-				{/if}
-
-				<!-- Products Grid -->
 				{#if loading}
-					<div class="flex justify-center py-20">
+					<div class="flex justify-center py-12">
 						<span class="loading loading-lg loading-spinner text-primary"></span>
 					</div>
-				{:else if paginatedProducts.length > 0}
-					<div
-						class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-4"
-					>
-						{#each paginatedProducts as product}
+				{:else if products.length > 0}
+					<div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+						{#each products as product}
 							<ProductCard {product} showAddToCart={true} />
 						{/each}
 					</div>
-
-					<!-- Smart Pagination -->
-					{#if totalPages > 1}
-						<div class="mt-12 flex justify-center gap-2">
-							<button
-								class="btn btn-circle btn-sm {currentPage === 1 ? 'btn-disabled' : 'btn-ghost'}"
-								onclick={() => changePage(currentPage - 1)}
-								disabled={currentPage === 1}
-							>
-								&lt;
-							</button>
-
-							{#each Array(totalPages) as _, i}
-								{@const page = i + 1}
-								{#if page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)}
-									<button
-										class="btn btn-circle btn-sm {currentPage === page
-											? 'btn-primary'
-											: 'btn-ghost'}"
-										onclick={() => changePage(page)}
-									>
-										{page}
-									</button>
-								{:else if page === currentPage - 2 || page === currentPage + 2}
-									<span class="flex items-center px-1">...</span>
-								{/if}
-							{/each}
-
-							<button
-								class="btn btn-circle btn-sm {currentPage === totalPages
-									? 'btn-disabled'
-									: 'btn-ghost'}"
-								onclick={() => changePage(currentPage + 1)}
-								disabled={currentPage === totalPages}
-							>
-								&gt;
-							</button>
-						</div>
-					{/if}
 				{:else}
-					<div class="rounded-2xl bg-base-200/30 py-20 text-center">
-						<DynamicIcon name="package-open" class="mx-auto mb-4 h-16 w-16 text-base-content/30" />
-						<h3 class="mb-2 text-xl font-bold">No products found</h3>
-						<p class="mb-6 text-base-content/60">Try adjusting your filters or search criteria.</p>
-						<button class="btn btn-primary" onclick={clearAllFilters}>Clear Filters</button>
+					<div class="alert alert-info">
+						<DynamicIcon name="info" class="h-6 w-6" />
+						<span>Belum ada produk yang sesuai dengan filter Anda.</span>
 					</div>
 				{/if}
 			</div>
 		</div>
 	</div>
-
-	<!-- Features Section -->
-	<FeaturesSection />
-
 	<Footer />
 </div>
 

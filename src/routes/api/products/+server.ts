@@ -9,6 +9,7 @@ export async function GET({ url }) {
 		const categorySlug = url.searchParams.get('category');
 		const minPrice = url.searchParams.get('min_price');
 		const maxPrice = url.searchParams.get('max_price');
+		const availability = url.searchParams.get('availability'); // 'in_stock' | 'out_of_stock'
 
 		let query = supabaseAdmin
 			.from('products')
@@ -47,6 +48,17 @@ export async function GET({ url }) {
 		}
 		if (maxPrice) {
 			query = query.lte('price', parseInt(maxPrice));
+		}
+
+		// Filter by availability
+		if (availability) {
+			const statuses = availability.split(',');
+			if (statuses.includes('in_stock') && !statuses.includes('out_of_stock')) {
+				query = query.gt('stock', 0);
+			} else if (statuses.includes('out_of_stock') && !statuses.includes('in_stock')) {
+				query = query.eq('stock', 0);
+			}
+			// If both are selected or neither, we don't filter by stock (show all)
 		}
 
 		const { data, error } = await query.order('created_at', { ascending: false });

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import type { Product } from '$lib/types/types';
-	import { formatCurrency, formatStock } from '$lib/utils/format.utils';
+	import { formatCurrency } from '$lib/utils/format.utils';
 	import { calculateDiscountedPrice, isDiscountActive, isInStock } from '$lib/utils/product.utils';
 	import { cartStore } from '$lib/stores/cart.store';
 	import { authUser } from '$lib/stores/auth.store';
-	import { ShoppingCart, Zap } from '@lucide/svelte';
+	import { ShoppingBag } from '@lucide/svelte';
 	import { toast } from '$lib/stores/toast.store';
 	import { confirmLogin } from '$lib/utils/swal.utils';
 
@@ -30,7 +30,8 @@
 			: 'https://placehold.co/400x300?text=No+Image'
 	);
 
-	async function handleAddToCart() {
+	async function handleAddToCart(e: Event) {
+		e.stopPropagation();
 		if (!user) {
 			const confirmed = await confirmLogin('menambahkan produk ke keranjang');
 			if (confirmed) {
@@ -49,14 +50,6 @@
 		addingToCart = false;
 	}
 
-	function handleBuyNow() {
-		// Guest user can view product details
-		// if (!user) { ... } check removed
-
-		const identifier = product.slug || product.id;
-		goto(`/shop/${identifier}`);
-	}
-
 	function handleCardClick() {
 		const identifier = product.slug || product.id;
 		goto(`/shop/${identifier}`);
@@ -64,123 +57,71 @@
 </script>
 
 <div
-	class="card cursor-pointer bg-base-100 shadow-xl transition-transform hover:scale-105"
+	class="group relative cursor-pointer transition-all duration-300"
 	onclick={handleCardClick}
 	role="button"
 	tabindex="0"
-	aria-label={'View ' + product.name + ' details'}
-	onkeydown={(e) => {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			handleCardClick();
-		}
-	}}
+	onkeydown={(e) => e.key === 'Enter' && handleCardClick()}
 >
-	<figure class="relative h-48 overflow-hidden">
+	<!-- Image Container -->
+	<div class="relative mb-3 aspect-square overflow-hidden rounded-2xl bg-base-200">
 		<img
 			src={productImage}
 			alt={product.name}
-			class="h-full w-full object-cover"
-			onerror={(e) => {
-				const img = e.currentTarget as HTMLImageElement;
-				img.src = 'https://placehold.co/400x300?text=Image+Not+Found';
-			}}
+			class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+			loading="lazy"
 		/>
 
-		{#if hasDiscount && product.discount_percentage}
-			<div class="absolute top-2 right-2 badge gap-1 font-bold badge-error">
-				<span>🔥</span>
-				-{product.discount_percentage}%
-			</div>
-		{/if}
-
-		{#if !inStock}
-			<div class="absolute bottom-2 left-2 badge badge-ghost bg-base-content/70 text-base-100">
-				Stok Habis
-			</div>
-		{/if}
-	</figure>
-
-	<div class="card-body">
-		<span class="card-title text-lg">
-			{product.name}
-			{#if product.stock > 0 && product.stock < 10}
-				<span class="badge badge-sm badge-warning">Terbatas!</span>
+		<!-- Badges -->
+		<div class="absolute top-3 left-3 flex flex-col gap-2">
+			{#if hasDiscount && product.discount_percentage}
+				<span class="badge border-none font-bold text-white badge-secondary">
+					{product.discount_percentage}% off
+				</span>
 			{/if}
-		</span>
-
-		<p class="line-clamp-2 hidden text-base-content/70 md:block">{product.description}</p>
-
-		<div class="my-2">
-			{#if hasDiscount}
-				<div class="flex flex-col gap-1">
-					<span class="text-lg font-bold text-primary">
-						{formatCurrency(finalPrice)}
-					</span>
-					<span class="text-xs text-base-content/50 line-through">
-						{formatCurrency(product.price)}
-					</span>
-				</div>
-			{:else}
-				<div class="text-lg font-bold text-primary">
-					{formatCurrency(product.price)}
-				</div>
+			{#if !inStock}
+				<span class="badge font-bold text-white badge-neutral">Out of Stock</span>
 			{/if}
-
-			<div class="mt-1 hidden text-sm text-base-content/70 md:block">
-				{formatStock(product.stock)}
-			</div>
 		</div>
 
-		<div class="card-actions justify-end">
+		<!-- Hover Actions -->
+		<div
+			class="absolute top-3 right-3 flex translate-x-10 flex-col gap-2 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+		>
 			{#if inStock}
-				<!-- Mobile: Always show Add to Cart icon button (Icon Only) -->
 				<button
-					class="btn w-full btn-sm btn-primary md:hidden"
-					onclick={(e) => {
-						e.stopPropagation();
-						handleAddToCart();
-					}}
+					class="btn btn-circle border-none bg-white text-base-content shadow-sm btn-sm hover:bg-primary hover:text-white"
+					onclick={handleAddToCart}
 					disabled={addingToCart}
-					aria-label="Tambah ke Keranjang"
 				>
 					{#if addingToCart}
 						<span class="loading loading-xs loading-spinner"></span>
 					{:else}
-						<ShoppingCart size={18} />
+						<ShoppingBag size={16} />
 					{/if}
 				</button>
+			{/if}
+		</div>
+	</div>
 
-				<!-- Desktop: Show Add to Cart if enabled -->
-				{#if showAddToCart}
-					<button
-						class="btn hidden btn-outline btn-sm md:flex"
-						onclick={(e) => {
-							e.stopPropagation();
-							handleAddToCart();
-						}}
-						disabled={addingToCart}
-					>
-						{#if addingToCart}
-							<span class="loading loading-xs loading-spinner"></span>
-						{:else}
-							<ShoppingCart size={14} />
-						{/if}
-					</button>
-				{/if}
+	<!-- Content -->
+	<div class="space-y-1">
+		{#if product.categories && product.categories.length > 0}
+			<div class="text-xs text-base-content/60">{product.categories[0].name}</div>
+		{/if}
 
-				<button
-					class="btn hidden flex-1 btn-sm btn-primary md:flex"
-					onclick={(e) => {
-						e.stopPropagation();
-						handleBuyNow();
-					}}
+		<h3 class="font-bold text-base-content transition-colors group-hover:text-primary">
+			{product.name}
+		</h3>
+
+		<div class="flex items-center gap-2">
+			{#if hasDiscount}
+				<span class="font-bold text-base-content">{formatCurrency(finalPrice)}</span>
+				<span class="text-sm text-base-content/40 line-through"
+					>{formatCurrency(product.price)}</span
 				>
-					<Zap size={14} />
-					Beli Sekarang
-				</button>
 			{:else}
-				<button class="btn btn-disabled btn-block btn-sm" disabled> Stok Habis </button>
+				<span class="font-bold text-base-content">{formatCurrency(product.price)}</span>
 			{/if}
 		</div>
 	</div>
