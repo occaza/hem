@@ -60,7 +60,7 @@
 				const errorData = await res.json();
 				error = errorData.error || 'Failed to load payment data';
 				debugInfo = `Error: ${error}`;
-				setTimeout(() => goto('/my-orders'), 3000);
+				setTimeout(() => goto('/account?tab=orders'), 3000);
 				return;
 			}
 
@@ -92,7 +92,7 @@
 			console.error('Load payment error:', err);
 			error = 'Gagal memuat data pembayaran';
 			debugInfo = `Exception: ${err}`;
-			setTimeout(() => goto('/my-orders'), 3000);
+			setTimeout(() => goto('/account?tab=orders'), 3000);
 		} finally {
 			loading = false;
 		}
@@ -128,6 +128,14 @@
 						pollingInterval = null;
 					}
 					goto(`/success?order_id=${orderId}`);
+				} else if (data.status === 'expired') {
+					console.log('❌ Status expired');
+					if (pollingInterval) {
+						clearInterval(pollingInterval);
+						pollingInterval = null;
+					}
+					paymentData.status = 'expired';
+					toast.error('Waktu pembayaran telah habis');
 				} else {
 					console.log('⏳ Status still pending:', data.status);
 				}
@@ -166,6 +174,11 @@
 				// Redirect ke success dengan status processing
 				cleanup();
 				goto(`/success?order_id=${orderId}&simulated=true`);
+			} else if (data.status === 'expired') {
+				console.log('❌ Status expired');
+				cleanup();
+				paymentData.status = 'expired';
+				toast.error('Waktu pembayaran telah habis');
 			} else {
 				console.log('⏳ Status still pending:', data.status);
 			}
@@ -219,19 +232,21 @@
 <div class="min-h-screen bg-base-200">
 	<div class="navbar bg-base-100 shadow-md">
 		<div class="container mx-auto">
-			<a href="/my-orders" class="btn btn-ghost">
-				<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M15 19l-7-7 7-7"
-					/>
-				</svg>
-				Kembali
-			</a>
-			<div class="flex-1 text-center">
-				<span class="text-lg font-bold">Menunggu Pembayaran</span>
+			<div class="flex items-center">
+				<!-- <a href="/account?tab=orders" class="btn btn-ghost">
+					<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M15 19l-7-7 7-7"
+						/>
+					</svg>
+					Kembali
+				</a> -->
+				<div class="flex-1 text-center">
+					<span class="text-lg font-bold">Menunggu Pembayaran</span>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -286,6 +301,12 @@
 								<span>Subtotal:</span>
 								<span>{formatCurrency(paymentData.amount || 0)}</span>
 							</div>
+							{#if paymentData.discount > 0}
+								<div class="mb-1 flex justify-between text-sm text-error">
+									<span>Kupon Diskon:</span>
+									<span>-{formatCurrency(paymentData.discount)}</span>
+								</div>
+							{/if}
 							<div class="mb-1 flex justify-between text-sm text-base-content/70">
 								<span>Biaya Admin:</span>
 								<span>{formatCurrency(paymentData.fee || 0)}</span>
@@ -300,7 +321,33 @@
 
 						<div class="divider"></div>
 
-						{#if paymentData.payment_method === 'qris'}
+						{#if paymentData.status === 'expired'}
+							<div class="mb-6 alert alert-error">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-6 w-6 shrink-0 stroke-current"
+									fill="none"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+									/>
+								</svg>
+								<div>
+									<h3 class="font-bold">Pembayaran Kadaluarsa</h3>
+									<div class="text-xs">Waktu pembayaran untuk pesanan ini telah habis.</div>
+								</div>
+							</div>
+							<div class="text-center">
+								<p class="mb-4 text-sm text-base-content/70">
+									Silakan buat pesanan baru untuk melanjutkan.
+								</p>
+								<a href="/shop" class="btn btn-primary">Belanja Lagi</a>
+							</div>
+						{:else if paymentData.payment_method === 'qris'}
 							<div class="mb-4">
 								<div class="mb-2 text-center font-semibold">Scan QR Code</div>
 								<div class="flex justify-center">
@@ -401,33 +448,35 @@
 
 						<div class="divider"></div>
 
-						<div class="flex flex-col gap-2">
-							<button
-								class="btn btn-block btn-primary"
-								onclick={checkPaymentStatus}
-								disabled={loading}
-							>
-								🔄 Cek Status Pembayaran
-							</button>
+						{#if paymentData.status !== 'expired'}
+							<div class="flex flex-col gap-2">
+								<button
+									class="btn btn-block btn-primary"
+									onclick={checkPaymentStatus}
+									disabled={loading}
+								>
+									🔄 Cek Status Pembayaran
+								</button>
 
-							<button
-								class="btn btn-block text-warning btn-ghost btn-sm"
-								onclick={simulatePayment}
-								disabled={isSimulating}
-							>
-								{#if isSimulating}
-									<span class="loading loading-sm loading-spinner"></span>
-									Memproses simulasi...
-								{:else}
-									🧪 Simulasi Pembayaran (Sandbox)
-								{/if}
-							</button>
-						</div>
+								<button
+									class="btn btn-block text-warning btn-ghost btn-sm"
+									onclick={simulatePayment}
+									disabled={isSimulating}
+								>
+									{#if isSimulating}
+										<span class="loading loading-sm loading-spinner"></span>
+										Memproses simulasi...
+									{:else}
+										🧪 Simulasi Pembayaran (Sandbox)
+									{/if}
+								</button>
+							</div>
 
-						<div class="mt-4 flex items-center justify-center gap-2 text-warning">
-							<span class="loading loading-sm loading-spinner"></span>
-							<span class="font-medium">Menunggu pembayaran...</span>
-						</div>
+							<div class="mt-4 flex items-center justify-center gap-2 text-warning">
+								<span class="loading loading-sm loading-spinner"></span>
+								<span class="font-medium">Menunggu pembayaran...</span>
+							</div>
+						{/if}
 					</div>
 				</div>
 			</div>
@@ -437,7 +486,7 @@
 					<span>Data pembayaran tidak ditemukan</span>
 				</div>
 				<div class="mt-4 text-center">
-					<a href="/my-orders" class="btn btn-primary">Kembali ke Pesanan</a>
+					<a href="/account?tab=orders" class="btn btn-primary">Kembali ke Pesanan</a>
 				</div>
 			</div>
 		{/if}

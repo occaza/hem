@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { RotateCw } from '@lucide/svelte';
 	import { toast } from '$lib/stores/toast.store';
 
 	type UserWithRole = {
@@ -53,7 +54,7 @@
 			<p class="text-base-content/70">Daftar user yang terdaftar</p>
 		</div>
 		<button class="btn btn-ghost" onclick={loadUsers}>
-			<span>🔄</span>
+			<RotateCw />
 			Refresh
 		</button>
 	</div>

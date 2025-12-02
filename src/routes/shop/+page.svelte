@@ -9,6 +9,7 @@
 	import Footer from '$lib/components/layout/Footer.svelte';
 	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
 	import MethodSelectorModal from '$lib/components/features/payment/MethodSelectorModal.svelte';
+	import PageHeader from '$lib/components/layout/PageHeader.svelte';
 	import PaymentModal from '$lib/components/features/payment/PaymentModal.svelte';
 	import ProductCard from '$lib/components/features/products/ProductCard.svelte';
 	import SidebarFilter from '$lib/components/features/shop/SidebarFilter.svelte';
@@ -22,6 +23,7 @@
 	let minPrice = $state<number | null>(null);
 	let maxPrice = $state<number | null>(null);
 	let availability = $state<string[]>([]);
+	let onDiscount = $state(false);
 	let loading = $state(true);
 	let showPayment = $state(false);
 	let showMethodSelector = $state(false);
@@ -88,6 +90,19 @@
 			const res = await fetch(url);
 			let data = await res.json();
 
+			// Client-side discount filter
+			if (onDiscount) {
+				data = data.filter((p: Product) => {
+					if (!p.discount_percentage || p.discount_percentage === 0) return false;
+					if (p.discount_end_date) {
+						const now = new Date();
+						const end = new Date(p.discount_end_date);
+						return now <= end;
+					}
+					return true;
+				});
+			}
+
 			// Client-side sorting for now
 			if (sortBy === 'price_low') {
 				data.sort((a: Product, b: Product) => a.price - b.price);
@@ -124,11 +139,17 @@
 		await loadProducts();
 	}
 
+	async function toggleDiscount() {
+		onDiscount = !onDiscount;
+		await loadProducts();
+	}
+
 	function clearAllFilters() {
 		selectedCategory = null;
 		minPrice = null;
 		maxPrice = null;
 		availability = [];
+		onDiscount = false;
 		loadProducts();
 	}
 
@@ -271,29 +292,23 @@
 	<Navbar />
 
 	<!-- Header -->
-	<div class="bg-base-200/50 py-12 text-center">
-		<h1 class="mb-2 text-4xl font-bold">Shop</h1>
-		<div class="breadcrumbs flex justify-center text-sm">
-			<ul>
-				<li><a href="/">Home</a></li>
-				<li>Shop</li>
-			</ul>
-		</div>
-	</div>
+	<PageHeader title="Shop" breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Shop' }]} />
 
 	<div class="container mx-auto px-4 py-12">
-		<div class="grid grid-cols-1 gap-12 lg:grid-cols-4">
+		<div class="grid grid-cols-1 gap-20 lg:grid-cols-4">
 			<!-- Sidebar -->
-			<div class="lg:col-span-1">
+			<div class="rounded-lg bg-base-200 p-4 px-5 lg:col-span-1">
 				<SidebarFilter
 					{categories}
 					{selectedCategory}
 					{minPrice}
 					{maxPrice}
 					{availability}
+					{onDiscount}
 					onSelectCategory={selectCategory}
 					onApplyFilter={applyFilter}
 					onToggleAvailability={toggleAvailability}
+					onToggleDiscount={toggleDiscount}
 				/>
 			</div>
 
@@ -305,10 +320,10 @@
 						Showing 1-{products.length} of {products.length} results
 					</div>
 
-					<div class="flex items-center gap-4">
-						<span class="text-base-content/70">Sort by :</span>
+					<div class="flex items-center gap-1">
+						<span class="w-full text-base-content/70">Sort by : </span>
 						<select
-							class="select-bordered select w-full max-w-xs rounded-full select-sm"
+							class="select-bordered select w-fit max-w-xs rounded-lg select-sm"
 							bind:value={sortBy}
 							onchange={loadProducts}
 						>
@@ -320,7 +335,7 @@
 				</div>
 
 				<!-- Active Filters -->
-				{#if selectedCategory || minPrice || maxPrice || availability.length > 0}
+				{#if selectedCategory || minPrice || maxPrice || availability.length > 0 || onDiscount}
 					<div class="mb-8 flex flex-wrap items-center gap-2">
 						<span class="mr-2 text-sm font-semibold">Active Filter:</span>
 
@@ -350,6 +365,13 @@
 										loadProducts();
 									}}><X size={14} /></button
 								>
+							</div>
+						{/if}
+
+						{#if onDiscount}
+							<div class="badge gap-2 p-3 text-white badge-primary">
+								Sedang Diskon
+								<button onclick={toggleDiscount}><X size={14} /></button>
 							</div>
 						{/if}
 

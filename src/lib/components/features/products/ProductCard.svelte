@@ -64,7 +64,7 @@
 	onkeydown={(e) => e.key === 'Enter' && handleCardClick()}
 >
 	<!-- Image Container -->
-	<div class="relative mb-3 aspect-square overflow-hidden rounded-2xl bg-base-200">
+	<div class="relative mb-3 aspect-square overflow-hidden rounded-lg bg-base-200">
 		<img
 			src={productImage}
 			alt={product.name}
@@ -110,18 +110,18 @@
 			<div class="text-xs text-base-content/60">{product.categories[0].name}</div>
 		{/if}
 
-		<h3 class="font-bold text-base-content transition-colors group-hover:text-primary">
+		<h3 class="font-medium text-base-content transition-colors group-hover:text-primary">
 			{product.name}
 		</h3>
 
 		<div class="flex items-center gap-2">
 			{#if hasDiscount}
-				<span class="font-bold text-base-content">{formatCurrency(finalPrice)}</span>
+				<span class="font-medium text-base-content">{formatCurrency(finalPrice)}</span>
 				<span class="text-sm text-base-content/40 line-through"
 					>{formatCurrency(product.price)}</span
 				>
 			{:else}
-				<span class="font-bold text-base-content">{formatCurrency(product.price)}</span>
+				<span class="font-medium text-base-content">{formatCurrency(product.price)}</span>
 			{/if}
 		</div>
 	</div>

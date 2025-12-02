@@ -3,7 +3,7 @@ import { env } from '$env/dynamic/private';
 import { formatPaymentMethod } from '$lib/utils/payment.utils';
 
 const resend = new Resend(env.RESEND_API_KEY);
-const ADMIN_EMAIL = env.ADMIN_EMAIL || 'admin@example.com';
+const ADMIN_EMAIL = env.ADMIN_EMAIL;
 
 export const sendOrderPendingEmail = async ({
 	to,

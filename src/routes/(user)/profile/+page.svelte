@@ -36,7 +36,9 @@
 	let passwordLoading = $state(false);
 
 	onMount(async () => {
-		await loadProfile();
+		if (data.user) {
+			await loadProfile();
+		}
 	});
 
 	async function loadProfile() {

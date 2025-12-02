@@ -19,6 +19,7 @@
 	import { generateOrderId, encodeOrderId } from '$lib/utils/order.utils';
 	import { toast } from '$lib/stores/toast.store';
 	import { confirmLogin } from '$lib/utils/swal.utils';
+	import { appliedCoupon } from '$lib/stores/coupon.store';
 
 	let product = $state<Product | null>(null);
 	let loading = $state(true);
@@ -127,7 +128,9 @@
 					payment_method: method,
 					user_id: user.id,
 					quantity: quantity,
-					note: note
+					note: note,
+					coupon_code: $appliedCoupon?.coupon.code,
+					discount_amount: $appliedCoupon?.discount_amount
 				})
 			});
 
@@ -139,6 +142,7 @@
 			}
 
 			goto(`/payment/${encodedOrderId}`);
+			appliedCoupon.clear();
 		} catch (error) {
 			console.error('Checkout error:', error);
 			toast.error('Terjadi kesalahan. Silakan coba lagi.');
@@ -523,7 +527,7 @@
 					</button>
 				</div>
 
-				<div class="mx-auto max-w-4xl">
+				<div class="mx-auto px-32">
 					{#if activeTab === 'detail'}
 						<div class="prose max-w-none leading-relaxed text-base-content/80">
 							<p class="whitespace-pre-line">

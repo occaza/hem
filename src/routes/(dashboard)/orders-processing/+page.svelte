@@ -5,6 +5,7 @@
 	import { formatPaymentMethod } from '$lib/utils/payment.utils';
 	import { toast } from '$lib/stores/toast.store';
 	import { confirmAction } from '$lib/utils/swal.utils';
+	import { RotateCw } from '@lucide/svelte';
 
 	let { data } = $props();
 
@@ -100,7 +101,7 @@
 			</p>
 		</div>
 		<button class="btn btn-ghost" onclick={loadOrders}>
-			<span>🔄</span>
+			<RotateCw />
 			Refresh
 		</button>
 	</div>

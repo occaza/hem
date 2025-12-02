@@ -7,6 +7,7 @@
 	let password = $state('');
 	let confirmPassword = $state('');
 	let fullName = $state('');
+	let username = $state('');
 	let phoneNumber = $state('');
 	let loading = $state(false);
 	let error = $state('');
@@ -15,12 +16,33 @@
 	let showPassword = $state(false);
 	let showConfirm = $state(false);
 
+	function toTitleCase(str: string) {
+		return str.replace(/\w\S*/g, (txt) => {
+			return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+		});
+	}
+
 	async function handleRegister() {
 		loading = true;
 		error = '';
 
 		if (!fullName.trim()) {
 			error = 'Nama lengkap harus diisi';
+			loading = false;
+			return;
+		}
+
+		// Auto-capitalize Full Name
+		fullName = toTitleCase(fullName);
+
+		if (!username.trim()) {
+			error = 'Username harus diisi';
+			loading = false;
+			return;
+		}
+
+		if (username.includes(' ')) {
+			error = 'Username tidak boleh mengandung spasi';
 			loading = false;
 			return;
 		}
@@ -57,6 +79,7 @@
 					email,
 					password,
 					full_name: fullName.trim(),
+					username: username.trim(),
 					phone_number: phoneNumber.trim()
 				})
 			});
@@ -158,6 +181,21 @@
 							class="input-bordered input w-full"
 							bind:value={fullName}
 							autocomplete="name"
+							required
+						/>
+					</div>
+
+					<div class="form-control">
+						<label class="label" for="username">
+							<span class="label-text">Username</span>
+						</label>
+						<input
+							id="username"
+							type="text"
+							placeholder="johndoe123"
+							class="input-bordered input w-full"
+							bind:value={username}
+							autocomplete="username"
 							required
 						/>
 					</div>

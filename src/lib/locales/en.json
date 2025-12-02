@@ -1,0 +1,199 @@
+{
+	"nav": {
+		"home": "Home",
+		"shop": "Shop",
+		"cart": "Cart",
+		"account": "Account",
+		"login": "Login",
+		"logout": "Logout",
+		"dashboard": "Dashboard"
+	},
+	"hero": {
+		"badge": "Trusted Digital Platform",
+		"title": "Trusted Platform for Buying and Selling Facebook Accounts",
+		"subtitle": "Get quality Facebook accounts at the best prices. Safe, fast, and reliable.",
+		"cta": "Start Shopping"
+	},
+	"stats": {
+		"products": "Digital Products",
+		"customers": "Happy Customers",
+		"support": "Support Service"
+	},
+	"features": {
+		"subtitle": "Our Advantages",
+		"title": "Why Choose Us?",
+		"description": "Better shopping experience with superior features designed for your convenience",
+		"secure": {
+			"title": "Safe & Secure",
+			"description": "All transactions are protected with high-level encryption"
+		},
+		"fast": {
+			"title": "Fast Payment",
+			"description": "Checkout process in seconds with various payment methods"
+		},
+		"support": {
+			"title": "Multi Platform",
+			"description": "Access from anywhere, anytime via desktop or mobile"
+		},
+		"quality": {
+			"title": "Quality Guaranteed",
+			"description": "We only sell high-quality accounts"
+		},
+		"instant_shipping": {
+			"title": "Instant Shipping",
+			"description": "Instant delivery for all digital products"
+		},
+		"flexible_payment": {
+			"title": "Flexible Payment",
+			"description": "Multiple secure payment options"
+		},
+		"support_247": {
+			"title": "24x7 Support",
+			"description": "We support online all days"
+		}
+	},
+	"cta": {
+		"title": "Ready to Shop?",
+		"subtitle": "Explore our digital product collection and enjoy the convenience of shopping with a safe and fast payment system",
+		"button": "View All Products"
+	},
+	"shop": {
+		"title": "Our Products",
+		"search": "Search products...",
+		"filter": "Filter",
+		"by_category": "By Category",
+		"all_products": "All Products",
+		"promo": "Promo",
+		"on_discount": "On Discount",
+		"price": "Price",
+		"min": "Min",
+		"max": "Max",
+		"apply_price": "Apply Price",
+		"availability": "Availability",
+		"in_stock": "In Stock",
+		"out_of_stock": "Out of Stock",
+		"sort": "Sort",
+		"category": "Category",
+		"all_categories": "All Categories",
+		"price_range": "Price Range",
+		"buy_now": "Buy Now",
+		"add_to_cart": "Add to Cart",
+		"stock": "Stock"
+	},
+	"cart": {
+		"title": "Shopping Cart",
+		"empty": "Your cart is empty",
+		"empty_title": "Meh, your shopping cart is empty",
+		"empty_subtitle": "Come on, fill it with your dream items!",
+		"start_shopping": "Start Shopping",
+		"item": "Item",
+		"product": "Product",
+		"quantity": "Quantity",
+		"price": "Price",
+		"total": "Total",
+		"total_shopping": "Total Shopping",
+		"subtotal": "Subtotal",
+		"sub_total": "Sub Total",
+		"discount": "Discount",
+		"coupon": "Coupon",
+		"coupon_placeholder": "Coupon Code",
+		"apply_coupon": "Apply Coupon",
+		"remove_coupon": "Remove Coupon",
+		"coupon_discount": "Coupon Discount",
+		"coupon_applied": "Coupon applied",
+		"apply": "Apply",
+		"remove": "Remove",
+		"clear_cart": "Clear Shopping Cart",
+		"checkout": "Checkout",
+		"continue_shopping": "Continue Shopping",
+		"note_placeholder": "Note...",
+		"add_note": "Add Note",
+		"order_summary": "Order Summary",
+		"items": "Items",
+		"fee": "Service Fee",
+		"fee_note": "Will appear at payment",
+		"error": {
+			"update_quantity": "Failed to update quantity",
+			"remove_item": "Failed to remove item",
+			"enter_coupon": "Enter coupon code",
+			"login_coupon": "Please login to use coupon",
+			"select_product": "Select products to buy",
+			"save_note": "Failed to save note"
+		},
+		"success": {
+			"remove_item": "Item successfully removed"
+		}
+	},
+	"account": {
+		"title": "My Account",
+		"profile": "Profile",
+		"orders": "Orders",
+		"settings": "Settings",
+		"edit_profile": "Edit Profile",
+		"change_password": "Change Password",
+		"my_orders": "My Orders",
+		"order_history": "Order History"
+	},
+	"payment": {
+		"title": "Payment",
+		"method": "Payment Method",
+		"select_method": "Select Payment Method",
+		"waiting": "Waiting for Payment",
+		"success": "Payment Successful",
+		"failed": "Payment Failed",
+		"processing": "Processing",
+		"qris_desc": "All E-Wallets & Banks",
+		"or_select_other": "Or select other method",
+		"min_amount_warning": "Minimum IDR 10,000 for Virtual Account & Retail payment. Please use QRIS.",
+		"select_va_retail": "Select Virtual Account or Retail",
+		"continue_payment": "Continue to Payment",
+		"scan_qr": "Scan QR Code to Pay",
+		"detail": "Payment Details",
+		"total_payment": "Total Payment",
+		"admin_fee": "Admin Fee",
+		"valid_until": "Valid until",
+		"qris_instruction": "Open your mobile banking or e-wallet app, then scan the QR code above.",
+		"va_number": "Virtual Account Number / Payment Code",
+		"va_instruction": "Use the number above to make payment via ATM, mobile banking, or retail.",
+		"simulating": "Processing simulation...",
+		"simulate_btn": "🧪 Simulate Payment (Development Only)",
+		"error": {
+			"create_transaction": "Failed to create transaction",
+			"checkout": "An error occurred during checkout",
+			"simulation": "Simulation failed",
+			"simulation_error": "An error occurred during simulation",
+			"select_method": "Please select a payment method first"
+		},
+		"success_msg": {
+			"simulation": "Simulation successful! Please wait...",
+			"copied": "Payment number copied!"
+		}
+	},
+	"common": {
+		"save": "Save",
+		"cancel": "Cancel",
+		"delete": "Delete",
+		"edit": "Edit",
+		"close": "Close",
+		"confirm": "Confirm",
+		"loading": "Loading...",
+		"error": "An error occurred",
+		"success": "Success",
+		"yes": "Yes",
+		"no": "No",
+		"back": "Back",
+		"next": "Next",
+		"submit": "Submit",
+		"search": "Search"
+	},
+	"footer": {
+		"description": "Trusted digital account trading platform, safe and fast. The best solution for your digital marketing needs.",
+		"menu": "Menu",
+		"help": "Help",
+		"about": "About Us",
+		"contact": "Contact",
+		"privacy": "Privacy Policy",
+		"terms": "Terms & Conditions",
+		"copyright": "© 2024 adverFI. All rights reserved."
+	}
+}

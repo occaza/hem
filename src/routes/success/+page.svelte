@@ -1,11 +1,16 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import type { Transaction } from '$lib/types/types';
 	import Footer from '$lib/components/layout/Footer.svelte';
+	import { CircleCheck, X } from '@lucide/svelte';
+
+	import { goto } from '$app/navigation';
 
 	let transaction: Pick<Transaction, 'status' | 'amount'> | null = null;
 	let loading = true;
 	let isSimulated = false;
+	let countdown = 5;
+	let countdownInterval: ReturnType<typeof setInterval> | null = null;
 
 	onMount(async () => {
 		const urlParams = new URLSearchParams(window.location.search);
@@ -23,11 +28,26 @@
 
 			if (res.ok) {
 				transaction = data;
+				if (transaction?.status === 'completed') {
+					countdownInterval = setInterval(() => {
+						countdown--;
+						if (countdown <= 0) {
+							if (countdownInterval) clearInterval(countdownInterval);
+							goto('/account?tab=orders');
+						}
+					}, 1000);
+				}
 			}
 		} catch (error) {
 			console.error('Failed to fetch transaction:', error);
 		} finally {
 			loading = false;
+		}
+	});
+
+	onDestroy(() => {
+		if (countdownInterval) {
+			clearInterval(countdownInterval);
 		}
 	});
 </script>
@@ -36,9 +56,9 @@
 	<title>Pembayaran Berhasil - adverFI</title>
 </svelte:head>
 
-<div class="min-h-screen bg-base-200">
+<div class="flex min-h-screen items-center justify-center bg-base-200">
 	<div class="container mx-auto px-4 py-8">
-		<div class="mx-auto max-w-md">
+		<div class="mx-auto max-w-md items-center">
 			{#if loading}
 				<div class="card bg-base-100 shadow-xl">
 					<div class="card-body items-center text-center">
@@ -49,15 +69,24 @@
 			{:else if transaction && transaction.status === 'completed'}
 				<div class="card bg-base-100 shadow-xl">
 					<div class="card-body items-center text-center">
-						<div class="mb-4 text-6xl">✅</div>
+						<div class="mb-4 text-6xl text-primary"><CircleCheck size={64} /></div>
 						<h1 class="card-title text-2xl">Pembayaran Berhasil</h1>
-						<p class="text-base-content/70">Pesanan Anda sudah selesai diproses</p>
+						<p class="text-base-content/70">
+							Silahkan cek pesanan anda di menu <a
+								href="/account?tab=orders"
+								class="text-primary underline"
+								>pesanan
+							</a> saya.
+						</p>
+						<p class="mt-2 text-sm text-base-content/50">
+							Mengalihkan otomatis dalam {countdown} detik...
+						</p>
 						<div class="divider"></div>
 						<div class="text-3xl font-bold text-primary">
 							Rp{transaction.amount.toLocaleString('id-ID')}
 						</div>
 						<div class="mt-6 card-actions">
-							<a href="/my-orders" class="btn btn-primary">Pesanan saya</a>
+							<a href="/account?tab=orders" class="btn btn-primary">Pesanan saya</a>
 						</div>
 					</div>
 				</div>
@@ -76,25 +105,25 @@
 							Rp{transaction.amount.toLocaleString('id-ID')}
 						</div>
 						<div class="mt-6 card-actions">
-							<a href="/my-orders" class="btn btn-primary">Lihat Status Pesanan</a>
+							<a href="/account?tab=orders" class="btn btn-primary">Lihat Status Pesanan</a>
 						</div>
 					</div>
 				</div>
 			{:else}
 				<div class="card bg-base-100 shadow-xl">
 					<div class="card-body items-center text-center">
-						<div class="mb-4 text-6xl">❌</div>
+						<X size={64} />
 						<h1 class="card-title text-2xl">Pembayaran Belum Berhasil</h1>
 						<p class="mt-2 text-base-content/70">
 							Silakan coba lagi atau hubungi kami jika ada masalah.
 						</p>
 						<div class="mt-6 card-actions">
-							<a href="/my-orders" class="btn btn-primary">Coba Lagi</a>
+							<a href="/account?tab=orders" class="btn btn-primary">Coba Lagi</a>
 						</div>
 					</div>
 				</div>
 			{/if}
 		</div>
 	</div>
-	<Footer />
+	<!-- <Footer /> -->
 </div>

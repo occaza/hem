@@ -4,6 +4,7 @@
 
 	import Navbar from '$lib/components/layout/Navbar.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
+	import PageHeader from '$lib/components/layout/PageHeader.svelte';
 	import { cartStore, cartCount } from '$lib/stores/cart.store';
 	import { generateOrderId, encodeOrderId } from '$lib/utils/order.utils';
 	import { formatCurrency } from '$lib/utils/format.utils';
@@ -11,18 +12,21 @@
 	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
 	import MethodSelectorModal from '$lib/components/features/payment/MethodSelectorModal.svelte';
 	import PaymentModal from '$lib/components/features/payment/PaymentModal.svelte';
+	import FeaturesSection from '$lib/components/features/shop/FeaturesSection.svelte';
 	import { appliedCoupon } from '$lib/stores/coupon.store';
 	import type { CartItem } from '$lib/types/types';
 	import { Trash2, NotebookPen, PackageOpen, ShoppingCart } from '@lucide/svelte';
-	import { authUser } from '$lib/stores/auth.store';
+	import { authUser, authLoading } from '$lib/stores/auth.store';
 	import { toast } from '$lib/stores/toast.store';
 	import { confirmClearCart, confirmDelete } from '$lib/utils/swal.utils';
+	import { t } from 'svelte-i18n';
 
 	const user = $derived($authUser);
 
 	let cart = $state<CartItem[]>([]);
 	let selectedItems = $state<Set<string>>(new Set());
-	let loading = $state(true);
+	let cartLoading = $state(true);
+	let loading = $derived($authLoading || cartLoading);
 	let checkoutLoading = $state(false);
 	let couponCode = $state('');
 	let applyingCoupon = $state(false);
@@ -40,9 +44,15 @@
 		cart = $cartStore;
 	});
 
+	$effect(() => {
+		if (user) {
+			cartStore.load();
+		}
+	});
+
 	onMount(async () => {
 		await cartStore.load();
-		loading = false;
+		cartLoading = false;
 	});
 
 	$effect(() => {
@@ -75,7 +85,7 @@
 		if (newQuantity < 1) return;
 		const success = await cartStore.updateQuantity(item.id, newQuantity);
 		if (!success) {
-			toast.error('Gagal mengupdate jumlah');
+			toast.error($t('cart.error.update_quantity'));
 		}
 	}
 
@@ -85,10 +95,10 @@
 
 		const success = await cartStore.removeItem(item.id);
 		if (!success) {
-			toast.error('Gagal menghapus item');
+			toast.error($t('cart.error.remove_item'));
 		} else {
 			selectedItems.delete(item.id);
-			toast.success('Item berhasil dihapus');
+			toast.success($t('cart.success.remove_item'));
 		}
 	}
 
@@ -104,7 +114,7 @@
 
 	async function handleApplyCoupon() {
 		if (!couponCode.trim()) {
-			toast.error('Masukkan kode kupon');
+			toast.error($t('cart.error.enter_coupon'));
 			return;
 		}
 
@@ -135,7 +145,7 @@
 
 	function handleCheckout() {
 		if (selectedItems.size === 0) {
-			toast.error('Pilih produk yang ingin dibeli');
+			toast.error($t('cart.error.select_product'));
 			return;
 		}
 		showMethodSelector = true;
@@ -156,11 +166,11 @@
 				editingNote = null;
 			} else {
 				const data = await res.json();
-				toast.error('Gagal menyimpan catatan: ' + (data.error || 'Unknown error'));
+				toast.error($t('cart.error.save_note') + ': ' + (data.error || 'Unknown error'));
 			}
 		} catch (error) {
 			console.error('Update note error:', error);
-			toast.error('Terjadi kesalahan');
+			toast.error($t('common.error'));
 		}
 	}
 
@@ -200,14 +210,16 @@
 					})),
 					order_id: encodedOrderId,
 					payment_method: method,
-					user_id: user.id
+					user_id: user.id,
+					coupon_code: $appliedCoupon?.coupon.code,
+					discount_amount: discountAmount
 				})
 			});
 
 			const data = await res.json();
 
 			if (!res.ok || data.error) {
-				toast.error(data.error || 'Gagal membuat transaksi');
+				toast.error(data.error || $t('payment.error.create_transaction'));
 				checkoutLoading = false;
 				return;
 			}
@@ -220,7 +232,7 @@
 			goto(`/payment/${encodedOrderId}`);
 		} catch (error) {
 			console.error('Checkout error:', error);
-			toast.error('Terjadi kesalahan saat checkout');
+			toast.error($t('payment.error.checkout'));
 			checkoutLoading = false;
 		}
 	}
@@ -291,15 +303,15 @@
 			});
 
 			if (res.ok) {
-				toast.success('Simulasi berhasil! Tunggu sebentar...');
+				toast.success($t('payment.success_msg.simulation'));
 			} else {
 				const data = await res.json();
-				toast.error(data.error || 'Simulasi gagal');
+				toast.error(data.error || $t('payment.error.simulation'));
 				isSimulating = false;
 			}
 		} catch (error) {
 			console.error('Simulate error:', error);
-			toast.error('Terjadi kesalahan saat simulasi');
+			toast.error($t('payment.error.simulation_error'));
 			isSimulating = false;
 		}
 	}
@@ -332,15 +344,18 @@
 </script>
 
 <svelte:head>
-	<title>Keranjang - adverFI</title>
+	<title>{$t('cart.title')} - adverFI</title>
 </svelte:head>
 
 <div class="min-h-screen bg-base-200">
 	<Navbar />
 
-	<div class="container mx-auto px-4 py-8">
-		<h1 class="mb-6 text-3xl font-bold">Keranjang</h1>
+	<PageHeader
+		title={$t('cart.title')}
+		breadcrumbs={[{ label: $t('nav.home'), href: '/' }, { label: $t('cart.title') }]}
+	/>
 
+	<div class="container mx-auto px-4 py-8">
 		{#if loading}
 			<div class="flex justify-center py-20">
 				<span class="loading loading-lg loading-spinner"></span>
@@ -352,215 +367,250 @@
 						<div class="mb-6">
 							<PackageOpen size={150} />
 						</div>
-						<h2 class="mb-2 text-2xl font-bold">Wah, keranjang belanjamu kosong</h2>
-						<p class="mb-8 text-base-content/70">Yuk, isi dengan Item-Item impianmu!</p>
+						<h2 class="mb-2 text-2xl font-bold">{$t('cart.empty_title')}</h2>
+						<p class="mb-8 text-base-content/70">{$t('cart.empty_subtitle')}</p>
 						<a href="/shop" class="btn btn-lg btn-primary">
 							<span><ShoppingCart /></span>
-							Mulai Belanja
+							{$t('cart.start_shopping')}
 						</a>
 					</div>
 				</div>
 			</div>
 		{:else}
-			<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-				<!-- Cart Items -->
-				<div class="space-y-4 lg:col-span-2">
-					<!-- Header -->
-					<div class="card bg-base-100 shadow-xl">
-						<div class="card-body py-4">
-							<div class="flex items-center justify-between">
-								<label class="flex cursor-pointer items-center gap-3">
-									<input
-										type="checkbox"
-										class="checkbox checkbox-sm checkbox-primary"
-										checked={allSelected}
-										onchange={toggleSelectAll}
-									/>
-									<span class="text-sm font-semibold">Pilih Semua</span>
-								</label>
-								{#if cart.length > 0}
-									<button class="btn text-error btn-ghost btn-sm" onclick={clearCart}>
-										Hapus
-									</button>
-								{/if}
-							</div>
-						</div>
-					</div>
-
-					<!-- Cart Items List -->
-					{#each cart as item}
-						{#if item.product}
-							<div class="card bg-base-100 shadow-xl">
-								<div class="card-body p-4">
-									<div class="flex gap-3">
-										<!-- Checkbox -->
-										<div class="flex items-start pt-1">
-											<input
-												type="checkbox"
-												class="checkbox checkbox-sm checkbox-primary"
-												checked={selectedItems.has(item.id)}
-												onchange={() => toggleSelectItem(item.id)}
-											/>
+			<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+				<!-- Cart Items Table (Left Column) -->
+				<div class="lg:col-span-2">
+					<div class="overflow-x-auto">
+						<table class="table w-full">
+							<!-- Head -->
+							<thead class="bg-primary/10 text-base-content">
+								<tr>
+									<th class="w-12"></th>
+									<!-- Delete Button -->
+									<th>
+										<div class="flex items-center gap-4">
+											<label>
+												<input
+													type="checkbox"
+													class="checkbox checkbox-sm checkbox-primary"
+													checked={allSelected}
+													onchange={toggleSelectAll}
+												/>
+											</label>
+											<span>{$t('cart.product')}</span>
 										</div>
+									</th>
+									<th>{$t('cart.price')}</th>
+									<th>{$t('cart.quantity')}</th>
+									<th>{$t('cart.subtotal')}</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each cart as item}
+									{#if item.product}
+										<tr class="border-b border-base-200">
+											<!-- Delete Action -->
+											<td>
+												<button
+													class="btn text-base-content/50 btn-ghost btn-xs hover:text-error"
+													onclick={() => removeItem(item)}
+												>
+													<Trash2 size={16} />
+												</button>
+											</td>
 
-										<!-- Image -->
-										<div
-											class="h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-base-300"
-										>
-											<img
-												src={item.product.images?.[0] || 'https://via.placeholder.com/200'}
-												alt={item.product.name}
-												class="h-full w-full object-cover"
-											/>
-										</div>
+											<!-- Product Info -->
+											<td>
+												<div class="flex items-center gap-4">
+													<label>
+														<input
+															type="checkbox"
+															class="checkbox checkbox-sm checkbox-primary"
+															checked={selectedItems.has(item.id)}
+															onchange={() => toggleSelectItem(item.id)}
+														/>
+													</label>
+													<div class="avatar">
+														<div class="h-16 w-16 rounded-lg border border-base-300">
+															<img
+																src={item.product.images?.[0] || 'https://via.placeholder.com/200'}
+																alt={item.product.name}
+															/>
+														</div>
+													</div>
+													<div>
+														<div class="font-bold">{item.product.name}</div>
+														<div class="text-xs text-base-content/50">
+															{item.product.categories?.[0]?.name || 'Product'}
+														</div>
+														<!-- Note Section -->
+														<div class="mt-1">
+															{#if editingNote === item.id}
+																<div class="flex gap-1">
+																	<input
+																		type="text"
+																		class="input-bordered input input-xs w-full max-w-[150px]"
+																		placeholder={$t('cart.note_placeholder')}
+																		bind:value={tempNotes[item.id]}
+																	/>
+																	<button
+																		class="btn btn-square btn-xs btn-primary"
+																		onclick={() => updateNote(item.id)}
+																	>
+																		✓
+																	</button>
+																	<button
+																		class="btn btn-square btn-ghost btn-xs"
+																		onclick={cancelEditNote}
+																	>
+																		✕
+																	</button>
+																</div>
+															{:else}
+																<button
+																	class="flex items-center gap-1 text-xs text-base-content/50 hover:text-primary"
+																	onclick={() => startEditNote(item)}
+																>
+																	<NotebookPen size={12} />
+																	{item.note || $t('cart.add_note')}
+																</button>
+															{/if}
+														</div>
+													</div>
+												</div>
+											</td>
 
-										<!-- Product Info -->
-										<div class="min-w-0 flex-1">
-											<h3 class="truncate text-sm font-semibold">{item.product.name}</h3>
-
-											<div class="mt-1">
+											<!-- Price -->
+											<td class="font-medium">
 												{#if item.product.discount_percentage}
-													<div class="flex items-center gap-2">
-														<span class="text-sm font-bold text-primary">
-															{formatCurrency(calculateDiscountedPrice(item.product))}
-														</span>
+													<div class="flex flex-col">
+														<span>{formatCurrency(calculateDiscountedPrice(item.product))}</span>
 														<span class="text-xs text-base-content/50 line-through">
 															{formatCurrency(item.product.price)}
 														</span>
 													</div>
 												{:else}
-													<span class="text-sm font-bold text-primary">
-														{formatCurrency(item.product.price)}
-													</span>
+													{formatCurrency(item.product.price)}
 												{/if}
-											</div>
+											</td>
 
-											<!-- Quantity Controls -->
-											<div class="mt-3 flex items-center justify-between">
-												<div class="flex items-center gap-2">
+											<!-- Quantity -->
+											<td>
+												<div class="join rounded-lg border border-base-300">
 													<button
-														class="btn btn-circle btn-outline btn-xs"
+														class="btn join-item px-2 btn-ghost btn-sm"
 														onclick={() => updateQuantity(item, item.quantity - 1)}
 														disabled={item.quantity <= 1}
 													>
 														−
 													</button>
-													<span class="w-6 text-center text-sm font-semibold">{item.quantity}</span>
+													<input
+														type="text"
+														class="join-item w-10 border-none bg-transparent text-center text-sm focus:outline-none"
+														value={item.quantity}
+														readonly
+													/>
 													<button
-														class="btn btn-circle btn-outline btn-xs"
+														class="btn join-item px-2 btn-ghost btn-sm"
 														onclick={() => updateQuantity(item, item.quantity + 1)}
 														disabled={item.product && item.quantity >= item.product.stock}
 													>
 														+
 													</button>
 												</div>
+												{#if item.product.stock < item.quantity}
+													<div class="mt-1 text-xs text-error">
+														{$t('shop.stock')}: {item.product.stock}
+													</div>
+												{/if}
+											</td>
 
-												<button
-													type="button"
-													class="btn p-1 text-error btn-ghost btn-sm"
-													onclick={() => removeItem(item)}
-												>
-													<Trash2 />
-												</button>
-											</div>
+											<!-- Subtotal -->
+											<td class="font-bold">
+												{formatCurrency(getItemSubtotal(item))}
+											</td>
+										</tr>
+									{/if}
+								{/each}
+							</tbody>
+						</table>
+					</div>
 
-											{#if item.product.stock < item.quantity}
-												<div class="mt-2 text-xs text-error">
-													Stok tidak cukup! Tersisa {item.product.stock}
-												</div>
-											{/if}
-										</div>
-									</div>
-									<div class="mt-3">
-										{#if editingNote === item.id}
-											<div class="space-y-2">
-												<textarea
-													class="textarea-bordered textarea w-full textarea-sm"
-													placeholder="Catatan untuk penjual..."
-													bind:value={tempNotes[item.id]}
-													rows="2"
-												></textarea>
-												<div class="flex gap-2">
-													<button
-														class="btn btn-xs btn-primary"
-														onclick={() => updateNote(item.id)}
-													>
-														Simpan
-													</button>
-													<button class="btn btn-ghost btn-xs" onclick={cancelEditNote}>
-														Batal
-													</button>
-												</div>
-											</div>
-										{:else}
-											<div class="flex items-start justify-between">
-												<div class="flex-1">
-													{#if item.note}
-														<div class="text-xs text-base-content/70">
-															<span class="font-semibold">Catatan:</span>
-															{item.note}
-														</div>
-													{:else}
-														<div class="text-xs text-base-content/50">Belum ada catatan</div>
-													{/if}
-												</div>
-												<button class="btn btn-ghost btn-sm" onclick={() => startEditNote(item)}>
-													<NotebookPen size="14" />
-													{item.note ? 'Edit' : 'Tambah'} Catatan
-												</button>
-											</div>
-										{/if}
-									</div>
-								</div>
-							</div>
-						{/if}
-					{/each}
+					<!-- Coupon & Clear Cart -->
+					<div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+						<div class="flex gap-2">
+							<input
+								type="text"
+								placeholder={$t('cart.coupon_placeholder')}
+								class="input-bordered input w-full max-w-xs rounded-full"
+								bind:value={couponCode}
+							/>
+							<button
+								class="btn rounded-full px-8 btn-primary"
+								onclick={handleApplyCoupon}
+								disabled={applyingCoupon}
+							>
+								{#if applyingCoupon}
+									<span class="loading loading-xs loading-spinner"></span>
+								{/if}
+								{$t('cart.apply_coupon')}
+							</button>
+						</div>
+
+						<button class="btn text-base-content/70 btn-ghost hover:text-error" onclick={clearCart}>
+							{$t('cart.clear_cart')}
+						</button>
+					</div>
 				</div>
 
-				<!-- Summary -->
+				<!-- Order Summary (Right Column) -->
 				<div class="lg:col-span-1">
-					<div class="card sticky top-4 bg-base-100 shadow-xl">
+					<div class="card border border-base-200 bg-base-100">
 						<div class="card-body">
-							<h2 class="card-title text-lg">Ringkasan Belanja</h2>
+							<h2 class="mb-4 card-title text-lg font-bold">{$t('cart.order_summary')}</h2>
 
-							<div class="divider my-2"></div>
-
-							<div class="space-y-2 text-sm">
+							<div class="space-y-3 text-sm">
 								<div class="flex justify-between">
-									<span class="text-base-content/70">Total ({selectedItems.size} item)</span>
-									<span class="font-semibold">
-										{selectedItems.size === 0 ? '-' : formatCurrency(subtotalAmount)}
-									</span>
+									<span class="text-base-content/70">{$t('cart.items')}</span>
+									<span class="font-medium">{selectedItems.size}</span>
 								</div>
-
+								<div class="flex justify-between">
+									<span class="text-base-content/70">{$t('cart.sub_total')}</span>
+									<span class="font-medium">{formatCurrency(subtotalAmount)}</span>
+								</div>
+								<div class="flex justify-between">
+									<span class="text-base-content/70">{$t('cart.fee')}</span>
+									<span class="">{$t('cart.fee_note')}</span>
+								</div>
 								{#if $appliedCoupon}
 									<div class="flex justify-between text-success">
-										<span>Diskon Kupon</span>
-										<span class="font-semibold">-{formatCurrency(discountAmount)}</span>
+										<span>{$t('cart.coupon_discount')}</span>
+										<span class="font-medium">-{formatCurrency(discountAmount)}</span>
+									</div>
+									<div class="flex justify-end">
+										<button class="text-xs text-error hover:underline" onclick={handleRemoveCoupon}>
+											{$t('cart.remove_coupon')}
+										</button>
 									</div>
 								{/if}
 							</div>
 
-							<div class="divider my-2"></div>
+							<div class="divider my-4"></div>
 
-							<div class="flex justify-between text-base font-bold">
-								<span>Total Bayar</span>
-								<span class="text-primary">
-									{selectedItems.size === 0 ? '-' : formatCurrency(totalAmount)}
-								</span>
+							<div class="flex justify-between text-lg font-bold">
+								<span>{$t('cart.total')}</span>
+								<span>{formatCurrency(totalAmount)}</span>
 							</div>
 
 							<button
-								class="btn mt-4 btn-block btn-primary"
+								class="btn mt-6 w-full rounded-full btn-primary"
 								onclick={handleCheckout}
 								disabled={checkoutLoading || selectedItems.size === 0}
 							>
 								{#if checkoutLoading}
-									<span class="loading loading-sm loading-spinner"></span>
-									Processing...
-								{:else}
-									Beli ({selectedItems.size})
+									<span class="loading loading-spinner"></span>
 								{/if}
+								{$t('cart.checkout')}
 							</button>
 						</div>
 					</div>
@@ -568,6 +618,12 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- Features Section -->
+	<div class="mt-12">
+		<FeaturesSection />
+	</div>
+
 	<Footer />
 </div>
 

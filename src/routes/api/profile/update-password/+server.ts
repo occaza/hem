@@ -13,7 +13,11 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		}
 
 		const body = await request.json();
-		const { new_password } = body;
+		const { old_password, new_password } = body;
+
+		if (!old_password) {
+			return json({ error: 'Password lama harus diisi' }, { status: 400 });
+		}
 
 		if (!new_password) {
 			return json({ error: 'Password baru harus diisi' }, { status: 400 });

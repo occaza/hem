@@ -16,7 +16,9 @@ export const POST: RequestHandler = async ({ request }) => {
 			payment_method = 'qris',
 			user_id,
 			quantity = 1,
-			note
+			note,
+			coupon_code,
+			discount_amount = 0
 		} = body;
 
 		// 1. Normalize Items (Support Single & Multi Item)
@@ -79,6 +81,57 @@ export const POST: RequestHandler = async ({ request }) => {
 			});
 		}
 
+		// Apply coupon discount if provided
+		let couponDiscount = 0;
+		if (coupon_code && discount_amount > 0) {
+			// Validate coupon exists and is valid
+			const { data: coupon, error: couponError } = await supabaseAdmin
+				.from('coupons')
+				.select('*')
+				.eq('code', coupon_code.toUpperCase())
+				.single();
+
+			if (couponError || !coupon) {
+				return json({ error: 'Invalid coupon code' }, { status: 400 });
+			}
+
+			if (!coupon.is_active) {
+				return json({ error: 'Coupon is not active' }, { status: 400 });
+			}
+
+			if (coupon.valid_until && new Date(coupon.valid_until) < new Date()) {
+				return json({ error: 'Coupon has expired' }, { status: 400 });
+			}
+
+			if (coupon.min_purchase > 0 && totalAmount < coupon.min_purchase) {
+				return json({ error: `Minimum purchase ${coupon.min_purchase} required` }, { status: 400 });
+			}
+
+			if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit) {
+				return json({ error: 'Coupon usage limit reached' }, { status: 400 });
+			}
+
+			couponDiscount = Math.round(discount_amount);
+			totalAmount = Math.max(0, totalAmount - couponDiscount);
+
+			// Adjust item amounts proportionally
+			if (processedItems.length === 1) {
+				// For single item, just subtract the full discount
+				processedItems[0].itemTotal = Math.max(0, processedItems[0].itemTotal - couponDiscount);
+			} else {
+				// For multiple items, distribute discount proportionally
+				const subtotalBeforeDiscount = processedItems.reduce(
+					(sum, item) => sum + item.itemTotal,
+					0
+				);
+				processedItems.forEach((item) => {
+					const proportion = item.itemTotal / subtotalBeforeDiscount;
+					const itemDiscount = Math.round(couponDiscount * proportion);
+					item.itemTotal = Math.max(0, item.itemTotal - itemDiscount);
+				});
+			}
+		}
+
 		if (totalAmount <= 0) {
 			return json({ error: 'Invalid total amount' }, { status: 400 });
 		}
@@ -126,6 +179,38 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		if (noteInserts.length > 0) {
 			await supabaseAdmin.from('transaction_notes').insert(noteInserts);
+		}
+
+		// 6.5. Save coupon usage if applied
+		if (coupon_code && couponDiscount > 0) {
+			// Save to coupon_usages table
+			await supabaseAdmin.from('coupon_usages').insert({
+				order_id,
+				coupon_id: (
+					await supabaseAdmin
+						.from('coupons')
+						.select('id')
+						.eq('code', coupon_code.toUpperCase())
+						.single()
+				).data?.id,
+				user_id,
+				discount_amount: couponDiscount,
+				used_at: new Date().toISOString()
+			});
+
+			// Increment coupon usage count
+			const { data: currentCoupon } = await supabaseAdmin
+				.from('coupons')
+				.select('usage_count')
+				.eq('code', coupon_code.toUpperCase())
+				.single();
+
+			if (currentCoupon) {
+				await supabaseAdmin
+					.from('coupons')
+					.update({ usage_count: (currentCoupon.usage_count || 0) + 1 })
+					.eq('code', coupon_code.toUpperCase());
+			}
 		}
 
 		// 7. Create Payment (Pakasir)
@@ -192,8 +277,8 @@ export const POST: RequestHandler = async ({ request }) => {
 				paymentMethod: payment.payment_method,
 				paymentNumber: payment.payment_number,
 				expiredAt: payment.expired_at,
-				subtotal: totalAmount,
-				discount: 0,
+				subtotal: totalAmount + couponDiscount,
+				discount: couponDiscount,
 				fee: payment.fee
 			}),
 			sendAdminNewOrderEmail({

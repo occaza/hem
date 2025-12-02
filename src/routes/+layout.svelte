@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { authUser } from '$lib/stores/auth.store';
+	import { isLoading } from 'svelte-i18n';
+	import '$lib/i18n';
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import Toast from '$lib/components/common/Toast.svelte';
@@ -9,6 +11,14 @@
 
 	onMount(() => {
 		authUser.initialize();
+
+		// Set locale from localStorage if available
+		const savedLocale = localStorage.getItem('locale');
+		if (savedLocale) {
+			import('svelte-i18n').then(({ locale }) => {
+				locale.set(savedLocale);
+			});
+		}
 	});
 </script>
 
@@ -63,5 +73,11 @@
 
 <main>
 	<Toast />
-	{@render children()}
+	{#if $isLoading}
+		<div class="flex min-h-screen items-center justify-center">
+			<span class="loading loading-lg loading-spinner"></span>
+		</div>
+	{:else}
+		{@render children()}
+	{/if}
 </main>

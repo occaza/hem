@@ -4,9 +4,9 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const body = await request.json();
-		const { email, password, full_name, phone_number } = body;
+		const { email, password, full_name, username, phone_number } = body;
 
-		console.log('Register request:', { email, full_name, phone_number });
+		console.log('Register request:', { email, full_name, username, phone_number });
 
 		if (!email || !password) {
 			return json({ error: 'Email dan password harus diisi' }, { status: 400 });
@@ -16,8 +16,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ error: 'Password minimal 6 karakter' }, { status: 400 });
 		}
 
-		if (!full_name || !phone_number) {
-			return json({ error: 'Nama lengkap dan nomor HP harus diisi' }, { status: 400 });
+		if (!full_name || !username || !phone_number) {
+			return json({ error: 'Nama lengkap, username, dan nomor HP harus diisi' }, { status: 400 });
 		}
 
 		// Import client supabase untuk signup
@@ -37,6 +37,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			options: {
 				data: {
 					full_name,
+					username,
 					phone_number
 				},
 				emailRedirectTo: `${new URL(request.url).origin}/login`
@@ -62,6 +63,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			user_id: signupData.user.id,
 			role: 'user',
 			full_name,
+			username,
 			phone_number
 		});
 

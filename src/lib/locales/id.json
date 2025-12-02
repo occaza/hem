@@ -1,0 +1,199 @@
+{
+	"nav": {
+		"home": "Beranda",
+		"shop": "Toko",
+		"cart": "Keranjang",
+		"account": "Akun",
+		"login": "Masuk",
+		"logout": "Keluar",
+		"dashboard": "Dashboard"
+	},
+	"hero": {
+		"badge": "Platform Digital Terpercaya",
+		"title": "Platform Terpercaya untuk Jual Beli Akun Facebook",
+		"subtitle": "Dapatkan akun Facebook berkualitas dengan harga terbaik. Aman, cepat, dan terpercaya.",
+		"cta": "Mulai Belanja"
+	},
+	"stats": {
+		"products": "Produk Digital",
+		"customers": "Pelanggan Puas",
+		"support": "Layanan Support"
+	},
+	"features": {
+		"subtitle": "Keunggulan Kami",
+		"title": "Mengapa Memilih Kami?",
+		"description": "Pengalaman berbelanja yang lebih baik dengan fitur unggulan yang dirancang untuk kenyamanan Anda",
+		"secure": {
+			"title": "Aman & Terpercaya",
+			"description": "Semua transaksi dilindungi dengan enkripsi tingkat tinggi"
+		},
+		"fast": {
+			"title": "Pembayaran Cepat",
+			"description": "Proses checkout dalam hitungan detik dengan berbagai metode pembayaran"
+		},
+		"support": {
+			"title": "Multi Platform",
+			"description": "Akses dari mana saja, kapan saja melalui desktop atau mobile"
+		},
+		"quality": {
+			"title": "Kualitas Terjamin",
+			"description": "Hanya akun berkualitas tinggi yang kami jual"
+		},
+		"instant_shipping": {
+			"title": "Pengiriman Instan",
+			"description": "Pengiriman instan untuk semua produk digital"
+		},
+		"flexible_payment": {
+			"title": "Pembayaran Fleksibel",
+			"description": "Berbagai pilihan pembayaran aman"
+		},
+		"support_247": {
+			"title": "Dukungan 24x7",
+			"description": "Kami online setiap hari untuk membantu Anda"
+		}
+	},
+	"cta": {
+		"title": "Siap Untuk Belanja?",
+		"subtitle": "Jelajahi koleksi produk digital kami dan nikmati kemudahan berbelanja dengan sistem pembayaran yang aman dan cepat",
+		"button": "Lihat Semua Produk"
+	},
+	"shop": {
+		"title": "Produk Kami",
+		"search": "Cari produk...",
+		"filter": "Filter",
+		"by_category": "Berdasarkan Kategori",
+		"all_products": "Semua Produk",
+		"promo": "Promo",
+		"on_discount": "Sedang Diskon",
+		"price": "Harga",
+		"min": "Min",
+		"max": "Max",
+		"apply_price": "Terapkan Harga",
+		"availability": "Ketersediaan",
+		"in_stock": "Tersedia",
+		"out_of_stock": "Stok Habis",
+		"sort": "Urutkan",
+		"category": "Kategori",
+		"all_categories": "Semua Kategori",
+		"price_range": "Rentang Harga",
+		"buy_now": "Beli Sekarang",
+		"add_to_cart": "Tambah ke Keranjang",
+		"stock": "Stok"
+	},
+	"cart": {
+		"title": "Keranjang Belanja",
+		"empty": "Keranjang Anda kosong",
+		"empty_title": "Duh, keranjang belanjamu kosong",
+		"empty_subtitle": "Yuk, isi dengan Item-Item impianmu!",
+		"start_shopping": "Mulai Belanja",
+		"item": "Item",
+		"product": "Produk",
+		"quantity": "Jumlah",
+		"price": "Harga",
+		"total": "Total",
+		"total_shopping": "Total Belanja",
+		"subtotal": "Subtotal",
+		"sub_total": "Sub Total",
+		"discount": "Diskon",
+		"coupon": "Kupon",
+		"coupon_placeholder": "Kode Kupon",
+		"apply_coupon": "Terapkan Kupon",
+		"remove_coupon": "Hapus Kupon",
+		"coupon_discount": "Diskon Kupon",
+		"coupon_applied": "Kupon diterapkan",
+		"apply": "Terapkan",
+		"remove": "Hapus",
+		"clear_cart": "Kosongkan Keranjang",
+		"checkout": "Checkout",
+		"continue_shopping": "Lanjut Belanja",
+		"note_placeholder": "Catatan...",
+		"add_note": "Tambah Catatan",
+		"order_summary": "Ringkasan Pesanan",
+		"items": "Item",
+		"fee": "Biaya Layanan",
+		"fee_note": "Akan muncul saat pembayaran",
+		"error": {
+			"update_quantity": "Gagal mengupdate jumlah",
+			"remove_item": "Gagal menghapus item",
+			"enter_coupon": "Masukkan kode kupon",
+			"login_coupon": "Silakan login untuk menggunakan kupon",
+			"select_product": "Pilih produk yang ingin dibeli",
+			"save_note": "Gagal menyimpan catatan"
+		},
+		"success": {
+			"remove_item": "Item berhasil dihapus"
+		}
+	},
+	"account": {
+		"title": "Akun Saya",
+		"profile": "Profil",
+		"orders": "Pesanan",
+		"settings": "Pengaturan",
+		"edit_profile": "Edit Profil",
+		"change_password": "Ubah Password",
+		"my_orders": "Pesanan Saya",
+		"order_history": "Riwayat Pesanan"
+	},
+	"payment": {
+		"title": "Pembayaran",
+		"method": "Metode Pembayaran",
+		"select_method": "Pilih Metode Pembayaran",
+		"waiting": "Menunggu Pembayaran",
+		"success": "Pembayaran Berhasil",
+		"failed": "Pembayaran Gagal",
+		"processing": "Sedang Diproses",
+		"qris_desc": "Semua E-Wallet & Bank",
+		"or_select_other": "Atau pilih metode lain",
+		"min_amount_warning": "Minimal Rp10.000 untuk pembayaran via Virtual Account & Retail. Silakan gunakan QRIS.",
+		"select_va_retail": "Pilih Virtual Account atau Retail",
+		"continue_payment": "Lanjutkan ke Pembayaran",
+		"scan_qr": "Scan QR Code untuk Bayar",
+		"detail": "Detail Pembayaran",
+		"total_payment": "Total Pembayaran",
+		"admin_fee": "Biaya Admin",
+		"valid_until": "Berlaku hingga",
+		"qris_instruction": "Buka aplikasi mobile banking atau e-wallet Anda, lalu scan QR code di atas.",
+		"va_number": "Nomor Virtual Account / Kode Pembayaran",
+		"va_instruction": "Gunakan nomor di atas untuk melakukan pembayaran melalui ATM, mobile banking, atau retail.",
+		"simulating": "Memproses simulasi...",
+		"simulate_btn": "🧪 Simulasi Pembayaran (Development Only)",
+		"error": {
+			"create_transaction": "Gagal membuat transaksi",
+			"checkout": "Terjadi kesalahan saat checkout",
+			"simulation": "Simulasi gagal",
+			"simulation_error": "Terjadi kesalahan saat simulasi",
+			"select_method": "Pilih metode pembayaran terlebih dahulu"
+		},
+		"success_msg": {
+			"simulation": "Simulasi berhasil! Tunggu sebentar...",
+			"copied": "Nomor pembayaran disalin!"
+		}
+	},
+	"common": {
+		"save": "Simpan",
+		"cancel": "Batal",
+		"delete": "Hapus",
+		"edit": "Edit",
+		"close": "Tutup",
+		"confirm": "Konfirmasi",
+		"loading": "Memuat...",
+		"error": "Terjadi kesalahan",
+		"success": "Berhasil",
+		"yes": "Ya",
+		"no": "Tidak",
+		"back": "Kembali",
+		"next": "Lanjut",
+		"submit": "Kirim",
+		"search": "Cari"
+	},
+	"footer": {
+		"description": "Platform jual beli akun digital terpercaya, aman, dan cepat. Solusi terbaik untuk kebutuhan digital marketing Anda.",
+		"menu": "Menu",
+		"help": "Bantuan",
+		"about": "Tentang Kami",
+		"contact": "Kontak",
+		"privacy": "Kebijakan Privasi",
+		"terms": "Syarat & Ketentuan",
+		"copyright": "© 2024 adverFI. Semua hak dilindungi."
+	}
+}

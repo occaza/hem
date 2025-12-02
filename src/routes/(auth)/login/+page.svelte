@@ -3,7 +3,7 @@
 	import { getSupabaseClient } from '$lib/client/supabase';
 	import { onMount } from 'svelte';
 
-	let email = $state('');
+	let identifier = $state(''); // Email or Username
 	let password = $state('');
 	let loading = $state(false);
 	let error = $state('');
@@ -25,6 +25,10 @@
 				} else {
 					await goto('/account');
 				}
+			} else if (res.status === 401) {
+				// Session mismatch (client has session but server cookies are gone)
+				// Clear client session
+				await supabase.auth.signOut();
 			}
 		}
 	});
@@ -34,15 +38,40 @@
 		error = '';
 
 		try {
+			// 1. Lookup Email jika input bukan email
+			let emailToLogin = identifier;
+
+			if (!identifier.includes('@')) {
+				const lookupRes = await fetch('/api/auth/lookup-email', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ identifier })
+				});
+
+				const lookupData = await lookupRes.json();
+
+				if (!lookupRes.ok) {
+					error = lookupData.error || 'Username tidak ditemukan';
+					loading = false;
+					return;
+				}
+
+				emailToLogin = lookupData.email;
+			}
+
+			// 2. Login dengan Email
 			const supabase = getSupabaseClient();
 
 			const { data, error: authError } = await supabase.auth.signInWithPassword({
-				email,
+				email: emailToLogin,
 				password
 			});
 
 			if (authError) {
 				error = authError.message;
+				if (error === 'Invalid login credentials') {
+					error = 'Email/Username atau password salah';
+				}
 				return;
 			}
 
@@ -119,17 +148,17 @@
 				}}
 			>
 				<div class="form-control flex flex-col gap-2">
-					<label class="label" for="email">
-						<span class="label-text">Email</span>
+					<label class="label" for="identifier">
+						<span class="label-text">Email atau Username</span>
 					</label>
 					<input
-						id="email"
-						name="email"
-						type="email"
-						placeholder="contohmail@email.com"
+						id="identifier"
+						name="identifier"
+						type="text"
+						placeholder="Email atau Username"
 						class="input-bordered input w-full"
 						autocomplete="username"
-						bind:value={email}
+						bind:value={identifier}
 						required
 					/>
 				</div>

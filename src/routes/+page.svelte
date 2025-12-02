@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Navbar from '$lib/components/layout/Navbar.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
+	import { t } from 'svelte-i18n';
 	import {
 		Zap,
 		LockKeyhole,
@@ -34,23 +35,23 @@
 		return () => observer.disconnect();
 	});
 
-	const features = [
+	$: features = [
 		{
 			icon: Zap,
-			title: 'Pembayaran Cepat',
-			description: 'Proses checkout dalam hitungan detik dengan berbagai metode pembayaran',
+			title: $t('features.fast.title'),
+			description: $t('features.fast.description'),
 			gradient: 'from-yellow-400 to-orange-500'
 		},
 		{
 			icon: LockKeyhole,
-			title: 'Aman & Terpercaya',
-			description: 'Keamanan data dan transaksi Anda terjamin dengan enkripsi tingkat tinggi',
+			title: $t('features.secure.title'),
+			description: $t('features.secure.description'),
 			gradient: 'from-blue-400 to-cyan-500'
 		},
 		{
 			icon: TabletSmartphone,
-			title: 'Multi Platform',
-			description: 'Akses dari mana saja, kapan saja melalui desktop atau mobile',
+			title: $t('features.support.title'),
+			description: $t('features.support.description'),
 			gradient: 'from-purple-400 to-pink-500'
 		}
 	];
@@ -58,19 +59,15 @@
 
 <svelte:head>
 	<title>adverFI - Platform Belanja Digital Terpercaya</title>
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-	<link
-		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-		rel="stylesheet"
-	/>
 </svelte:head>
 
-<div class="font-inter min-h-screen">
+<div class="h-screen snap-y snap-proximity overflow-y-scroll scroll-smooth font-sans">
 	<Navbar />
 
 	<!-- Hero Section -->
-	<div class="relative -mt-16 flex min-h-screen items-center justify-center overflow-hidden pt-16">
+	<div
+		class="relative -mt-16 flex min-h-screen snap-start items-center justify-center overflow-hidden pt-16"
+	>
 		<!-- Background Image with Overlay -->
 		<div class="hero-bg"></div>
 		<div class="hero-overlay"></div>
@@ -81,25 +78,23 @@
 					class="mb-6 inline-flex items-center gap-2 rounded-full border border-base-100/30 bg-base-100/10 px-6 py-2 backdrop-blur-md"
 				>
 					<Sparkles size={20} class="text-primary" />
-					<span class="text-sm font-medium">Platform Digital Terpercaya</span>
+					<span class="text-sm font-medium">{$t('hero.badge')}</span>
 				</div>
 
 				<h1 class="mb-6 text-3xl leading-tight font-black md:text-4xl lg:text-5xl xl:text-6xl">
-					<span class="text-base-100 drop-shadow-lg">Belanja Online</span><br />
-					<span class="text-base-100 drop-shadow-lg">Lebih Mudah & Cepat</span>
+					<span class="text-base-100 drop-shadow-lg">{$t('hero.title')}</span>
 				</h1>
 
 				<p
 					class="mx-auto mb-10 max-w-3xl text-lg font-medium text-base-100/95 drop-shadow-md md:text-xl lg:text-xl"
 				>
-					Platform terpercaya untuk membeli produk digital dengan proses pembayaran yang simpel,
-					aman, dan instan
+					{$t('hero.subtitle')}
 				</p>
 
 				<div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
 					<a href="/shop" class="group btn gap-3 btn-lg btn-primary">
 						<ShoppingBag size={24} />
-						<span>Mulai Belanja Sekarang</span>
+						<span>{$t('hero.cta')}</span>
 						<ArrowRight size={20} class="transition-transform group-hover:translate-x-1" />
 					</a>
 					<!--  -->
@@ -108,16 +103,16 @@
 				<!-- Stats -->
 				<div class="mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-8 sm:grid-cols-3">
 					<div class="stat-card">
-						<div class="text-3xl font-black text-base-100 md:text-4xl">1000+</div>
-						<div class="mt-1 text-sm text-base-100/90 md:text-base">Produk Digital</div>
+						<div class="text-3xl font-black text-base-100 md:text-4xl">10+</div>
+						<div class="mt-1 text-sm text-base-100/90 md:text-base">{$t('stats.products')}</div>
 					</div>
 					<div class="stat-card">
-						<div class="text-3xl font-black text-base-100 md:text-4xl">5000+</div>
-						<div class="mt-1 text-sm text-base-100/90 md:text-base">Pelanggan Puas</div>
+						<div class="text-3xl font-black text-base-100 md:text-4xl">500+</div>
+						<div class="mt-1 text-sm text-base-100/90 md:text-base">{$t('stats.customers')}</div>
 					</div>
 					<div class="stat-card">
 						<div class="text-3xl font-black text-base-100 md:text-4xl">24/7</div>
-						<div class="mt-1 text-sm text-base-100/90 md:text-base">Layanan Support</div>
+						<div class="mt-1 text-sm text-base-100/90 md:text-base">{$t('stats.support')}</div>
 					</div>
 				</div>
 			</div>
@@ -127,21 +122,20 @@
 	<!-- Features Section -->
 	<div
 		id="features"
-		class="relative overflow-hidden bg-gradient-to-b from-base-100 to-base-200 py-24"
+		class="relative snap-start overflow-hidden bg-gradient-to-b from-base-100 to-base-200 py-24"
 	>
 		<div class="relative z-10 container mx-auto px-4">
 			<div class="mb-20 text-center" class:fade-in-up={featuresVisible}>
 				<div class="mb-4 inline-block">
 					<span class="text-sm font-bold tracking-wider text-primary uppercase"
-						>Keunggulan Kami</span
+						>{$t('features.subtitle')}</span
 					>
 				</div>
 				<h2 class="mb-6 text-4xl font-black md:text-5xl lg:text-6xl">
-					Kenapa Pilih <span class="gradient-text">Kami?</span>
+					{$t('features.title')}
 				</h2>
 				<p class="mx-auto max-w-2xl text-lg text-base-content/70 md:text-xl">
-					Pengalaman berbelanja yang lebih baik dengan fitur unggulan yang dirancang untuk
-					kenyamanan Anda
+					{$t('features.description')}
 				</p>
 			</div>
 
@@ -177,19 +171,18 @@
 	</div>
 
 	<!-- CTA Section -->
-	<div class="relative overflow-hidden bg-primary py-24">
+	<div class="relative snap-start overflow-hidden bg-primary py-24">
 		<div class="relative z-10 container mx-auto px-4 text-center">
 			<div class="mx-auto max-w-4xl">
 				<h2 class="mb-6 text-4xl font-black md:text-5xl lg:text-6xl">
-					Siap Untuk <span class="text-success">Belanja?</span>
+					{$t('cta.title')}
 				</h2>
 				<p class="mx-auto mb-10 max-w-2xl text-lg text-base-content/90 md:text-xl">
-					Jelajahi koleksi produk digital kami dan nikmati kemudahan berbelanja dengan sistem
-					pembayaran yang aman dan cepat
+					{$t('cta.subtitle')}
 				</p>
 				<a href="/shop" class="group btn gap-2 btn-lg btn-primary">
 					<ShoppingBag size={24} />
-					<span>Lihat Semua Produk</span>
+					<span>{$t('cta.button')}</span>
 					<ArrowRight size={20} class="transition-transform group-hover:translate-x-1" />
 				</a>
 			</div>
@@ -197,7 +190,9 @@
 	</div>
 
 	<!-- Footer -->
-	<Footer />
+	<div class="snap-start">
+		<Footer />
+	</div>
 </div>
 
 <style>

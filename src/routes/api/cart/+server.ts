@@ -35,7 +35,12 @@ export const GET: RequestHandler = async ({ url }) => {
                     images,
                     stock,
                     discount_percentage,
-                    discount_end_date
+                    discount_end_date,
+                    product_categories (
+                        categories (
+                            name
+                        )
+                    )
                 )
             `
 			)
@@ -47,7 +52,17 @@ export const GET: RequestHandler = async ({ url }) => {
 			return json({ error: 'Failed to load cart' }, { status: 500 });
 		}
 
-		return json(data || []);
+		// Transform data to flatten categories
+		const cartItems = data?.map((item: any) => {
+			if (item.product) {
+				item.product.categories =
+					item.product.product_categories?.map((pc: any) => pc.categories) || [];
+				delete item.product.product_categories;
+			}
+			return item;
+		});
+
+		return json(cartItems || []);
 	} catch (error) {
 		console.error('Get cart error:', error);
 		return json({ error: 'Internal server error' }, { status: 500 });

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Category } from '$lib/types/types';
-	import { ChevronDown, ChevronUp } from '@lucide/svelte';
+	import { ChevronDown, ChevronUp, BadgePercent } from '@lucide/svelte';
+	import { t } from 'svelte-i18n';
 
 	type Props = {
 		categories: Category[];
@@ -8,9 +9,11 @@
 		minPrice: number | null;
 		maxPrice: number | null;
 		availability: string[];
+		onDiscount: boolean;
 		onSelectCategory: (slug: string | null) => void;
 		onApplyFilter: (min: number | null, max: number | null) => void;
 		onToggleAvailability: (status: string) => void;
+		onToggleDiscount: () => void;
 	};
 
 	let {
@@ -19,9 +22,11 @@
 		minPrice = null,
 		maxPrice = null,
 		availability = [],
+		onDiscount = false,
 		onSelectCategory,
 		onApplyFilter,
-		onToggleAvailability
+		onToggleAvailability,
+		onToggleDiscount
 	}: Props = $props();
 
 	let localMin = $state(minPrice);
@@ -44,7 +49,7 @@
 		onclick={toggleFilter}
 		aria-label="Toggle filter"
 	>
-		<span class="text-lg font-bold">Filter Options</span>
+		<span class="text-lg font-bold">{$t('shop.filter')}</span>
 		{#if isOpen}
 			<ChevronUp size={20} />
 		{:else}
@@ -54,11 +59,11 @@
 
 	<!-- Filter Content -->
 	<div class="{isOpen ? 'block' : 'hidden lg:block'} space-y-8">
-		<h3 class="mb-4 hidden text-xl font-bold lg:block">Filter Options</h3>
+		<h3 class="mb-4 hidden text-xl font-bold lg:block">{$t('shop.filter')}</h3>
 
 		<!-- Categories -->
 		<div>
-			<h4 class="mb-4 text-base font-bold">By Category</h4>
+			<h4 class="mb-4 text-base font-bold">{$t('shop.by_category')}</h4>
 			<div class="flex flex-col gap-3">
 				<label class="group flex cursor-pointer items-center gap-3">
 					<input
@@ -68,7 +73,7 @@
 						onchange={() => onSelectCategory(null)}
 					/>
 					<span class="text-base-content/70 transition-colors group-hover:text-primary"
-						>All Products</span
+						>{$t('shop.all_products')}</span
 					>
 				</label>
 				{#each categories as category}
@@ -89,9 +94,30 @@
 
 		<div class="divider"></div>
 
+		<!-- Discount -->
+		<div>
+			<h4 class="mb-4 text-base font-bold">{$t('shop.promo')}</h4>
+			<div class="flex flex-col gap-3">
+				<label class="group flex cursor-pointer items-center gap-3">
+					<input
+						type="checkbox"
+						class="checkbox rounded-none checkbox-sm checkbox-primary"
+						checked={onDiscount}
+						onchange={onToggleDiscount}
+					/>
+					<BadgePercent size={18} class="text-primary" />
+					<span class="text-base-content/70 transition-colors group-hover:text-primary"
+						>{$t('shop.on_discount')}</span
+					>
+				</label>
+			</div>
+		</div>
+
+		<div class="divider"></div>
+
 		<!-- Price Range -->
 		<div>
-			<h4 class="mb-4 text-base font-bold">Price</h4>
+			<h4 class="mb-4 text-base font-bold">{$t('shop.price')}</h4>
 			<div class="space-y-4">
 				<div class="flex items-center gap-2">
 					<div class="relative w-full">
@@ -101,7 +127,7 @@
 						<input
 							type="number"
 							class="input-bordered input input-sm w-full pl-8"
-							placeholder="Min"
+							placeholder={$t('shop.min')}
 							bind:value={localMin}
 						/>
 					</div>
@@ -113,13 +139,13 @@
 						<input
 							type="number"
 							class="input-bordered input input-sm w-full pl-8"
-							placeholder="Max"
+							placeholder={$t('shop.max')}
 							bind:value={localMax}
 						/>
 					</div>
 				</div>
 				<button class="btn w-full rounded-full btn-sm btn-primary" onclick={handleApply}>
-					Apply Price
+					{$t('shop.apply_price')}
 				</button>
 			</div>
 		</div>
@@ -128,7 +154,7 @@
 
 		<!-- Availability -->
 		<div>
-			<h4 class="mb-4 text-base font-bold">Availability</h4>
+			<h4 class="mb-4 text-base font-bold">{$t('shop.availability')}</h4>
 			<div class="flex flex-col gap-3">
 				<label class="group flex cursor-pointer items-center gap-3">
 					<input
@@ -138,7 +164,7 @@
 						onchange={() => onToggleAvailability('in_stock')}
 					/>
 					<span class="text-base-content/70 transition-colors group-hover:text-primary"
-						>In Stock</span
+						>{$t('shop.in_stock')}</span
 					>
 				</label>
 				<label class="group flex cursor-pointer items-center gap-3">
@@ -149,7 +175,7 @@
 						onchange={() => onToggleAvailability('out_of_stock')}
 					/>
 					<span class="text-base-content/70 transition-colors group-hover:text-primary"
-						>Out of Stock</span
+						>{$t('shop.out_of_stock')}</span
 					>
 				</label>
 			</div>

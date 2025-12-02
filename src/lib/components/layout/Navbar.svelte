@@ -3,6 +3,7 @@
 	import { authUser } from '$lib/stores/auth.store';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
+	import { t } from 'svelte-i18n';
 	import {
 		CircleUserRound,
 		House,
@@ -63,7 +64,8 @@
 						class="flex items-center gap-1 rounded-md px-3 py-2 transition hover:bg-base-content/10"
 						class:text-accent={isActive('/')}
 					>
-						<House class="h-4 w-4" /> Beranda
+						<House class="h-4 w-4" />
+						{$t('nav.home')}
 					</a>
 				</li>
 				<li>
@@ -72,7 +74,8 @@
 						class="flex items-center gap-1 rounded-md px-3 py-2 transition hover:bg-base-content/10"
 						class:text-primary={isActive('/shop')}
 					>
-						<ShoppingBasket class="h-4 w-4" /> Belanja
+						<ShoppingBasket class="h-4 w-4" />
+						{$t('nav.shop')}
 					</a>
 				</li>
 			</ul>
@@ -103,23 +106,20 @@
 						<ul
 							class="dropdown-content menu z-[60] mt-3 w-52 menu-sm rounded-box bg-base-100 p-2 shadow"
 						>
-							<li class="menu-title">
-								<span>{user.email}</span>
-							</li>
 							<li>
-								<a href="/account">Dashboard</a>
+								<a href="/account">{$t('nav.dashboard')}</a>
 							</li>
-							<li>
-								<a href="/my-orders">Pesanan Saya</a>
-							</li>
+
 							<li>
 								<button
 									onclick={async () => {
+										await fetch('/logout', { method: 'POST' });
 										await authUser.signOut();
-										window.location.href = '/';
+										window.location.href = '/login';
 									}}
 								>
-									<LogOut class="h-4 w-4" /> Logout
+									<LogOut class="h-4 w-4" />
+									{$t('nav.logout')}
 								</button>
 							</li>
 						</ul>
@@ -169,12 +169,12 @@
 >
 	<button class:dock-active={isActive('/')} onclick={() => (window.location.href = '/')}>
 		<House class="size-[1.2em]" />
-		<span class="dock-label">Beranda</span>
+		<span class="dock-label">{$t('nav.home')}</span>
 	</button>
 
 	<button class:dock-active={isActive('/shop')} onclick={() => (window.location.href = '/shop')}>
 		<ShoppingBasket class="size-[1.2em]" />
-		<span class="dock-label">Belanja</span>
+		<span class="dock-label">{$t('nav.shop')}</span>
 	</button>
 
 	<button
@@ -186,7 +186,7 @@
 		{#if $cartCount > 0}
 			<span class="absolute -top-1 -right-1 badge badge-xs badge-primary">{$cartCount}</span>
 		{/if}
-		<span class="dock-label">Keranjang</span>
+		<span class="dock-label">{$t('nav.cart')}</span>
 	</button>
 
 	{#if user}
@@ -195,7 +195,7 @@
 			onclick={() => (window.location.href = '/account')}
 		>
 			<CircleUserRound class="size-[1.2em]" />
-			<span class="dock-label">Akun</span>
+			<span class="dock-label">{$t('nav.account')}</span>
 		</button>
 	{:else}
 		<button
@@ -203,7 +203,7 @@
 			onclick={() => (window.location.href = '/login')}
 		>
 			<User class="size-[1.2em]" />
-			<span class="dock-label">Login</span>
+			<span class="dock-label">{$t('nav.login')}</span>
 		</button>
 	{/if}
 </div>

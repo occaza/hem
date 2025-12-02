@@ -3,6 +3,7 @@
 	import { formatCurrency, formatShortDate } from '$lib/utils/format.utils';
 	import { toast } from '$lib/stores/toast.store';
 	import { onMount, onDestroy } from 'svelte';
+	import { t } from 'svelte-i18n';
 
 	type Props = {
 		product: any;
@@ -70,7 +71,7 @@
 
 	function copyToClipboard(text: string) {
 		navigator.clipboard.writeText(text);
-		toast.success('Nomor pembayaran disalin!');
+		toast.success($t('payment.success_msg.copied'));
 	}
 
 	function handleSimulate() {
@@ -89,31 +90,31 @@
 
 		<h3 class="mb-4 text-lg font-bold">
 			{#if paymentData.payment_method === 'qris'}
-				Scan QR Code untuk Bayar
+				{$t('payment.scan_qr')}
 			{:else}
-				Detail Pembayaran
+				{$t('payment.detail')}
 			{/if}
 		</h3>
 
 		<!-- Payment Summary -->
 		<div class="mb-4 rounded-lg bg-base-200 p-4">
 			<div class="mb-2 flex items-center justify-between">
-				<span class="text-sm">Total Pembayaran:</span>
+				<span class="text-sm">{$t('payment.total_payment')}:</span>
 				<span class="text-xl font-bold text-primary">
 					{formatCurrency(paymentData.total_payment)}
 				</span>
 			</div>
 
 			<div class="mb-1 flex justify-between text-sm text-base-content/70">
-				<span>{isCartCheckout ? 'Total Belanja' : 'Harga Produk'}:</span>
+				<span>{isCartCheckout ? $t('cart.total_shopping') : $t('shop.price')}:</span>
 				<span>{formatCurrency(paymentData.amount)}</span>
 			</div>
 			<div class="mb-1 flex justify-between text-sm text-base-content/70">
-				<span>Biaya Admin:</span>
+				<span>{$t('payment.admin_fee')}:</span>
 				<span>{formatCurrency(paymentData.fee)}</span>
 			</div>
 			<div class="flex justify-between text-sm text-base-content/70">
-				<span>Berlaku hingga:</span>
+				<span>{$t('payment.valid_until')}:</span>
 				<span>{formatShortDate(paymentData.expired_at)}</span>
 			</div>
 		</div>
@@ -147,13 +148,13 @@
 					></path>
 				</svg>
 				<span class="text-sm">
-					Buka aplikasi mobile banking atau e-wallet Anda, lalu scan QR code di atas.
+					{$t('payment.qris_instruction')}
 				</span>
 			</div>
 		{:else}
 			<!-- Virtual Account / Retail Display -->
 			<div class="mb-4 rounded-lg bg-base-200 p-4">
-				<div class="mb-2 text-sm font-semibold">Nomor Virtual Account / Kode Pembayaran:</div>
+				<div class="mb-2 text-sm font-semibold">{$t('payment.va_number')}:</div>
 				<div class="flex items-center gap-2">
 					<input
 						type="text"
@@ -185,7 +186,7 @@
 					></path>
 				</svg>
 				<span class="text-sm">
-					Gunakan nomor di atas untuk melakukan pembayaran melalui ATM, mobile banking, atau retail.
+					{$t('payment.va_instruction')}
 				</span>
 			</div>
 		{/if}
@@ -200,9 +201,9 @@
 				>
 					{#if isSimulating}
 						<span class="loading loading-sm loading-spinner"></span>
-						Memproses simulasi...
+						{$t('payment.simulating')}
 					{:else}
-						🧪 Simulasi Pembayaran (Development Only)
+						{$t('payment.simulate_btn')}
 					{/if}
 				</button>
 			</div>
@@ -211,7 +212,7 @@
 		<!-- Waiting Indicator -->
 		<div class="mt-4 flex items-center justify-center gap-2 text-warning">
 			<span class="loading loading-sm loading-spinner"></span>
-			<span class="font-medium">Menunggu pembayaran...</span>
+			<span class="font-medium">{$t('payment.waiting')}</span>
 		</div>
 	</div>
 </div>

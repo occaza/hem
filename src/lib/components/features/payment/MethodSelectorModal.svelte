@@ -2,6 +2,9 @@
 	import type { Product } from '$lib/types/types';
 	import { formatCurrency } from '$lib/utils/format.utils';
 	import { toast } from '$lib/stores/toast.store';
+	import { appliedCoupon } from '$lib/stores/coupon.store';
+	import { authUser } from '$lib/stores/auth.store';
+	import { t } from 'svelte-i18n';
 
 	type PaymentMethod = {
 		value: string;
@@ -32,15 +35,48 @@
 	}: Props = $props();
 
 	let selectedMethod = $state('');
+	let couponCode = $state('');
+	let applyingCoupon = $state(false);
+
+	const user = $derived($authUser);
 
 	const otherMethods = $derived(paymentMethods.filter((m) => m.value !== 'qris'));
 
 	// Gunakan totalAmount kalau ada, kalau tidak pakai product.price
-	const displayAmount = $derived(totalAmount || product.price);
+	const baseAmount = $derived(totalAmount || product.price);
+	const discountAmount = $derived($appliedCoupon ? $appliedCoupon.discount_amount : 0);
+	// Jika isCartCheckout, baseAmount sudah dikurangi diskon di parent component
+	const displayAmount = $derived(
+		isCartCheckout ? baseAmount : Math.max(0, baseAmount - discountAmount)
+	);
+
+	async function handleApplyCoupon() {
+		if (!couponCode.trim()) {
+			toast.error($t('cart.error.enter_coupon'));
+			return;
+		}
+
+		if (!user) {
+			toast.error($t('cart.error.login_coupon'));
+			return;
+		}
+
+		applyingCoupon = true;
+		const success = await appliedCoupon.apply(couponCode.trim().toUpperCase(), baseAmount, user.id);
+
+		if (success) {
+			couponCode = '';
+		}
+		applyingCoupon = false;
+	}
+
+	function handleRemoveCoupon() {
+		appliedCoupon.remove();
+	}
 
 	function handleContinue() {
 		if (!selectedMethod || selectedMethod === '') {
-			toast.error('Pilih metode pembayaran terlebih dahulu');
+			toast.error($t('payment.error.select_method'));
 			return;
 		}
 		onSelectOther(selectedMethod);
@@ -53,12 +89,14 @@
 			✕
 		</button>
 
-		<h3 class="mb-4 text-lg font-bold">Pilih Metode Pembayaran</h3>
+		<h3 class="mb-4 text-lg font-bold">{$t('payment.select_method')}</h3>
 
 		<!-- Product Summary -->
 		<div class="mb-6 rounded-lg bg-base-200 p-4">
 			<div class="text-sm text-base-content/70">
-				{isCartCheckout ? `Total Belanja (${itemCount} item)` : 'Produk'}:
+				{isCartCheckout
+					? `${$t('cart.total_shopping')} (${itemCount} ${$t('cart.item')})`
+					: $t('cart.product')}:
 			</div>
 			{#if !isCartCheckout}
 				<div class="font-semibold">{product.name}</div>
@@ -66,17 +104,49 @@
 			<div class="mt-2 text-xl font-bold text-primary">
 				{formatCurrency(displayAmount)}
 			</div>
+			{#if $appliedCoupon && !isCartCheckout}
+				<div class="mt-2 flex items-center justify-between text-sm text-success">
+					<span>{$t('cart.coupon_applied')}: {$appliedCoupon.coupon.code}</span>
+					<button class="font-bold hover:underline" onclick={handleRemoveCoupon}
+						>{$t('cart.remove')}</button
+					>
+				</div>
+				<div class="text-right text-sm text-success">
+					- {formatCurrency(discountAmount)}
+				</div>
+			{/if}
 		</div>
+
+		{#if !isCartCheckout}
+			<div class="mb-6 flex gap-2">
+				<input
+					type="text"
+					placeholder={$t('cart.coupon_placeholder')}
+					class="input-bordered input input-sm w-full"
+					bind:value={couponCode}
+				/>
+				<button
+					class="btn btn-sm btn-primary"
+					onclick={handleApplyCoupon}
+					disabled={applyingCoupon}
+				>
+					{#if applyingCoupon}
+						<span class="loading loading-xs loading-spinner"></span>
+					{/if}
+					{$t('cart.apply')}
+				</button>
+			</div>
+		{/if}
 
 		<button class="btn mb-4 btn-block btn-lg btn-primary" onclick={onSelectQRIS}>
 			<span class="text-2xl">📱</span>
 			<div class="text-left">
 				<div class="font-bold">QRIS</div>
-				<div class="text-xs opacity-70">Semua E-Wallet & Bank</div>
+				<div class="text-xs opacity-70">{$t('payment.qris_desc')}</div>
 			</div>
 		</button>
 
-		<div class="divider text-sm">Atau pilih metode lain</div>
+		<div class="divider text-sm">{$t('payment.or_select_other')}</div>
 
 		{#if displayAmount < 10000}
 			<div class="mb-4 alert text-sm alert-warning">
@@ -93,9 +163,7 @@
 						d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
 					/>
 				</svg>
-				<span
-					>Minimal Rp10.000 untuk pembayaran via Virtual Account & Retail. Silakan gunakan QRIS.</span
-				>
+				<span>{$t('payment.min_amount_warning')}</span>
 			</div>
 		{/if}
 
@@ -104,7 +172,7 @@
 			bind:value={selectedMethod}
 			disabled={displayAmount < 10000}
 		>
-			<option value="" disabled selected>Pilih Virtual Account atau Retail</option>
+			<option value="" disabled selected>{$t('payment.select_va_retail')}</option>
 			{#each otherMethods as method}
 				<option value={method.value}>
 					{method.icon}
@@ -118,7 +186,8 @@
 			onclick={handleContinue}
 			disabled={!selectedMethod || selectedMethod === '' || displayAmount < 10000}
 		>
-			Lanjutkan ke Pembayaran
+			>
+			{$t('payment.continue_payment')}
 		</button>
 	</div>
 </div>

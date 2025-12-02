@@ -47,6 +47,7 @@ export const GET: RequestHandler = async () => {
 		// Gabungkan data
 		const transactionsWithBuyer = (data || []).map((t) => ({
 			...t,
+			product: t.product || { name: 'Unknown Product (Deleted)' },
 			buyer_name: userMap.get(t.user_id) || emailMap.get(t.user_id) || 'Guest User'
 		}));
 

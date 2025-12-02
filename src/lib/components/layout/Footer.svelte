@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { ShoppingBag, Mail, Phone, MapPin, Facebook, Twitter, Instagram } from '@lucide/svelte';
+	import LanguageSwitcher from '$lib/components/ui/LanguageSwitcher.svelte';
+	import { t } from 'svelte-i18n';
 </script>
 
 <footer class=" bg-neutral pt-10 text-base-300">
@@ -12,8 +14,7 @@
 					<span>AdverFI</span>
 				</div>
 				<p class="mb-4 text-base-300">
-					Platform jual beli akun digital terpercaya, aman, dan cepat. Solusi terbaik untuk
-					kebutuhan digital marketing Anda.
+					{$t('footer.description')}
 				</p>
 				<div class="flex gap-4">
 					<a
@@ -45,31 +46,36 @@
 
 			<!-- Quick Links -->
 			<nav>
-				<h6 class="footer-title mb-4 text-lg text-base-300 opacity-100">Menu</h6>
-				<a href="/" class="mb-2 link link-hover transition-colors hover:text-primary">Beranda</a>
-				<a href="/shop" class="mb-2 link link-hover transition-colors hover:text-primary">Belanja</a
+				<h6 class="footer-title mb-4 text-lg text-base-300 opacity-100">{$t('footer.menu')}</h6>
+				<a href="/" class="mb-2 link link-hover transition-colors hover:text-primary"
+					>{$t('nav.home')}</a
+				>
+				<a href="/shop" class="mb-2 link link-hover transition-colors hover:text-primary"
+					>{$t('nav.shop')}</a
 				>
 				<a href="/cart" class="mb-2 link link-hover transition-colors hover:text-primary"
-					>Keranjang</a
+					>{$t('nav.cart')}</a
 				>
-				<a href="/my-orders" class="mb-2 link link-hover transition-colors hover:text-primary"
-					>Pesanan Saya</a
+				<a
+					href="/account?tab=orders"
+					class="mb-2 link link-hover transition-colors hover:text-primary"
+					>{$t('account.my_orders')}</a
 				>
 			</nav>
 
 			<!-- Support -->
 			<nav>
-				<h6 class="footer-title mb-4 text-lg text-base-300 opacity-100">Bantuan</h6>
+				<h6 class="footer-title mb-4 text-lg text-base-300 opacity-100">{$t('footer.help')}</h6>
 				<a href="/faq" class="mb-2 link link-hover transition-colors hover:text-primary">FAQ</a>
 				<a
 					href="/terms-of-service"
-					class="mb-2 link link-hover transition-colors hover:text-primary">Syarat & Ketentuan</a
+					class="mb-2 link link-hover transition-colors hover:text-primary">{$t('footer.terms')}</a
 				>
 				<a href="/privacy-policy" class="mb-2 link link-hover transition-colors hover:text-primary"
-					>Kebijakan Privasi</a
+					>{$t('footer.privacy')}</a
 				>
 				<a href="/contact" class="mb-2 link link-hover transition-colors hover:text-primary"
-					>Hubungi Kami</a
+					>{$t('footer.contact')}</a
 				>
 				<a href="/disclaimer" class="mb-2 link link-hover transition-colors hover:text-primary"
 					>Disclaimer</a
@@ -78,7 +84,7 @@
 
 			<!-- Contact -->
 			<nav>
-				<h6 class="footer-title mb-4 text-lg text-base-300 opacity-100">Kontak</h6>
+				<h6 class="footer-title mb-4 text-lg text-base-300 opacity-100">{$t('footer.contact')}</h6>
 				<div class="mb-3 flex items-start gap-3">
 					<MapPin size={20} class="mt-1 flex-shrink-0 text-primary" />
 					<span class="text-base-300">Gatak, Sukoharjo</span>
@@ -110,10 +116,13 @@
 					© {new Date().getFullYear()} <span class="font-bold text-primary">AdverFI</span>. All
 					rights reserved.
 				</p>
-				<div class="flex gap-6 text-sm font-medium text-neutral-content/60">
-					<a href="/terms-of-service" class="transition-colors hover:text-primary">Terms</a>
-					<a href="/privacy-policy" class="transition-colors hover:text-primary">Privacy</a>
-					<a href="/cookies" class="transition-colors hover:text-primary">Cookies</a>
+				<div class="flex items-center gap-4">
+					<LanguageSwitcher />
+					<div class="flex gap-6 text-sm font-medium text-neutral-content/60">
+						<a href="/terms-of-service" class="transition-colors hover:text-primary">Terms</a>
+						<a href="/privacy-policy" class="transition-colors hover:text-primary">Privacy</a>
+						<a href="/cookies" class="transition-colors hover:text-primary">Cookies</a>
+					</div>
 				</div>
 			</div>
 		</div>

@@ -43,10 +43,20 @@ export const GET: RequestHandler = async ({ params }) => {
 		// Calculate total amount
 		const totalAmount = transactions.reduce((sum, t) => sum + t.amount, 0);
 
+		// Get coupon discount if any
+		const { data: couponUsage } = await supabaseAdmin
+			.from('coupon_usages')
+			.select('discount_amount')
+			.eq('order_id', order_id)
+			.single();
+
+		const discountAmount = couponUsage?.discount_amount || 0;
+
 		// Return payment info
 		const paymentInfo = {
 			order_id: order_id,
 			amount: totalAmount,
+			discount: discountAmount,
 			fee: firstTx.fee || 0,
 			total_payment: firstTx.total_payment || totalAmount,
 			payment_method: firstTx.payment_method || 'qris',

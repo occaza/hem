@@ -3,7 +3,7 @@
 	import { formatCurrency, formatShortDate } from '$lib/utils/format.utils';
 	import { getStatusBadge, getStatusText } from '$lib/utils/status.utils';
 	import { formatPaymentMethod } from '$lib/utils/payment.utils';
-	import { Search, ChevronLeft, ChevronRight, Calendar, X } from '@lucide/svelte';
+	import { Search, ChevronLeft, ChevronRight, Calendar, X, RotateCw } from '@lucide/svelte';
 
 	type TransactionWithProduct = {
 		order_id: string;
@@ -268,7 +268,7 @@
 	<div class="mb-8 flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Transaksi</h1>
 		<button class="btn btn-ghost" onclick={loadTransactions}>
-			<span>🔄</span>
+			<RotateCw />
 			Refresh
 		</button>
 	</div>
