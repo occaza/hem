@@ -132,15 +132,11 @@ export const POST: RequestHandler = async ({ request }) => {
 					`✅ Stock reduced for item ${transaction.product_id}. New stock: ${productUpdate.new_stock}`
 				);
 
-				// Mark as Completed (Since stock is secured)
-				await supabaseAdmin
-					.from('transactions')
-					.update({
-						status: 'completed',
-						completed_at: new Date().toISOString()
-					})
-					.eq('order_id', order_id)
-					.eq('product_id', transaction.product_id);
+				// Keep as Processing (For manual fulfillment by admin)
+				// Status is already set to 'processing' in step A
+				console.log(
+					`✅ Order ${order_id} item ${transaction.product_id} is now PROCESSING (waiting for admin)`
+				);
 
 				results.push({ product_id: transaction.product_id, status: 'success' });
 			}
