@@ -2,7 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import type { Transaction } from '$lib/types/types';
 	import Footer from '$lib/components/layout/Footer.svelte';
-	import { CircleCheck, X } from '@lucide/svelte';
+	import { CircleCheck, X, Hourglass } from '@lucide/svelte';
 
 	import { goto } from '$app/navigation';
 
@@ -93,12 +93,15 @@
 			{:else if transaction && transaction.status === 'processing'}
 				<div class="card bg-base-100 shadow-xl">
 					<div class="card-body items-center text-center">
-						<div class="mb-4 text-6xl">⏳</div>
+						<Hourglass size={64} />
 						<h1 class="card-title text-2xl">
 							{isSimulated ? 'Pembayaran Diterima!' : 'Sedang Diproses'}
 						</h1>
 						<p class="text-base-content/70">
 							Pesanan Anda sedang diproses oleh admin. Anda akan menerima notifikasi saat selesai.
+						</p>
+						<p class="mt-2 text-sm text-base-content/50">
+							Mengalihkan otomatis dalam {countdown} detik...
 						</p>
 						<div class="divider"></div>
 						<div class="text-2xl font-bold text-primary">
