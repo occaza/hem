@@ -12,6 +12,7 @@
 
 	import Navbar from '$lib/components/layout/Navbar.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
+	import PageHeader from '$lib/components/layout/PageHeader.svelte';
 	import FeaturesSection from '$lib/components/features/shop/FeaturesSection.svelte';
 	import { formatCurrency } from '$lib/utils/format.utils';
 	import { cartStore } from '$lib/stores/cart.store';
@@ -267,16 +268,15 @@
 		</div>
 	{:else if product}
 		<!-- Header -->
-		<div class="bg-base-200/30 py-12 text-center">
-			<h1 class="mb-2 text-4xl font-bold">Shop</h1>
-			<div class="breadcrumbs flex justify-center text-sm text-base-content/60">
-				<ul>
-					<li><a href="/">Home</a></li>
-					<li><a href="/shop">Shop</a></li>
-					<li>Product Details</li>
-				</ul>
-			</div>
-		</div>
+		<!-- Header -->
+		<PageHeader
+			title={product.name}
+			breadcrumbs={[
+				{ label: 'Home', href: '/' },
+				{ label: 'Shop', href: '/shop' },
+				{ label: product.name }
+			]}
+		/>
 
 		<div class="container mx-auto px-4 py-12">
 			<div class="grid grid-cols-1 gap-12 lg:grid-cols-2">
