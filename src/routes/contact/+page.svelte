@@ -3,12 +3,16 @@
 	import Footer from '$lib/components/layout/Footer.svelte';
 	import { Mail, Phone, MapPin, Send, MessageSquare } from '@lucide/svelte';
 	import { toast } from '$lib/stores/toast.store';
+	import { appConfig } from '$lib/config/app.config';
+	import Turnstile from '$lib/components/ui/Turnstile.svelte';
 
 	let name = $state('');
 	let email = $state('');
 	let subject = $state('');
 	let message = $state('');
 	let isSubmitting = $state(false);
+	let turnstileToken = $state('');
+	let turnstileRef: any = $state(null);
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -23,9 +27,29 @@
 			return;
 		}
 
+		if (!turnstileToken) {
+			toast.error('Silakan selesaikan verifikasi keamanan');
+			return;
+		}
+
 		isSubmitting = true;
 
 		try {
+			// Verify turnstile first
+			const verifyRes = await fetch('/api/auth/verify-turnstile', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token: turnstileToken })
+			});
+
+			if (!verifyRes.ok) {
+				toast.error('Verifikasi keamanan gagal. Silakan coba lagi.');
+				isSubmitting = false;
+				turnstileToken = '';
+				turnstileRef?.reset();
+				return;
+			}
+
 			const res = await fetch('/api/contact', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -44,9 +68,13 @@
 			email = '';
 			subject = '';
 			message = '';
+			turnstileToken = '';
+			turnstileRef?.reset();
 		} catch (error) {
 			console.error('Submit error:', error);
 			toast.error('Terjadi kesalahan. Silakan coba lagi.');
+			turnstileToken = '';
+			turnstileRef?.reset();
 		} finally {
 			isSubmitting = false;
 		}
@@ -207,11 +235,26 @@
 									</label>
 								</div>
 
+								<!-- Turnstile Widget -->
+								<div class="form-control">
+									<Turnstile
+										bind:this={turnstileRef}
+										onVerify={(token) => (turnstileToken = token)}
+										onError={() => {
+											turnstileToken = '';
+											toast.error('Verifikasi keamanan gagal');
+										}}
+										onExpire={() => {
+											turnstileToken = '';
+										}}
+									/>
+								</div>
+
 								<!-- Submit Button -->
 								<button
 									type="submit"
 									class="btn btn-block gap-2 btn-primary"
-									disabled={isSubmitting}
+									disabled={isSubmitting || !turnstileToken}
 								>
 									{#if isSubmitting}
 										<span class="loading loading-sm loading-spinner"></span>

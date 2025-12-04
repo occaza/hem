@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { getSupabaseClient } from '$lib/client/supabase';
 	import { Eye, EyeOff } from '@lucide/svelte';
+	import Turnstile from '$lib/components/ui/Turnstile.svelte';
 
 	let email = $state('');
 	let password = $state('');
@@ -15,6 +16,8 @@
 	let successMessage = $state('');
 	let showPassword = $state(false);
 	let showConfirm = $state(false);
+	let turnstileToken = $state('');
+	let turnstileRef: any = $state(null);
 
 	function toTitleCase(str: string) {
 		return str.replace(/\w\S*/g, (txt) => {
@@ -25,6 +28,35 @@
 	async function handleRegister() {
 		loading = true;
 		error = '';
+
+		// Verify Turnstile token first
+		if (!turnstileToken) {
+			error = 'Silakan selesaikan verifikasi keamanan';
+			loading = false;
+			return;
+		}
+
+		try {
+			const verifyRes = await fetch('/api/auth/verify-turnstile', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token: turnstileToken })
+			});
+
+			if (!verifyRes.ok) {
+				error = 'Verifikasi keamanan gagal. Silakan coba lagi.';
+				loading = false;
+				turnstileToken = '';
+				turnstileRef?.reset();
+				return;
+			}
+		} catch (err) {
+			error = 'Terjadi kesalahan pada verifikasi keamanan';
+			loading = false;
+			turnstileToken = '';
+			turnstileRef?.reset();
+			return;
+		}
 
 		if (!fullName.trim()) {
 			error = 'Nama lengkap harus diisi';
@@ -100,6 +132,8 @@
 			}, 5000);
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Registrasi gagal';
+			turnstileToken = '';
+			turnstileRef?.reset();
 		} finally {
 			loading = false;
 		}
@@ -294,7 +328,26 @@
 						</div>
 					</div>
 
-					<button type="submit" class="btn w-full btn-primary" disabled={loading}>
+					<!-- Turnstile Widget -->
+					<div class="form-control">
+						<Turnstile
+							bind:this={turnstileRef}
+							onVerify={(token) => (turnstileToken = token)}
+							onError={() => {
+								turnstileToken = '';
+								error = 'Verifikasi keamanan gagal';
+							}}
+							onExpire={() => {
+								turnstileToken = '';
+							}}
+						/>
+					</div>
+
+					<button
+						type="submit"
+						class="btn w-full btn-primary"
+						disabled={loading || !turnstileToken}
+					>
 						{#if loading}
 							<span class="loading loading-sm loading-spinner"></span>
 							Loading...
