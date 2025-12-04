@@ -3,8 +3,8 @@
 	import { Globe } from '@lucide/svelte';
 
 	const languages = [
-		{ code: 'id', name: 'ID', color: 'bg-red-500' },
-		{ code: 'en', name: 'EN', color: 'bg-blue-500' }
+		{ code: 'id', name: 'ID', flag: '/flag/ID.svg' },
+		{ code: 'en', name: 'EN', flag: '/flag/US.svg' }
 	];
 
 	function changeLanguage(lang: string) {
@@ -12,7 +12,7 @@
 		localStorage.setItem('locale', lang);
 	}
 
-	$: currentLanguage = languages.find((l) => l.code === $locale) || languages[0];
+	let currentLanguage = $derived(languages.find((l) => l.code === $locale) || languages[0]);
 </script>
 
 <div class="dropdown dropdown-end dropdown-top">
@@ -21,29 +21,34 @@
 		role="button"
 		class="btn gap-2 text-neutral-content btn-ghost hover:text-primary"
 	>
-		<Globe size={20} />
+		<!-- <Globe size={20} /> -->
 		<span class="flex hidden items-center gap-2 sm:inline">
-			<span class="badge badge-sm {currentLanguage.color} font-bold text-white"
-				>{currentLanguage.name}</span
-			>
+			<img
+				src={currentLanguage.flag}
+				alt={currentLanguage.name}
+				class="h-4 w-6 rounded-sm object-cover"
+			/>
 		</span>
-		<span class="badge badge-sm sm:hidden {currentLanguage.color} font-bold text-white"
-			>{currentLanguage.name}</span
-		>
+		<img
+			src={currentLanguage.flag}
+			alt={currentLanguage.name}
+			class="h-4 w-6 rounded-sm object-cover sm:hidden"
+		/>
 	</div>
 	<ul
-		class="dropdown-content bg-neutral-focus menu z-[1] mb-2 w-fit rounded-box border border-neutral-content/10 p-2 shadow-lg"
+		class="dropdown-content bg-neutral-focus menu z-[1] mb-2 w-fit border border-neutral-content/10 p-2 shadow-lg"
 	>
 		{#each languages as lang}
-			<li>
+			<li class="w-20 pb-1">
 				<button
 					class="flex items-center gap-2 text-neutral-content hover:bg-primary hover:text-primary-content"
 					class:active={$locale === lang.code}
 					class:bg-primary={$locale === lang.code}
 					class:text-primary-content={$locale === lang.code}
-					on:click={() => changeLanguage(lang.code)}
+					onclick={() => changeLanguage(lang.code)}
 				>
-					<span class="badge badge-sm {lang.color} font-bold text-white">{lang.name}</span>
+					<img src={lang.flag} alt={lang.name} class="h-4 w-6 rounded-sm object-cover" />
+					<span class="font-medium">{lang.name}</span>
 				</button>
 			</li>
 		{/each}

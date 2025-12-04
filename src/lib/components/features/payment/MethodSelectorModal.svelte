@@ -5,6 +5,9 @@
 	import { appliedCoupon } from '$lib/stores/coupon.store';
 	import { authUser } from '$lib/stores/auth.store';
 	import { t } from 'svelte-i18n';
+	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
+
+	import { ChevronDown } from '@lucide/svelte';
 
 	type PaymentMethod = {
 		value: string;
@@ -37,10 +40,13 @@
 	let selectedMethod = $state('');
 	let couponCode = $state('');
 	let applyingCoupon = $state(false);
+	let isDropdownOpen = $state(false);
 
 	const user = $derived($authUser);
 
+	const qrisMethod = $derived(PAYMENT_METHODS.find((m) => m.value === 'qris'));
 	const otherMethods = $derived(paymentMethods.filter((m) => m.value !== 'qris'));
+	const selectedMethodData = $derived(otherMethods.find((m) => m.value === selectedMethod));
 
 	// Gunakan totalAmount kalau ada, kalau tidak pakai product.price
 	const baseAmount = $derived(totalAmount || product.price);
@@ -80,6 +86,17 @@
 			return;
 		}
 		onSelectOther(selectedMethod);
+	}
+
+	function toggleDropdown() {
+		if (displayAmount >= 10000) {
+			isDropdownOpen = !isDropdownOpen;
+		}
+	}
+
+	function selectMethod(value: string) {
+		selectedMethod = value;
+		isDropdownOpen = false;
 	}
 </script>
 
@@ -139,9 +156,13 @@
 		{/if}
 
 		<button class="btn mb-4 btn-block btn-lg btn-primary" onclick={onSelectQRIS}>
-			<span class="text-2xl">📱</span>
+			{#if qrisMethod?.icon}
+				<img src={qrisMethod.icon} alt="QRIS" class="h-8 w-auto object-contain" />
+			{:else}
+				<span class="text-2xl">📱</span>
+			{/if}
 			<div class="text-left">
-				<div class="font-bold">QRIS</div>
+				<div class="font-bold">{qrisMethod?.label || 'QRIS'}</div>
 				<div class="text-xs opacity-70">{$t('payment.qris_desc')}</div>
 			</div>
 		</button>
@@ -167,19 +188,49 @@
 			</div>
 		{/if}
 
-		<select
-			class="select-bordered select mb-4 w-full"
-			bind:value={selectedMethod}
-			disabled={displayAmount < 10000}
-		>
-			<option value="" disabled selected>{$t('payment.select_va_retail')}</option>
-			{#each otherMethods as method}
-				<option value={method.value}>
-					{method.icon}
-					{method.label}
-				</option>
-			{/each}
-		</select>
+		<div class="relative mb-4">
+			<button
+				class="btn w-full justify-between border-base-300 bg-base-100 font-normal hover:bg-base-200"
+				onclick={toggleDropdown}
+				disabled={displayAmount < 10000}
+			>
+				{#if selectedMethodData}
+					<div class="flex items-center gap-3">
+						<img
+							src={selectedMethodData.icon}
+							alt={selectedMethodData.label}
+							class="h-6 w-auto object-contain"
+						/>
+						<span>{selectedMethodData.label}</span>
+					</div>
+				{:else}
+					<span>{$t('payment.select_va_retail')}</span>
+				{/if}
+				<ChevronDown size={16} class="transition-transform {isDropdownOpen ? 'rotate-180' : ''}" />
+			</button>
+
+			{#if isDropdownOpen}
+				<div
+					class="absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-base-200 bg-base-100 shadow-lg"
+				>
+					<ul class="menu w-full p-2">
+						{#each otherMethods as method}
+							<li>
+								<button
+									class="flex items-center gap-3 py-3 {selectedMethod === method.value
+										? 'active'
+										: ''}"
+									onclick={() => selectMethod(method.value)}
+								>
+									<img src={method.icon} alt={method.label} class="h-6 w-auto object-contain" />
+									<span>{method.label}</span>
+								</button>
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
+		</div>
 
 		<button
 			class="btn btn-block btn-outline"

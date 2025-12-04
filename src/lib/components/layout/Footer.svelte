@@ -2,6 +2,7 @@
 	import { ShoppingBag, Mail, Phone, MapPin, Facebook, Twitter, Instagram } from '@lucide/svelte';
 	import LanguageSwitcher from '$lib/components/ui/LanguageSwitcher.svelte';
 	import { t } from 'svelte-i18n';
+	import { appConfig } from '$lib/config/app.config';
 </script>
 
 <footer class=" bg-neutral pt-10 text-base-300">
@@ -87,22 +88,22 @@
 				<h6 class="footer-title mb-4 text-lg text-base-300 opacity-100">{$t('footer.contact')}</h6>
 				<div class="mb-3 flex items-start gap-3">
 					<MapPin size={20} class="mt-1 flex-shrink-0 text-primary" />
-					<span class="text-base-300">Gatak, Sukoharjo</span>
+					<span class="text-base-300">{appConfig.address}</span>
 				</div>
 				<div class="mb-3 flex items-center gap-3">
 					<Phone size={20} class="flex-shrink-0 text-primary" />
 					<a
-						href="https://wa.me/6281616666202"
+						href={appConfig.whatsapp}
 						target="_blank"
 						rel="noopener noreferrer"
 						class="link text-base-300 transition-colors hover:text-primary"
 					>
-						+62 816-1666-202
+						{appConfig.phone}
 					</a>
 				</div>
 				<div class="mb-3 flex items-center gap-3">
 					<Mail size={20} class="flex-shrink-0 text-primary" />
-					<span class="text-base-300">support@adverfi.id</span>
+					<span class="text-base-300">{appConfig.supportEmail}</span>
 				</div>
 			</nav>
 		</div>

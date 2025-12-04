@@ -12,7 +12,9 @@ export const GET: RequestHandler = async ({ params }) => {
 
 	const { data, error } = await supabaseAdmin
 		.from('transactions')
-		.select('status, amount, completed_at, payment_method, product_id, processing_started_at')
+		.select(
+			'status, amount, completed_at, payment_method, product_id, processing_started_at, payment_number, total_payment, expired_at, fee'
+		)
 		.eq('order_id', order_id);
 
 	if (error || !data || data.length === 0) {
@@ -29,6 +31,10 @@ export const GET: RequestHandler = async ({ params }) => {
 		amount: totalAmount,
 		completed_at: data[0].completed_at,
 		processing_started_at: data[0].processing_started_at,
-		payment_method: data[0].payment_method
+		payment_method: data[0].payment_method,
+		payment_number: data[0].payment_number,
+		total_payment: data[0].total_payment,
+		expired_at: data[0].expired_at,
+		fee: data[0].fee
 	});
 };

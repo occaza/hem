@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { ChevronRight } from '@lucide/svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
+	import { appConfig } from '$lib/config/app.config';
 </script>
 
 <svelte:head>
@@ -139,7 +140,7 @@
 						</p>
 						<p class="mb-4">
 							Jika produk yang Anda beli tidak sesuai dengan deskripsi, silakan hubungi kami di
-							support@adverfi.id untuk penyelesaian.
+							{appConfig.supportEmail} untuk penyelesaian.
 						</p>
 					</section>
 
@@ -189,9 +190,11 @@
 						<div class="card bg-base-200">
 							<div class="card-body">
 								<p><strong>AdverFI</strong></p>
-								<p>Gatak, Sukoharjo</p>
+								<p>{appConfig.address}</p>
 								<p>
-									Email: <a href="mailto:support@adverfi.id" class="link">support@adverfi.id</a>
+									Email: <a href="mailto:{appConfig.supportEmail}" class="link"
+										>{appConfig.supportEmail}</a
+									>
 								</p>
 							</div>
 						</div>

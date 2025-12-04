@@ -9,7 +9,7 @@
 	let loading = $state(false);
 	let error = $state('');
 	let turnstileToken = $state('');
-	let turnstileRef: any;
+	let turnstileRef: any = $state(null);
 
 	onMount(async () => {
 		const supabase = getSupabaseClient();

@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { onNavigate } from '$app/navigation';
 	import { authUser } from '$lib/stores/auth.store';
 	import { isLoading } from 'svelte-i18n';
 	import '$lib/i18n';
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import Toast from '$lib/components/common/Toast.svelte';
+	import BackToTop from '$lib/components/ui/BackToTop.svelte';
 
 	let { children } = $props();
 
@@ -19,6 +21,17 @@
 				locale.set(savedLocale);
 			});
 		}
+	});
+
+	onNavigate((navigation) => {
+		if (!document.startViewTransition) return;
+
+		return new Promise((resolve) => {
+			document.startViewTransition(async () => {
+				resolve();
+				await navigation.complete;
+			});
+		});
 	});
 </script>
 
@@ -73,6 +86,7 @@
 
 <main>
 	<Toast />
+	<BackToTop />
 	{#if $isLoading}
 		<div class="flex min-h-screen items-center justify-center">
 			<span class="loading loading-lg loading-spinner"></span>

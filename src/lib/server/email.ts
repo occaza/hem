@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { env } from '$env/dynamic/private';
 import { formatPaymentMethod } from '$lib/utils/payment.utils';
+import { appConfig } from '$lib/config/app.config';
 
 const resend = new Resend(env.RESEND_API_KEY);
 const ADMIN_EMAIL = env.ADMIN_EMAIL;
@@ -307,7 +308,7 @@ export const sendContactEmail = async ({
             <p style="margin: 10px 0 0 0; color: #6b7280; white-space: pre-wrap; line-height: 1.6;">${message}</p>
           </div>
 
-          <p style="color: #4b5563; line-height: 1.6;">Jika Anda memiliki pertanyaan mendesak, silakan hubungi kami melalui WhatsApp di <a href="https://wa.me/6281616666202" style="color: #2563eb;">+62 816-1666-202</a>.</p>
+          <p style="color: #4b5563; line-height: 1.6;">Jika Anda memiliki pertanyaan mendesak, silakan hubungi kami melalui WhatsApp di <a href="${appConfig.whatsapp}" style="color: #2563eb;">${appConfig.phone}</a>.</p>
         </div>
 
         <!-- Footer -->

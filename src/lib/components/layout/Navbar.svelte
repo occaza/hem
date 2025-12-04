@@ -16,18 +16,20 @@
 	type Props = {
 		showCart?: boolean;
 		variant?: 'default' | 'shop' | 'cart';
+		scrolled?: boolean;
 	};
 
-	let { showCart = true, variant = 'default' }: Props = $props();
+	let { showCart = true, variant = 'default', scrolled = undefined }: Props = $props();
 
 	const isActive = (path: string) => $page.url.pathname === path;
 	const user = $derived($authUser);
 
-	let isScrolled = $state(false);
+	let internalScrolled = $state(false);
+	let isScrolled = $derived(scrolled !== undefined ? scrolled : internalScrolled);
 
 	onMount(() => {
 		const handleScroll = () => {
-			isScrolled = window.scrollY > 20;
+			internalScrolled = window.scrollY > 20;
 		};
 
 		window.addEventListener('scroll', handleScroll);

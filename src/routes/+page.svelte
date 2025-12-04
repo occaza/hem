@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Navbar from '$lib/components/layout/Navbar.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
+	import SupportedPaymentMethods from '$lib/components/SupportedPaymentMethods.svelte';
 	import { t } from 'svelte-i18n';
 	import {
 		Zap,
@@ -12,8 +13,8 @@
 	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
 
-	let heroVisible = false;
-	let featuresVisible = false;
+	let heroVisible = $state(false);
+	let featuresVisible = $state(false);
 
 	onMount(() => {
 		setTimeout(() => (heroVisible = true), 100);
@@ -35,7 +36,7 @@
 		return () => observer.disconnect();
 	});
 
-	$: features = [
+	let features = $derived([
 		{
 			icon: Zap,
 			title: $t('features.fast.title'),
@@ -54,15 +55,26 @@
 			description: $t('features.support.description'),
 			gradient: 'from-purple-400 to-pink-500'
 		}
-	];
+	]);
+
+	let isScrolled = $state(false);
+
+	function handleScroll(e: Event) {
+		const target = e.target as HTMLElement;
+		isScrolled = target.scrollTop > 20;
+	}
 </script>
 
 <svelte:head>
 	<title>adverFI - Platform Belanja Digital Terpercaya</title>
 </svelte:head>
 
-<div class="h-screen snap-y snap-proximity overflow-y-scroll scroll-smooth font-sans">
-	<Navbar />
+<div
+	class="h-screen snap-y snap-proximity overflow-y-scroll scroll-smooth font-sans"
+	onscroll={handleScroll}
+	data-scroll-container
+>
+	<Navbar scrolled={isScrolled} />
 
 	<!-- Hero Section -->
 	<div
@@ -188,6 +200,9 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Supported Payment Methods Section -->
+	<SupportedPaymentMethods />
 
 	<!-- Footer -->
 	<div class="snap-start">

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { ChevronRight } from '@lucide/svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
+	import { appConfig } from '$lib/config/app.config';
 
 	let activeSection = $state('');
 
@@ -244,7 +245,7 @@
 							</ul>
 
 							<p class="mt-4">
-								Untuk menggunakan hak-hak ini, silakan hubungi kami di support@adverfi.id
+								Untuk menggunakan hak-hak ini, silakan hubungi kami di {appConfig.supportEmail}
 							</p>
 						</section>
 
@@ -273,9 +274,11 @@
 							<div class="card bg-base-200">
 								<div class="card-body">
 									<p><strong>AdverFI</strong></p>
-									<p>Gatak, Sukoharjo</p>
+									<p>{appConfig.address}</p>
 									<p>
-										Email: <a href="mailto:support@adverfi.id" class="link">support@adverfi.id</a>
+										Email: <a href="mailto:{appConfig.supportEmail}" class="link"
+											>{appConfig.supportEmail}</a
+										>
 									</p>
 									<p class="mt-2 text-sm text-base-content/70">
 										Kami akan merespons permintaan Anda dalam waktu 14 hari kerja.
