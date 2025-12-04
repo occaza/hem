@@ -2,11 +2,14 @@
 	import { goto } from '$app/navigation';
 	import { getSupabaseClient } from '$lib/client/supabase';
 	import { onMount } from 'svelte';
+	import Turnstile from '$lib/components/ui/Turnstile.svelte';
 
 	let identifier = $state(''); // Email or Username
 	let password = $state('');
 	let loading = $state(false);
 	let error = $state('');
+	let turnstileToken = $state('');
+	let turnstileRef: any;
 
 	onMount(async () => {
 		const supabase = getSupabaseClient();
@@ -36,6 +39,35 @@
 	async function handleLogin() {
 		loading = true;
 		error = '';
+
+		// Verify Turnstile token first
+		if (!turnstileToken) {
+			error = 'Silakan selesaikan verifikasi keamanan';
+			loading = false;
+			return;
+		}
+
+		try {
+			const verifyRes = await fetch('/api/auth/verify-turnstile', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token: turnstileToken })
+			});
+
+			if (!verifyRes.ok) {
+				error = 'Verifikasi keamanan gagal. Silakan coba lagi.';
+				loading = false;
+				turnstileToken = '';
+				turnstileRef?.reset();
+				return;
+			}
+		} catch (err) {
+			error = 'Terjadi kesalahan pada verifikasi keamanan';
+			loading = false;
+			turnstileToken = '';
+			turnstileRef?.reset();
+			return;
+		}
 
 		try {
 			// 1. Lookup Email jika input bukan email
@@ -107,6 +139,8 @@
 			}
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Login gagal';
+			turnstileToken = '';
+			turnstileRef?.reset();
 		} finally {
 			loading = false;
 		}
@@ -183,8 +217,23 @@
 						Lupa password?
 					</a>
 				</div>
+
+				<!-- Turnstile Widget -->
+				<div class="form-control mt-4">
+					<Turnstile
+						bind:this={turnstileRef}
+						onVerify={(token) => (turnstileToken = token)}
+						onError={() => {
+							turnstileToken = '';
+							error = 'Verifikasi keamanan gagal';
+						}}
+						onExpire={() => {
+							turnstileToken = '';
+						}}
+					/>
+				</div>
 				<div class="form-control mt-6">
-					<button type="submit" class="btn btn-primary" disabled={loading}>
+					<button type="submit" class="btn btn-primary" disabled={loading || !turnstileToken}>
 						{#if loading}
 							<span class="loading loading-sm loading-spinner"></span>
 							Loading...
