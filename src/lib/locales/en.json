@@ -78,7 +78,20 @@
 		"price_range": "Price Range",
 		"buy_now": "Buy Now",
 		"add_to_cart": "Add to Cart",
-		"stock": "Stock"
+		"stock": "Stock",
+		"off": "off",
+		"note_label": "Note for Seller",
+		"note_placeholder": "Example: Please send to email example@gmail.com",
+		"tags": "Tags",
+		"share": "Share",
+		"description": "Description",
+		"faq": "FAQ",
+		"reviews_coming_soon": "Reviews (Coming Soon)",
+		"no_info": "No additional information available.",
+		"success_add_to_cart": "Product successfully added to cart!",
+		"error_add_to_cart": "Failed to add to cart",
+		"confirm_login_action": "add product to cart",
+		"confirm_buy_action": "buy this product"
 	},
 	"cart": {
 		"title": "Shopping Cart",

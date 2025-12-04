@@ -8,6 +8,7 @@
 	import { ShoppingBag } from '@lucide/svelte';
 	import { toast } from '$lib/stores/toast.store';
 	import { confirmLogin } from '$lib/utils/swal.utils';
+	import { t } from 'svelte-i18n';
 
 	type Props = {
 		product: Product;
@@ -33,7 +34,7 @@
 	async function handleAddToCart(e: Event) {
 		e.stopPropagation();
 		if (!user) {
-			const confirmed = await confirmLogin('menambahkan produk ke keranjang');
+			const confirmed = await confirmLogin($t('shop.confirm_login_action'));
 			if (confirmed) {
 				goto('/login');
 			}
@@ -43,9 +44,9 @@
 		addingToCart = true;
 		const success = await cartStore.addItem(product, 1);
 		if (success) {
-			toast.success('Produk berhasil ditambahkan ke keranjang!');
+			toast.success($t('shop.success_add_to_cart'));
 		} else {
-			toast.error('Gagal menambahkan ke keranjang');
+			toast.error($t('shop.error_add_to_cart'));
 		}
 		addingToCart = false;
 	}
@@ -76,11 +77,11 @@
 		<div class="absolute top-3 left-3 flex flex-col gap-2">
 			{#if hasDiscount && product.discount_percentage}
 				<span class="badge border-none font-bold text-white badge-secondary">
-					{product.discount_percentage}% off
+					{product.discount_percentage}% {$t('shop.off')}
 				</span>
 			{/if}
 			{#if !inStock}
-				<span class="badge font-bold text-white badge-neutral">Out of Stock</span>
+				<span class="badge font-bold text-white badge-neutral">{$t('shop.out_of_stock')}</span>
 			{/if}
 		</div>
 

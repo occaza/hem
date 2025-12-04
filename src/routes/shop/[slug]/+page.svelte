@@ -21,6 +21,7 @@
 	import { toast } from '$lib/stores/toast.store';
 	import { confirmLogin } from '$lib/utils/swal.utils';
 	import { appliedCoupon } from '$lib/stores/coupon.store';
+	import { t } from 'svelte-i18n';
 
 	let product = $state<Product | null>(null);
 	let loading = $state(true);
@@ -79,7 +80,7 @@
 		if (!product) return;
 
 		if (!user) {
-			const confirmed = await confirmLogin('menambahkan produk ke keranjang');
+			const confirmed = await confirmLogin($t('shop.confirm_login_action'));
 			if (confirmed) {
 				goto('/login');
 			}
@@ -89,9 +90,9 @@
 		addingToCart = true;
 		const success = await cartStore.addItem(product, quantity);
 		if (success) {
-			toast.success('Produk berhasil ditambahkan ke keranjang!');
+			toast.success($t('shop.success_add_to_cart'));
 		} else {
-			toast.error('Gagal menambahkan ke keranjang');
+			toast.error($t('shop.error_add_to_cart'));
 		}
 		addingToCart = false;
 	}
@@ -100,7 +101,7 @@
 		if (!product) return;
 
 		if (!user) {
-			const confirmed = await confirmLogin('membeli produk ini');
+			const confirmed = await confirmLogin($t('shop.confirm_buy_action'));
 			if (confirmed) {
 				goto('/login');
 			}
@@ -269,11 +270,12 @@
 	{:else if product}
 		<!-- Header -->
 		<!-- Header -->
+		<!-- Header -->
 		<PageHeader
 			title={product.name}
 			breadcrumbs={[
-				{ label: 'Home', href: '/' },
-				{ label: 'Shop', href: '/shop' },
+				{ label: $t('nav.home'), href: '/' },
+				{ label: $t('nav.shop'), href: '/shop' },
 				{ label: product.name }
 			]}
 		/>
@@ -324,10 +326,12 @@
 						<div class="mt-2 flex items-start justify-between gap-4">
 							<h1 class="text-3xl font-bold">{product.name}</h1>
 							{#if inStock}
-								<div class="badge gap-1 badge-outline p-3 font-medium badge-success">In Stock</div>
+								<div class="badge gap-1 badge-outline p-3 font-medium badge-success">
+									{$t('shop.in_stock')}
+								</div>
 							{:else}
 								<div class="badge gap-1 badge-outline p-3 font-medium badge-error">
-									Out of Stock
+									{$t('shop.out_of_stock')}
 								</div>
 							{/if}
 						</div>
@@ -355,12 +359,12 @@
 						<!-- Note -->
 						<div class="form-control">
 							<label class="label" for="note">
-								<span class="label-text font-bold">Catatan untuk Penjual</span>
+								<span class="label-text font-bold">{$t('shop.note_label')}</span>
 							</label>
 							<textarea
 								id="note"
 								class="textarea-bordered textarea h-24 w-full resize-none rounded-2xl focus:border-primary focus:outline-none"
-								placeholder="Contoh: Tolong kirim ke email contoh@gmail.com"
+								placeholder={$t('shop.note_placeholder')}
 								bind:value={note}
 							></textarea>
 						</div>
@@ -403,7 +407,7 @@
 									{#if addingToCart}
 										<span class="loading loading-sm loading-spinner"></span>
 									{:else}
-										Add To Cart
+										{$t('shop.add_to_cart')}
 									{/if}
 								</button>
 
@@ -411,10 +415,12 @@
 									class="btn min-w-[140px] rounded-full px-8 text-white shadow-lg transition-all btn-secondary hover:-translate-y-0.5 hover:shadow-xl"
 									onclick={handleBuyNow}
 								>
-									Buy Now
+									{$t('shop.buy_now')}
 								</button>
 							{:else}
-								<button class="btn btn-disabled rounded-full px-8" disabled> Out of Stock </button>
+								<button class="btn btn-disabled rounded-full px-8" disabled>
+									{$t('shop.out_of_stock')}
+								</button>
 							{/if}
 
 							<button
@@ -444,13 +450,13 @@
 					<!-- Meta Info -->
 					<div class="space-y-2 text-sm">
 						<div class="flex gap-2">
-							<span class="min-w-[60px] font-bold">Tags :</span>
+							<span class="min-w-[60px] font-bold">{$t('shop.tags')} :</span>
 							<span class="text-base-content/70">
 								{product.categories?.map((c) => c.name).join(', ') || 'Uncategorized'}
 							</span>
 						</div>
 						<div class="flex items-center gap-2">
-							<span class="min-w-[60px] font-bold">Share :</span>
+							<span class="min-w-[60px] font-bold">{$t('shop.share')} :</span>
 							<div class="flex gap-2">
 								<button
 									class="btn btn-circle bg-primary/10 text-primary btn-ghost btn-xs hover:bg-primary hover:text-white"
@@ -506,7 +512,7 @@
 						class:text-base-content={activeTab !== 'detail'}
 						onclick={() => (activeTab = 'detail')}
 					>
-						Description
+						{$t('shop.description')}
 						{#if activeTab === 'detail'}
 							<div class="absolute bottom-0 left-0 h-1 w-full rounded-t-full bg-primary"></div>
 						{/if}
@@ -517,13 +523,13 @@
 						class:text-base-content={activeTab !== 'faq'}
 						onclick={() => (activeTab = 'faq')}
 					>
-						FAQ
+						{$t('shop.faq')}
 						{#if activeTab === 'faq'}
 							<div class="absolute bottom-0 left-0 h-1 w-full rounded-t-full bg-primary"></div>
 						{/if}
 					</button>
 					<button class="cursor-not-allowed pb-4 text-xl font-bold text-base-content/40">
-						Reviews (Coming Soon)
+						{$t('shop.reviews_coming_soon')}
 					</button>
 				</div>
 
@@ -552,7 +558,7 @@
 								{/each}
 							{:else}
 								<div class="py-12 text-center text-base-content/50">
-									No additional information available.
+									{$t('shop.no_info')}
 								</div>
 							{/if}
 						</div>

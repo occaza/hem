@@ -78,7 +78,20 @@
 		"price_range": "Rentang Harga",
 		"buy_now": "Beli Sekarang",
 		"add_to_cart": "Tambah ke Keranjang",
-		"stock": "Stok"
+		"stock": "Stok",
+		"off": "diskon",
+		"note_label": "Catatan untuk Penjual",
+		"note_placeholder": "Contoh: Tolong kirim ke email contoh@gmail.com",
+		"tags": "Tag",
+		"share": "Bagikan",
+		"description": "Deskripsi",
+		"faq": "FAQ",
+		"reviews_coming_soon": "Ulasan (Segera Hadir)",
+		"no_info": "Tidak ada informasi tambahan.",
+		"success_add_to_cart": "Produk berhasil ditambahkan ke keranjang!",
+		"error_add_to_cart": "Gagal menambahkan ke keranjang",
+		"confirm_login_action": "menambahkan produk ke keranjang",
+		"confirm_buy_action": "membeli produk ini"
 	},
 	"cart": {
 		"title": "Keranjang Belanja",
