@@ -5,6 +5,7 @@
 	import { toast } from '$lib/stores/toast.store';
 	import { appConfig } from '$lib/config/app.config';
 	import Turnstile from '$lib/components/ui/Turnstile.svelte';
+	import PageHeader from '$lib/components/layout/PageHeader.svelte';
 
 	let name = $state('');
 	let email = $state('');
@@ -91,16 +92,16 @@
 
 <Navbar />
 
-<div class="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 py-24">
-	<div class="container mx-auto px-4 pb-20">
-		<!-- Header -->
-		<div class="mb-12 text-center">
-			<h1 class="mb-4 text-4xl font-bold md:text-5xl">Hubungi Kami</h1>
-			<p class="mx-auto max-w-2xl text-lg text-base-content/70">
-				Punya pertanyaan atau butuh bantuan? Tim kami siap membantu Anda 24/7
-			</p>
-		</div>
+<PageHeader
+	title="Hubungi Kami"
+	breadcrumbs={[
+		{ label: 'Beranda', href: '/' },
+		{ label: 'Hubungi Kami', href: '/contact' }
+	]}
+/>
 
+<div class="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 py-12">
+	<div class="container mx-auto px-4 pb-20">
 		<div class="mx-auto max-w-6xl">
 			<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 				<!-- Contact Information Cards -->
@@ -117,8 +118,11 @@
 								<h3 class="text-xl font-bold">Email</h3>
 							</div>
 							<p class="text-base-content/80">Kirim email ke:</p>
-							<a href="mailto:support@adverfi.id" class="link text-lg font-semibold text-primary">
-								support@adverfi.id
+							<a
+								href="mailto:{appConfig.supportEmail}"
+								class="link text-lg font-semibold text-primary"
+							>
+								{appConfig.supportEmail}
 							</a>
 							<p class="mt-2 text-sm text-base-content/60">Kami akan membalas dalam 24 jam</p>
 						</div>
@@ -137,12 +141,12 @@
 							</div>
 							<p class="text-base-content/80">Chat dengan kami:</p>
 							<a
-								href="https://wa.me/6281616666202"
+								href={appConfig.whatsapp}
 								target="_blank"
 								rel="noopener noreferrer"
 								class="link text-lg font-semibold text-success"
 							>
-								+62 816-1666-202
+								{appConfig.phone}
 							</a>
 							<p class="mt-2 text-sm text-base-content/60">Senin - Minggu, 08:00 - 22:00 WIB</p>
 						</div>
@@ -160,7 +164,7 @@
 								<h3 class="text-xl font-bold">Lokasi</h3>
 							</div>
 							<p class="text-base-content/80">Kantor kami:</p>
-							<p class="text-lg font-semibold">Gatak, Sukoharjo</p>
+							<p class="text-lg font-semibold">{appConfig.address}</p>
 							<p class="mt-2 text-sm text-base-content/60">Jawa Tengah, Indonesia</p>
 						</div>
 					</div>
