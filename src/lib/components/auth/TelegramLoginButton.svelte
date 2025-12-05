@@ -43,8 +43,7 @@
 		// Inject script
 		const script = document.createElement('script');
 		script.src = 'https://telegram.org/js/telegram-widget.js?22';
-		// HARDCODED FOR DEBUGGING
-		script.setAttribute('data-telegram-login', 'bebboot_bot');
+		script.setAttribute('data-telegram-login', PUBLIC_TELEGRAM_BOT_USERNAME);
 		script.setAttribute('data-size', 'large');
 		script.setAttribute('data-radius', '10');
 		script.setAttribute('data-onauth', 'onTelegramAuth(user)');
