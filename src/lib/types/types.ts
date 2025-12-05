@@ -1,11 +1,16 @@
 // src/lib/types/types.ts
+export type LocalizedString = {
+	id: string;
+	en: string;
+};
+
 export type Product = {
 	id: string;
-	name: string;
+	name: LocalizedString;
 	slug?: string;
 	price: number;
-	description: string;
-	detail_description?: string;
+	description: LocalizedString;
+	detail_description?: LocalizedString;
 	images?: string[];
 	stock: number;
 	discount_percentage?: number;

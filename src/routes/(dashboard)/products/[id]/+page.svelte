@@ -16,9 +16,12 @@
 	} from '@lucide/svelte';
 	import { confirmDelete } from '$lib/utils/swal.utils';
 
-	let name = $state('');
-	let description = $state('');
-	let detailDescription = $state('');
+	let nameId = $state('');
+	let nameEn = $state('');
+	let descriptionId = $state('');
+	let descriptionEn = $state('');
+	let detailDescriptionId = $state('');
+	let detailDescriptionEn = $state('');
 	let price = $state(0);
 	let stock = $state(0);
 	let discountPercentage = $state(0);
@@ -47,9 +50,30 @@
 			}
 
 			const data = await res.json();
-			name = data.name;
-			description = data.description;
-			detailDescription = data.detail_description || '';
+			// Handle localized data (check if it's object or string for backward compatibility)
+			if (typeof data.name === 'object') {
+				nameId = data.name.id || '';
+				nameEn = data.name.en || '';
+			} else {
+				nameId = data.name || '';
+				nameEn = data.name || '';
+			}
+
+			if (typeof data.description === 'object') {
+				descriptionId = data.description.id || '';
+				descriptionEn = data.description.en || '';
+			} else {
+				descriptionId = data.description || '';
+				descriptionEn = data.description || '';
+			}
+
+			if (data.detail_description && typeof data.detail_description === 'object') {
+				detailDescriptionId = data.detail_description.id || '';
+				detailDescriptionEn = data.detail_description.en || '';
+			} else if (data.detail_description) {
+				detailDescriptionId = data.detail_description || '';
+				detailDescriptionEn = data.detail_description || '';
+			}
 			price = data.price;
 			stock = data.stock || 0;
 			discountPercentage = data.discount_percentage || 0;
@@ -144,14 +168,14 @@
 		uploadErrors = [];
 
 		// Validasi
-		if (!name.trim()) {
-			error = 'Nama produk harus diisi';
+		if (!nameId.trim() || !nameEn.trim()) {
+			error = 'Nama produk (ID & EN) harus diisi';
 			saving = false;
 			return;
 		}
 
-		if (!description.trim()) {
-			error = 'Deskripsi harus diisi';
+		if (!descriptionId.trim() || !descriptionEn.trim()) {
+			error = 'Deskripsi (ID & EN) harus diisi';
 			saving = false;
 			return;
 		}
@@ -207,9 +231,12 @@
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					name,
-					description,
-					detail_description: detailDescription || description,
+					name: { id: nameId, en: nameEn },
+					description: { id: descriptionId, en: descriptionEn },
+					detail_description: {
+						id: detailDescriptionId || descriptionId,
+						en: detailDescriptionEn || descriptionEn
+					},
 					price,
 					stock,
 					discount_percentage: discountPercentage,
@@ -253,7 +280,7 @@
 		<div class="flex justify-center py-20">
 			<span class="loading loading-lg loading-spinner"></span>
 		</div>
-	{:else if error && !name}
+	{:else if error && !nameId}
 		<div class="alert alert-error">
 			<span>{error}</span>
 		</div>
@@ -441,52 +468,100 @@
 							</div>
 						</div>
 
-						<div class="form-control flex flex-col">
-							<label class="label" for="name">
-								<span class="label-text font-medium">Nama Produk</span>
-								<span class="label-text-alt text-error">*</span>
-							</label>
-							<input
-								id="name"
-								name="name"
-								type="text"
-								autocomplete="off"
-								placeholder="Contoh: Paket Premium"
-								class="input-bordered input w-full"
-								bind:value={name}
-								required
-							/>
+						<!-- Nama Produk -->
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div class="form-control flex flex-col">
+								<label class="label" for="nameId">
+									<span class="label-text font-medium">Nama Produk (ID)</span>
+									<span class="label-text-alt text-error">*</span>
+								</label>
+								<input
+									id="nameId"
+									type="text"
+									autocomplete="off"
+									placeholder="Contoh: Paket Premium"
+									class="input-bordered input w-full"
+									bind:value={nameId}
+									required
+								/>
+							</div>
+							<div class="form-control flex flex-col">
+								<label class="label" for="nameEn">
+									<span class="label-text font-medium">Product Name (EN)</span>
+									<span class="label-text-alt text-error">*</span>
+								</label>
+								<input
+									id="nameEn"
+									type="text"
+									autocomplete="off"
+									placeholder="Example: Premium Package"
+									class="input-bordered input w-full"
+									bind:value={nameEn}
+									required
+								/>
+							</div>
 						</div>
 
-						<div class="form-control mt-4 flex flex-col">
-							<label class="label" for="description">
-								<span class="label-text font-medium">Deskripsi Singkat</span>
-								<span class="label-text-alt text-error">*</span>
-							</label>
-							<textarea
-								id="description"
-								name="description"
-								placeholder="Deskripsi singkat untuk card produk"
-								class="textarea-bordered textarea h-24 w-full resize-none"
-								bind:value={description}
-								required
-							></textarea>
+						<!-- Deskripsi Singkat -->
+						<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div class="form-control flex flex-col">
+								<label class="label" for="descriptionId">
+									<span class="label-text font-medium">Deskripsi Singkat (ID)</span>
+									<span class="label-text-alt text-error">*</span>
+								</label>
+								<textarea
+									id="descriptionId"
+									placeholder="Deskripsi singkat untuk card produk"
+									class="textarea-bordered textarea h-24 w-full resize-none"
+									bind:value={descriptionId}
+									required
+								></textarea>
+							</div>
+							<div class="form-control flex flex-col">
+								<label class="label" for="descriptionEn">
+									<span class="label-text font-medium">Short Description (EN)</span>
+									<span class="label-text-alt text-error">*</span>
+								</label>
+								<textarea
+									id="descriptionEn"
+									placeholder="Short description for product card"
+									class="textarea-bordered textarea h-24 w-full resize-none"
+									bind:value={descriptionEn}
+									required
+								></textarea>
+							</div>
 						</div>
 
-						<div class="form-control mt-4 flex flex-col">
-							<label class="label" for="detailDescription">
-								<span class="label-text font-medium">Detail Produk</span>
-								<span class="label-text-alt">Opsional</span>
-							</label>
-							<textarea
-								id="detailDescription"
-								name="detail_description"
-								placeholder="Detail lengkap tentang produk"
-								class="textarea-bordered textarea h-40 w-full resize-none"
-								bind:value={detailDescription}
-							></textarea>
+						<!-- Detail Produk -->
+						<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div class="form-control flex flex-col">
+								<label class="label" for="detailDescriptionId">
+									<span class="label-text font-medium">Detail Produk (ID)</span>
+									<span class="label-text-alt">Opsional</span>
+								</label>
+								<textarea
+									id="detailDescriptionId"
+									placeholder="Detail lengkap tentang produk"
+									class="textarea-bordered textarea h-40 w-full resize-none"
+									bind:value={detailDescriptionId}
+								></textarea>
+							</div>
+							<div class="form-control flex flex-col">
+								<label class="label" for="detailDescriptionEn">
+									<span class="label-text font-medium">Product Detail (EN)</span>
+									<span class="label-text-alt">Optional</span>
+								</label>
+								<textarea
+									id="detailDescriptionEn"
+									placeholder="Full product details"
+									class="textarea-bordered textarea h-40 w-full resize-none"
+									bind:value={detailDescriptionEn}
+								></textarea>
+							</div>
+						</div>
+						<div class="mt-2 text-center">
 							<span class="label-text-alt label"
-								>Jika kosong, akan menggunakan deskripsi singkat</span
+								>Jika detail kosong, akan menggunakan deskripsi singkat</span
 							>
 						</div>
 					</div>

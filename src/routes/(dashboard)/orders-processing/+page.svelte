@@ -6,6 +6,8 @@
 	import { toast } from '$lib/stores/toast.store';
 	import { confirmAction } from '$lib/utils/swal.utils';
 	import { RotateCw } from '@lucide/svelte';
+	import { locale } from 'svelte-i18n';
+	import { getLocalizedText } from '$lib/utils/localization.utils';
 
 	let { data } = $props();
 
@@ -146,12 +148,12 @@
 									<div class="h-16 w-16 overflow-hidden rounded-lg border">
 										<img
 											src={item.product.images?.[0] || 'https://placehold.co/100'}
-											alt={item.product.name}
+											alt={getLocalizedText(item.product.name, $locale)}
 											class="h-full w-full object-cover"
 										/>
 									</div>
 									<div class="flex-1">
-										<div class="font-semibold">{item.product.name}</div>
+										<div class="font-semibold">{getLocalizedText(item.product.name, $locale)}</div>
 										<div class="text-sm text-base-content/70">
 											{formatCurrency(item.amount)}
 										</div>

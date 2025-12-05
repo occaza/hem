@@ -29,11 +29,21 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			return json({ error: 'Semua field harus diisi' }, { status: 400 });
 		}
 
-		if (typeof name !== 'string' || name.trim() === '') {
+		// Validate name (string or LocalizedString)
+		const isNameValid =
+			(typeof name === 'string' && name.trim() !== '') ||
+			(typeof name === 'object' && name !== null && (name.id || name.en));
+
+		if (!isNameValid) {
 			return json({ error: 'Nama produk tidak valid' }, { status: 400 });
 		}
 
-		if (typeof description !== 'string' || description.trim() === '') {
+		// Validate description
+		const isDescValid =
+			(typeof description === 'string' && description.trim() !== '') ||
+			(typeof description === 'object' && description !== null);
+
+		if (!isDescValid) {
 			return json({ error: 'Deskripsi tidak valid' }, { status: 400 });
 		}
 
@@ -45,16 +55,19 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		const supabaseAdmin = getSupabaseAdmin();
 
 		const id = `PROD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-		const slug = generateUniqueSlug(name, id);
+
+		// Generate slug from name (use ID version if available, or string)
+		const slugName = typeof name === 'object' ? name.id || name.en : name;
+		const slug = generateUniqueSlug(slugName, id);
 
 		const { data, error } = await supabaseAdmin
 			.from('products')
 			.insert({
 				id,
 				slug,
-				name: name.trim(),
-				description: description.trim(),
-				detail_description: detail_description?.trim() || description.trim(),
+				name: typeof name === 'string' ? name.trim() : name,
+				description: typeof description === 'string' ? description.trim() : description,
+				detail_description: detail_description || description,
 				price: priceNumber,
 				images: images || [],
 				stock: stock !== undefined ? parseInt(stock.toString()) : 0,

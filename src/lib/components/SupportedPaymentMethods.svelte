@@ -44,7 +44,7 @@
 		{/if}
 
 		<div class="mx-auto max-w-5xl">
-			<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+			<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7">
 				{#if visible}
 					{#each PAYMENT_METHODS as method, i}
 						<div class="group h-full" in:fly={{ y: 20, duration: 500, delay: i * 50 }}>

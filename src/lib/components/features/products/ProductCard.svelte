@@ -8,7 +8,8 @@
 	import { ShoppingBag } from '@lucide/svelte';
 	import { toast } from '$lib/stores/toast.store';
 	import { confirmLogin } from '$lib/utils/swal.utils';
-	import { t } from 'svelte-i18n';
+	import { t, locale } from 'svelte-i18n';
+	import { getLocalizedText } from '$lib/utils/localization.utils';
 
 	type Props = {
 		product: Product;
@@ -68,7 +69,7 @@
 	<div class="relative mb-3 aspect-square overflow-hidden rounded-lg bg-base-200">
 		<img
 			src={productImage}
-			alt={product.name}
+			alt={getLocalizedText(product.name, $locale)}
 			class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
 			loading="lazy"
 		/>
@@ -112,7 +113,7 @@
 		{/if}
 
 		<h3 class="font-medium text-base-content transition-colors group-hover:text-primary">
-			{product.name}
+			{getLocalizedText(product.name, $locale)}
 		</h3>
 
 		<div class="flex items-center gap-2">

@@ -1,7 +1,9 @@
+import type { LocalizedString } from './types';
+
 export type OrderItem = {
 	product: {
 		id: string;
-		name: string;
+		name: LocalizedString | string;
 		images?: string[];
 		price: number;
 		quantity?: number;

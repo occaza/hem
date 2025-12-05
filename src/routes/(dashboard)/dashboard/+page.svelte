@@ -14,6 +14,8 @@
 		ShoppingCart,
 		Users
 	} from '@lucide/svelte';
+	import { locale } from 'svelte-i18n';
+	import { getLocalizedText } from '$lib/utils/localization.utils';
 
 	let stats = $state({
 		totalProducts: 0,
@@ -291,7 +293,7 @@
 									in:fly={{ x: 20, duration: 300, delay: 550 + i * 50 }}
 								>
 									<div class="flex-1">
-										<p class="font-semibold">{product.name}</p>
+										<p class="font-semibold">{getLocalizedText(product.name, $locale)}</p>
 										<div class="mt-1 flex items-center gap-2">
 											<div class="flex-1">
 												<progress

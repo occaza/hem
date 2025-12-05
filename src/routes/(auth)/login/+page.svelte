@@ -3,6 +3,7 @@
 	import { getSupabaseClient } from '$lib/client/supabase';
 	import { onMount } from 'svelte';
 	import Turnstile from '$lib/components/ui/Turnstile.svelte';
+	import TelegramLoginButton from '$lib/components/auth/TelegramLoginButton.svelte';
 
 	let identifier = $state(''); // Email or Username
 	let password = $state('');
@@ -40,34 +41,35 @@
 		loading = true;
 		error = '';
 
-		// Verify Turnstile token first
-		if (!turnstileToken) {
-			error = 'Silakan selesaikan verifikasi keamanan';
-			loading = false;
-			return;
-		}
+		// Verify Turnstile token first (DISABLED for localhost development)
+		// if (!turnstileToken) {
+		// 	error = 'Silakan selesaikan verifikasi keamanan';
+		// 	loading = false;
+		// 	return;
+		// }
 
-		try {
-			const verifyRes = await fetch('/api/auth/verify-turnstile', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ token: turnstileToken })
-			});
+		// DISABLED for localhost development
+		// try {
+		// 	const verifyRes = await fetch('/api/auth/verify-turnstile', {
+		// 		method: 'POST',
+		// 		headers: { 'Content-Type': 'application/json' },
+		// 		body: JSON.stringify({ token: turnstileToken })
+		// 	});
 
-			if (!verifyRes.ok) {
-				error = 'Verifikasi keamanan gagal. Silakan coba lagi.';
-				loading = false;
-				turnstileToken = '';
-				turnstileRef?.reset();
-				return;
-			}
-		} catch (err) {
-			error = 'Terjadi kesalahan pada verifikasi keamanan';
-			loading = false;
-			turnstileToken = '';
-			turnstileRef?.reset();
-			return;
-		}
+		// 	if (!verifyRes.ok) {
+		// 		error = 'Verifikasi keamanan gagal. Silakan coba lagi.';
+		// 		loading = false;
+		// 		turnstileToken = '';
+		// 		turnstileRef?.reset();
+		// 		return;
+		// 	}
+		// } catch (err) {
+		// 	error = 'Terjadi kesalahan pada verifikasi keamanan';
+		// 	loading = false;
+		// 	turnstileToken = '';
+		// 	turnstileRef?.reset();
+		// 	return;
+		// }
 
 		try {
 			// 1. Lookup Email jika input bukan email
@@ -218,8 +220,8 @@
 					</a>
 				</div>
 
-				<!-- Turnstile Widget -->
-				<div class="form-control mt-4">
+				<!-- Turnstile Widget (DISABLED for localhost) -->
+				<!-- <div class="form-control mt-4">
 					<Turnstile
 						bind:this={turnstileRef}
 						onVerify={(token) => (turnstileToken = token)}
@@ -231,9 +233,9 @@
 							turnstileToken = '';
 						}}
 					/>
-				</div>
+				</div> -->
 				<div class="form-control mt-6">
-					<button type="submit" class="btn btn-primary" disabled={loading || !turnstileToken}>
+					<button type="submit" class="btn btn-primary" disabled={loading}>
 						{#if loading}
 							<span class="loading loading-sm loading-spinner"></span>
 							Loading...
@@ -245,6 +247,10 @@
 			</form>
 
 			<div class="divider">ATAU</div>
+
+			<div class="mb-4 flex justify-center">
+				<TelegramLoginButton />
+			</div>
 
 			<div class="text-center text-sm">
 				<span class="text-base-content/70">Belum punya akun?</span>

@@ -6,6 +6,8 @@
 	import { authUser } from '$lib/stores/auth.store';
 	import { t } from 'svelte-i18n';
 	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
+	import { locale } from 'svelte-i18n';
+	import { getLocalizedText } from '$lib/utils/localization.utils';
 
 	import { ChevronDown } from '@lucide/svelte';
 
@@ -116,7 +118,7 @@
 					: $t('cart.product')}:
 			</div>
 			{#if !isCartCheckout}
-				<div class="font-semibold">{product.name}</div>
+				<div class="font-semibold">{getLocalizedText(product.name, $locale)}</div>
 			{/if}
 			<div class="mt-2 text-xl font-bold text-primary">
 				{formatCurrency(displayAmount)}

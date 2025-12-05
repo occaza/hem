@@ -21,7 +21,9 @@
 	import { toast } from '$lib/stores/toast.store';
 	import { confirmLogin } from '$lib/utils/swal.utils';
 	import { appliedCoupon } from '$lib/stores/coupon.store';
-	import { t } from 'svelte-i18n';
+	import { t, locale } from 'svelte-i18n';
+	import { Tag, ChevronLeft, ChevronRight } from '@lucide/svelte';
+	import { getLocalizedText } from '$lib/utils/localization.utils';
 
 	let product = $state<Product | null>(null);
 	let loading = $state(true);
@@ -236,13 +238,27 @@
 			);
 		}
 	}
+
+	function nextImage() {
+		if (product && product.images && product.images.length > 1) {
+			selectedImage = (selectedImage + 1) % product.images.length;
+		}
+	}
+
+	function prevImage() {
+		if (product && product.images && product.images.length > 1) {
+			selectedImage = (selectedImage - 1 + product.images.length) % product.images.length;
+		}
+	}
 </script>
 
 <svelte:head>
-	<title>{product ? `${product.name} - adverFI` : 'Produk - adverFI'}</title>
+	<title
+		>{product ? `${getLocalizedText(product.name, $locale)} - adverFI` : 'Produk - adverFI'}</title
+	>
 	{#if product}
-		<meta property="og:title" content={product.name} />
-		<meta property="og:description" content={product.description} />
+		<meta property="og:title" content={getLocalizedText(product.name, $locale)} />
+		<meta property="og:description" content={getLocalizedText(product.description, $locale)} />
 		<meta
 			property="og:image"
 			content={product.images?.[0] || 'https://placehold.co/600x600?text=No+Image'}
@@ -251,8 +267,8 @@
 		<meta property="og:type" content="product" />
 
 		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:title" content={product.name} />
-		<meta name="twitter:description" content={product.description} />
+		<meta name="twitter:title" content={getLocalizedText(product.name, $locale)} />
+		<meta name="twitter:description" content={getLocalizedText(product.description, $locale)} />
 		<meta
 			name="twitter:image"
 			content={product.images?.[0] || 'https://placehold.co/600x600?text=No+Image'}
@@ -269,29 +285,54 @@
 		</div>
 	{:else if product}
 		<!-- Header -->
-		<!-- Header -->
-		<!-- Header -->
 		<PageHeader
-			title={product.name}
+			title={getLocalizedText(product.name, $locale)}
 			breadcrumbs={[
 				{ label: $t('nav.home'), href: '/' },
 				{ label: $t('nav.shop'), href: '/shop' },
-				{ label: product.name }
+				{ label: getLocalizedText(product.name, $locale) }
 			]}
 		/>
 
 		<div class="container mx-auto px-4 py-12">
 			<div class="grid grid-cols-1 gap-12 lg:grid-cols-2">
 				<!-- Left Column: Images -->
-				<div class="mx-auto max-w-md space-y-4">
-					<div class="overflow-hidden rounded-3xl bg-base-200/30 p-6">
+				<div class="mx-auto max-w-lg space-y-4">
+					<!-- Main Image -->
+					<div
+						class="group relative overflow-hidden rounded-xl border border-neutral-300 bg-base-100"
+					>
 						<img
 							src={product.images?.[selectedImage] || 'https://placehold.co/600x600?text=No+Image'}
-							alt={product.name}
-							class="aspect-square w-full object-contain mix-blend-multiply transition-transform duration-300 hover:scale-105"
+							alt={getLocalizedText(product.name, $locale)}
+							class="aspect-square w-full object-contain p-1 transition-transform duration-500 hover:scale-101"
 						/>
+						{#if product.discount_percentage}
+							<div class="absolute top-4 left-4 badge gap-1 p-3 font-bold text-white badge-error">
+								<Tag size={14} />
+								{product.discount_percentage}% OFF
+							</div>
+						{/if}
+
+						{#if product.images && product.images.length > 1}
+							<button
+								class="btn absolute top-1/2 left-2 btn-circle -translate-y-1/2 bg-base-100/80 opacity-0 shadow-md transition-opacity btn-sm group-hover:opacity-100 hover:bg-base-100"
+								onclick={prevImage}
+								aria-label="Previous image"
+							>
+								<ChevronLeft size={20} />
+							</button>
+							<button
+								class="btn absolute top-1/2 right-2 btn-circle -translate-y-1/2 bg-base-100/80 opacity-0 shadow-md transition-opacity btn-sm group-hover:opacity-100 hover:bg-base-100"
+								onclick={nextImage}
+								aria-label="Next image"
+							>
+								<ChevronRight size={20} />
+							</button>
+						{/if}
 					</div>
 
+					<!-- Thumbnails -->
 					{#if product.images && product.images.length > 1}
 						<div class="grid grid-cols-4 gap-4">
 							{#each product.images as image, index}
@@ -305,7 +346,7 @@
 									<div class="bg-base-200/30 p-2">
 										<img
 											src={image}
-											alt={`${product.name} ${index + 1}`}
+											alt={`${getLocalizedText(product.name, $locale)} ${index + 1}`}
 											class="aspect-square w-full object-contain mix-blend-multiply"
 										/>
 									</div>
@@ -324,7 +365,7 @@
 							</span>
 						{/if}
 						<div class="mt-2 flex items-start justify-between gap-4">
-							<h1 class="text-3xl font-bold">{product.name}</h1>
+							<h1 class="text-3xl font-bold">{getLocalizedText(product.name, $locale)}</h1>
 							{#if inStock}
 								<div class="badge gap-1 badge-outline p-3 font-medium badge-success">
 									{$t('shop.in_stock')}
@@ -351,7 +392,7 @@
 
 					<!-- Description Excerpt -->
 					<p class="leading-relaxed text-base-content/70">
-						{product.description}
+						{getLocalizedText(product.description, $locale)}
 					</p>
 
 					<!-- Actions -->
@@ -537,7 +578,7 @@
 					{#if activeTab === 'detail'}
 						<div class="prose max-w-none leading-relaxed text-base-content/80">
 							<p class="whitespace-pre-line">
-								{product.detail_description || product.description}
+								{getLocalizedText(product.detail_description || product.description, $locale)}
 							</p>
 						</div>
 					{:else}

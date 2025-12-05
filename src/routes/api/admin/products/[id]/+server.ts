@@ -87,13 +87,14 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 			if (existing) productId = existing.id;
 		}
 
-		const newSlug = generateUniqueSlug(name, productId);
+		const slugName = typeof name === 'object' ? name.id || name.en : name;
+		const newSlug = generateUniqueSlug(slugName, productId);
 
 		const updateData = {
-			name: name.trim(),
+			name: typeof name === 'string' ? name.trim() : name,
 			slug: newSlug,
-			description: description.trim(),
-			detail_description: detail_description?.trim() || description.trim(),
+			description: typeof description === 'string' ? description.trim() : description,
+			detail_description: detail_description || description,
 			price: parseInt(price.toString()),
 			images: images || [],
 			stock: stock !== undefined ? parseInt(stock.toString()) : 0,

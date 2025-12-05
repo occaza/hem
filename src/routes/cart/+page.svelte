@@ -30,7 +30,8 @@
 	import { authUser, authLoading } from '$lib/stores/auth.store';
 	import { toast } from '$lib/stores/toast.store';
 	import { confirmClearCart, confirmDelete } from '$lib/utils/swal.utils';
-	import { t } from 'svelte-i18n';
+	import { t, locale } from 'svelte-i18n';
+	import { getLocalizedText } from '$lib/utils/localization.utils';
 	import { generateOrderId, encodeOrderId } from '$lib/utils/order.utils';
 	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
 
@@ -401,12 +402,14 @@
 																<img
 																	src={item.product.images?.[0] ||
 																		'https://via.placeholder.com/200'}
-																	alt={item.product.name}
+																	alt={getLocalizedText(item.product.name, $locale)}
 																/>
 															</div>
 														</div>
 														<div>
-															<div class="font-bold">{item.product.name}</div>
+															<div class="font-bold">
+																{getLocalizedText(item.product.name, $locale)}
+															</div>
 															<div class="text-xs text-base-content/50">
 																{item.product.categories?.[0]?.name || 'Product'}
 															</div>

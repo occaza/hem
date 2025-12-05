@@ -5,10 +5,13 @@
 	import { getStatusBadge, getStatusText } from '$lib/utils/status.utils';
 	import { formatPaymentMethod } from '$lib/utils/payment.utils';
 	import { User, Mail, Phone } from '@lucide/svelte';
+	import { locale } from 'svelte-i18n';
+	import { getLocalizedText } from '$lib/utils/localization.utils';
+	import type { LocalizedString } from '$lib/types/types';
 
 	type ProductInfo = {
-		name: string;
-		description: string;
+		name: string | LocalizedString;
+		description: string | LocalizedString;
 		price: number;
 		images?: string[];
 	};
@@ -149,13 +152,15 @@
 									<div class="h-20 w-20 overflow-hidden rounded-lg border border-base-300">
 										<img
 											src={item.product.images?.[0] || 'https://placehold.co/100x100?text=No+Image'}
-											alt={item.product.name}
+											alt={getLocalizedText(item.product.name, $locale)}
 											class="h-full w-full object-cover"
 										/>
 									</div>
 									<div class="flex-1">
-										<div class="font-semibold">{item.product.name}</div>
-										<div class="text-sm text-base-content/70">{item.product.description}</div>
+										<div class="font-semibold">{getLocalizedText(item.product.name, $locale)}</div>
+										<div class="text-sm text-base-content/70">
+											{getLocalizedText(item.product.description, $locale)}
+										</div>
 										<div class="mt-2 font-bold text-primary">
 											{formatCurrency(item.amount)}
 										</div>

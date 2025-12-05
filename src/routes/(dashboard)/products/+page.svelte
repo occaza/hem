@@ -5,6 +5,8 @@
 	import { SquarePen, PackagePlus, LayoutGrid, List } from '@lucide/svelte';
 	import { toast } from '$lib/stores/toast.store';
 	import { TriangleAlert, Box, CircleX } from '@lucide/svelte';
+	import { locale } from 'svelte-i18n';
+	import { getLocalizedText } from '$lib/utils/localization.utils';
 
 	let products = $state<Product[]>([]);
 	let loading = $state(true);
@@ -108,8 +110,8 @@
 				{#each products as product}
 					<div class="card bg-base-100 shadow-xl">
 						<div class="card-body">
-							<h2 class="card-title">{product.name}</h2>
-							<p class="text-base-content/70">{product.description}</p>
+							<h2 class="card-title">{getLocalizedText(product.name, $locale)}</h2>
+							<p class="text-base-content/70">{getLocalizedText(product.description, $locale)}</p>
 							<div class="my-2 space-y-2">
 								<div class="flex items-center justify-between">
 									{#if product.stock === 0}
@@ -191,8 +193,10 @@
 							<tr>
 								<td>
 									<div class="flex flex-col">
-										<div class="font-semibold">{product.name}</div>
-										<div class="text-sm text-base-content/70">{product.description}</div>
+										<div class="font-semibold">{getLocalizedText(product.name, $locale)}</div>
+										<div class="text-sm text-base-content/70">
+											{getLocalizedText(product.description, $locale)}
+										</div>
 									</div>
 								</td>
 								<td>

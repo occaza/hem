@@ -4,6 +4,9 @@
 	import { getStatusBadge, getStatusText } from '$lib/utils/status.utils';
 	import { formatPaymentMethod } from '$lib/utils/payment.utils';
 	import { Search, ChevronLeft, ChevronRight, Calendar, X, RotateCw } from '@lucide/svelte';
+	import { locale } from 'svelte-i18n';
+	import { getLocalizedText } from '$lib/utils/localization.utils';
+	import type { LocalizedString } from '$lib/types/types';
 
 	type TransactionWithProduct = {
 		order_id: string;
@@ -13,7 +16,7 @@
 		completed_at?: string;
 		created_at: string;
 		product: {
-			name: string;
+			name: string | LocalizedString;
 		};
 		buyer_name?: string;
 	};
@@ -68,7 +71,7 @@
 
 			if (existing) {
 				existing.total_amount += transaction.amount;
-				existing.products.push(transaction.product.name);
+				existing.products.push(getLocalizedText(transaction.product.name, $locale));
 				existing.product_count++;
 			} else {
 				grouped.set(transaction.order_id, {
@@ -78,7 +81,7 @@
 					payment_method: transaction.payment_method,
 					completed_at: transaction.completed_at,
 					created_at: transaction.created_at,
-					products: [transaction.product.name],
+					products: [getLocalizedText(transaction.product.name, $locale)],
 					product_count: 1,
 					buyer_name: transaction.buyer_name // Data buyer_name sudah ada di sini
 				});

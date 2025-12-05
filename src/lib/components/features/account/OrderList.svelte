@@ -18,6 +18,8 @@
 	import { formatInvoiceNumber } from '$lib/utils/invoice.utils';
 	import { confirmAction } from '$lib/utils/swal.utils';
 	import { toast } from '$lib/stores/toast.store';
+	import { locale } from 'svelte-i18n';
+	import { getLocalizedText } from '$lib/utils/localization.utils';
 
 	import type { Order } from '$lib/types/order.types';
 
@@ -33,7 +35,11 @@
 			const matchesFilter = filter === 'all' || o.status === filter;
 			const matchesSearch =
 				o.order_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				o.items.some((i) => i.product?.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+				o.items.some((i) =>
+					getLocalizedText(i.product?.name, $locale)
+						.toLowerCase()
+						.includes(searchQuery.toLowerCase())
+				);
 			return matchesFilter && matchesSearch;
 		})
 	);
@@ -223,7 +229,7 @@
 											<img
 												src={item.product?.images?.[0] ||
 													'https://placehold.co/100x100?text=No+Image'}
-												alt={item.product?.name || 'Product'}
+												alt={getLocalizedText(item.product?.name, $locale) || 'Product'}
 												class="h-full w-full object-cover transition-transform duration-500 group-hover/item:scale-110"
 											/>
 										</div>
@@ -232,7 +238,7 @@
 											<div
 												class="text-sm font-bold transition-colors group-hover/item:text-primary"
 											>
-												{item.product?.name || 'Unknown Product'}
+												{getLocalizedText(item.product?.name, $locale) || 'Unknown Product'}
 											</div>
 											<div class="flex items-center gap-2 text-xs text-base-content/70">
 												<span class="badge badge-ghost badge-xs"
