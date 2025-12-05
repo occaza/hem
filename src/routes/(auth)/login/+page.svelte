@@ -3,7 +3,6 @@
 	import { getSupabaseClient } from '$lib/client/supabase';
 	import { onMount } from 'svelte';
 	import Turnstile from '$lib/components/ui/Turnstile.svelte';
-	import TelegramLoginButton from '$lib/components/auth/TelegramLoginButton.svelte';
 
 	let identifier = $state(''); // Email or Username
 	let password = $state('');
@@ -245,12 +244,6 @@
 					</button>
 				</div>
 			</form>
-
-			<div class="divider">ATAU</div>
-
-			<div class="mb-4 flex justify-center">
-				<TelegramLoginButton />
-			</div>
 
 			<div class="text-center text-sm">
 				<span class="text-base-content/70">Belum punya akun?</span>
