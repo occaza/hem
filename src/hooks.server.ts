@@ -40,5 +40,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 		`csrf_token=${cookieValue}; Path=/; SameSite=Strict; Max-Age=3600${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`
 	);
 
+	// 5. Add Security Headers
+	response.headers.set('X-Frame-Options', 'DENY');
+	response.headers.set('X-Content-Type-Options', 'nosniff');
+	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+	response.headers.set(
+		'Permissions-Policy',
+		'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+	);
+
 	return response;
 };
