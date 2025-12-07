@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import type { Product } from '$lib/types/types';
 	import { authUser } from '$lib/stores/auth.store';
+	import { fetchWithCSRF } from '$lib/utils/csrf.utils';
 	import QRCode from 'qrcode';
 
 	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
@@ -125,7 +126,7 @@
 			const orderId = generateOrderId();
 			const encodedOrderId = encodeOrderId(orderId);
 
-			const res = await fetch('/api/checkout', {
+			const res = await fetchWithCSRF('/api/checkout', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
