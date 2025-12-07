@@ -9,8 +9,6 @@
 	import { locale } from 'svelte-i18n';
 	import { getLocalizedText } from '$lib/utils/localization.utils';
 
-	import { ChevronDown } from '@lucide/svelte';
-
 	type PaymentMethod = {
 		value: string;
 		label: string;
@@ -42,13 +40,11 @@
 	let selectedMethod = $state('');
 	let couponCode = $state('');
 	let applyingCoupon = $state(false);
-	let isDropdownOpen = $state(false);
 
 	const user = $derived($authUser);
 
 	const qrisMethod = $derived(PAYMENT_METHODS.find((m) => m.value === 'qris'));
 	const otherMethods = $derived(paymentMethods.filter((m) => m.value !== 'qris'));
-	const selectedMethodData = $derived(otherMethods.find((m) => m.value === selectedMethod));
 
 	// Gunakan totalAmount kalau ada, kalau tidak pakai product.price
 	const baseAmount = $derived(totalAmount || product.price);
@@ -90,17 +86,12 @@
 		onSelectOther(selectedMethod);
 	}
 
-	function toggleDropdown() {
-		if (displayAmount < 10000) {
+	function selectMethod(value: string) {
+		if (displayAmount < 10000 && value !== 'qris') {
 			toast.error($t('payment.min_amount_warning'), 4000);
 			return;
 		}
-		isDropdownOpen = !isDropdownOpen;
-	}
-
-	function selectMethod(value: string) {
 		selectedMethod = value;
-		isDropdownOpen = false;
 	}
 </script>
 
@@ -113,7 +104,7 @@
 		<h3 class="mb-4 text-lg font-bold">{$t('payment.select_method')}</h3>
 
 		<!-- Product Summary -->
-		<div class="mb-6 rounded-lg bg-base-200 p-4">
+		<div class="mb-3 rounded-lg bg-base-200 p-4">
 			<div class="text-sm text-base-content/70">
 				{isCartCheckout
 					? `${$t('cart.total_shopping')} (${itemCount} ${$t('cart.item')})`
@@ -128,9 +119,9 @@
 			{#if $appliedCoupon && !isCartCheckout}
 				<div class="mt-2 flex items-center justify-between text-sm text-success">
 					<span>{$t('cart.coupon_applied')}: {$appliedCoupon.coupon.code}</span>
-					<button class="font-bold hover:underline" onclick={handleRemoveCoupon}
-						>{$t('cart.remove')}</button
-					>
+					<button class="font-bold hover:underline" onclick={handleRemoveCoupon}>
+						{$t('cart.remove')}
+					</button>
 				</div>
 				<div class="text-right text-sm text-success">
 					- {formatCurrency(discountAmount)}
@@ -139,7 +130,7 @@
 		</div>
 
 		{#if !isCartCheckout}
-			<div class="mb-6 flex gap-2">
+			<div class="mb-3 flex gap-2">
 				<input
 					type="text"
 					placeholder={$t('cart.coupon_placeholder')}
@@ -159,11 +150,11 @@
 			</div>
 		{/if}
 
-		<button class="btn mb-4 btn-block btn-lg btn-primary" onclick={onSelectQRIS}>
+		<button class="btn mb-2 btn-block btn-lg btn-primary" onclick={onSelectQRIS}>
 			{#if qrisMethod?.icon}
-				<img src={qrisMethod.icon} alt="QRIS" class="h-8 w-auto object-contain" />
+				<img src={qrisMethod.icon} alt="QRIS" class="h-6 w-auto object-contain" />
 			{:else}
-				<span class="text-2xl">📱</span>
+				<span class="text-lg">📱</span>
 			{/if}
 			<div class="text-left">
 				<div class="font-bold">{qrisMethod?.label || 'QRIS'}</div>
@@ -171,7 +162,7 @@
 			</div>
 		</button>
 
-		<div class="divider text-sm">{$t('payment.or_select_other')}</div>
+		<div class="divider text-xs">{$t('payment.or_select_other')}</div>
 
 		{#if displayAmount < 10000}
 			<div class="mb-4 alert text-sm alert-warning">
@@ -192,47 +183,21 @@
 			</div>
 		{/if}
 
-		<div class="relative mb-4">
-			<button
-				class="btn w-full justify-between border-base-300 bg-base-100 font-normal hover:bg-base-200"
-				onclick={toggleDropdown}
-			>
-				{#if selectedMethodData}
-					<div class="flex items-center gap-3">
-						<img
-							src={selectedMethodData.icon}
-							alt={selectedMethodData.label}
-							class="h-6 w-auto object-contain"
-						/>
-						<span>{selectedMethodData.label}</span>
-					</div>
-				{:else}
-					<span>{$t('payment.select_va_retail')}</span>
-				{/if}
-				<ChevronDown size={16} class="transition-transform {isDropdownOpen ? 'rotate-180' : ''}" />
-			</button>
-
-			{#if isDropdownOpen}
-				<div
-					class="absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-base-200 bg-base-100 shadow-lg"
+		<!-- Grid of Payment Methods -->
+		<div class="mb-3 grid grid-cols-3 gap-2">
+			{#each otherMethods as method}
+				<button
+					class="btn h-auto flex-col gap-2 border-2 p-2 transition-all hover:border-primary {selectedMethod ===
+					method.value
+						? 'border-primary bg-primary/10'
+						: 'border-base-300 bg-base-100'}"
+					onclick={() => selectMethod(method.value)}
+					disabled={displayAmount < 10000}
 				>
-					<ul class="menu w-full p-2">
-						{#each otherMethods as method}
-							<li>
-								<button
-									class="flex items-center gap-3 py-3 {selectedMethod === method.value
-										? 'active'
-										: ''}"
-									onclick={() => selectMethod(method.value)}
-								>
-									<img src={method.icon} alt={method.label} class="h-6 w-auto object-contain" />
-									<span>{method.label}</span>
-								</button>
-							</li>
-						{/each}
-					</ul>
-				</div>
-			{/if}
+					<img src={method.icon} alt={method.label} class="h-8 w-auto object-contain" />
+					<span class="text-xs font-medium">{method.label}</span>
+				</button>
+			{/each}
 		</div>
 
 		<button
@@ -240,7 +205,6 @@
 			onclick={handleContinue}
 			disabled={!selectedMethod || selectedMethod === '' || displayAmount < 10000}
 		>
-			>
 			{$t('payment.continue_payment')}
 		</button>
 	</div>
