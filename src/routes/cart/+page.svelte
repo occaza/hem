@@ -15,6 +15,7 @@
 	import { authUser, authLoading } from '$lib/stores/auth.store';
 	import { generateOrderId, encodeOrderId } from '$lib/utils/order.utils';
 	import { Trash2, Smartphone, CreditCard, Ticket, ShieldCheck, LogIn } from '@lucide/svelte';
+	import PaymentMethodSelector from '$lib/components/features/checkout/PaymentMethodSelector.svelte';
 
 	$: cart = $cartStore;
 	let selectedItems = new Set<string>();
@@ -413,46 +414,7 @@
 							</div>
 
 							<!-- Payment Method Selection -->
-							<div class="form-control mb-6">
-								<label class="label">
-									<span class="label-text flex items-center gap-2 font-bold">
-										<CreditCard size={16} />
-										{$t('cart.payment_method')}
-									</span>
-								</label>
-								<div class="join-vertical join w-full">
-									<label
-										class="btn join-item h-auto justify-start gap-3 border-base-300 bg-base-100 py-3 transition-all hover:bg-base-200 has-[:checked]:border-primary has-[:checked]:bg-primary/10"
-									>
-										<input
-											type="radio"
-											name="payment"
-											value="qris"
-											class="radio radio-sm radio-primary"
-											bind:group={selectedPayment}
-										/>
-										<div class="text-left">
-											<div class="font-bold">{$t('cart.qris_instant')}</div>
-											<div class="text-xs opacity-70">{$t('payment.qris_desc')}</div>
-										</div>
-									</label>
-									<label
-										class="btn join-item h-auto justify-start gap-3 border-base-300 bg-base-100 py-3 transition-all hover:bg-base-200 has-[:checked]:border-primary has-[:checked]:bg-primary/10"
-									>
-										<input
-											type="radio"
-											name="payment"
-											value="bni_va"
-											class="radio radio-sm radio-primary"
-											bind:group={selectedPayment}
-										/>
-										<div class="text-left">
-											<div class="font-bold">{$t('cart.va')}</div>
-											<div class="text-xs opacity-70">{$t('cart.va_desc')}</div>
-										</div>
-									</label>
-								</div>
-							</div>
+							<PaymentMethodSelector bind:selected={selectedPayment} />
 
 							<button
 								class="btn w-full shadow-lg transition-all duration-200 btn-lg btn-primary hover:-translate-y-0.5 hover:shadow-xl"

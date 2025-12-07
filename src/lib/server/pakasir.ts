@@ -267,7 +267,16 @@ export const pakasir = {
 				return false;
 			}
 
-			return timingSafeEqual(source, target);
+			const isValid = timingSafeEqual(source, target);
+			if (!isValid) {
+				console.error('❌ Signature Verification Failed:', {
+					received: signature,
+					calculated: calculatedSignature,
+					bodyLength: rawBody.length,
+					preview: rawBody.substring(0, 50) + '...'
+				});
+			}
+			return isValid;
 		} catch (error) {
 			console.error('🔥 Signature verification error:', error);
 			return false;

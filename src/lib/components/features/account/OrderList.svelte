@@ -346,6 +346,15 @@
 												<span>{formatCurrency(order.fee)}</span>
 											</div>
 										{/if}
+
+										{#if (order.discount || 0) > 0}
+											<div class="flex justify-between text-success">
+												<span>{$t('cart.discount')}</span>
+												<span>
+													- {formatCurrency(order.discount || 0)}
+												</span>
+											</div>
+										{/if}
 										<div class="divider my-2"></div>
 									</div>
 

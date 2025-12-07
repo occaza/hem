@@ -15,6 +15,7 @@ export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 		const csrfToken = extractCSRFToken(request, body);
 		const csrfCookie = parseCSRFCookie(cookies.get('csrf_token'));
 
+		const supabaseAdmin = getSupabaseAdmin();
 		if (!validateCSRFToken(csrfToken, csrfCookie?.token, csrfCookie?.createdAt || 0)) {
 			return json({ error: 'Invalid CSRF token' }, { status: 403 });
 		}
@@ -51,6 +52,18 @@ export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 			return json({ error: 'User ID required' }, { status: 400 });
 		}
 
+		// Check if order_id already exists to prevent overwriting
+		const { data: existingOrder } = await supabaseAdmin
+			.from('transactions')
+			.select('order_id')
+			.eq('order_id', order_id)
+			.limit(1)
+			.single();
+
+		if (existingOrder) {
+			return json({ error: 'Order ID already exists. Please try again.' }, { status: 409 });
+		}
+
 		// Rate Limiting: 5 requests per 15 menit per user
 		const rateLimitKey = `checkout:${user_id}`;
 		const rateLimit = rateLimiters.checkout.check(rateLimitKey);
@@ -69,8 +82,6 @@ export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 				}
 			);
 		}
-
-		const supabaseAdmin = getSupabaseAdmin();
 
 		// 2. Fetch All Products
 		const productIds = items.map((item: any) => item.product_id);

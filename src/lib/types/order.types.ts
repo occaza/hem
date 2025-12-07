@@ -29,5 +29,6 @@ export type Order = {
 	items: OrderItem[];
 	total: number;
 	fee?: number;
+	discount?: number;
 	total_payment?: number;
 };

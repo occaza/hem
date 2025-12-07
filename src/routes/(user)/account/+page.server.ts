@@ -102,6 +102,21 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		}
 	}
 
+	// Get coupon usages
+	let couponMap = new Map<string, number>();
+	if (orderIds.length > 0) {
+		const { data: coupons } = await supabaseAdmin
+			.from('coupon_usages')
+			.select('order_id, discount_amount')
+			.in('order_id', orderIds);
+
+		if (coupons) {
+			coupons.forEach((c) => {
+				couponMap.set(c.order_id, c.discount_amount);
+			});
+		}
+	}
+
 	// Group by order_id
 	const groupedOrders = (transactions || []).reduce((acc: any, transaction: any) => {
 		const orderId = transaction.order_id;
@@ -116,7 +131,8 @@ export const load: PageServerLoad = async ({ cookies }) => {
 				items: [],
 				total: 0,
 				fee: transaction.fee || 0,
-				total_payment: transaction.total_payment || 0
+				total_payment: transaction.total_payment || 0,
+				discount: couponMap.get(orderId) || 0
 			};
 		}
 
@@ -126,12 +142,14 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		const orderFulfillments = fulfillmentsMap.get(orderId);
 		const fulfillments = orderFulfillments ? orderFulfillments.get(transaction.product_id) : null;
 
+		const quantity = transaction.quantity || 1;
+
 		acc[orderId].items.push({
 			product: transaction.product
 				? {
 						...transaction.product,
-						price: transaction.amount,
-						quantity: transaction.quantity || 1
+						price: transaction.amount / quantity, // Calculate Unit Price from Line Total
+						quantity: quantity
 					}
 				: null,
 			amount: transaction.amount,
@@ -141,7 +159,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		acc[orderId].total += transaction.amount;
 		// Ensure total_payment is set correctly if not present in transaction
 		if (!acc[orderId].total_payment) {
-			acc[orderId].total_payment = acc[orderId].total + acc[orderId].fee;
+			acc[orderId].total_payment = acc[orderId].total + acc[orderId].fee - acc[orderId].discount;
 		}
 
 		return acc;
