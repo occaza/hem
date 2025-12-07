@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { TURNSTILE_SECRET_KEY } from '$env/static/private';
+import { PUBLIC_TURNSTILE_ENABLED } from '$env/static/public';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -8,6 +9,11 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		if (!token) {
 			return json({ success: false, error: 'Token is required' }, { status: 400 });
+		}
+
+		// Skip verification if Turnstile is disabled (development mode)
+		if (PUBLIC_TURNSTILE_ENABLED === 'false' || token === 'dev-bypass-token') {
+			return json({ success: true });
 		}
 
 		// Verify token with Cloudflare Turnstile API

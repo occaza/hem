@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
+	import { PUBLIC_TURNSTILE_SITE_KEY, PUBLIC_TURNSTILE_ENABLED } from '$env/static/public';
 
 	type Props = {
 		onVerify: (token: string) => void;
@@ -14,6 +14,13 @@
 	let containerRef: HTMLDivElement;
 
 	onMount(() => {
+		// Skip Turnstile if disabled (development mode)
+		if (PUBLIC_TURNSTILE_ENABLED === 'false') {
+			// Auto-verify with dummy token for development
+			onVerify('dev-bypass-token');
+			return;
+		}
+
 		// Load Turnstile script
 		const script = document.createElement('script');
 		script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
