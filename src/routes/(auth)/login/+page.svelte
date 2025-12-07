@@ -41,35 +41,34 @@
 		loading = true;
 		error = '';
 
-		// Verify Turnstile token first (DISABLED for localhost development)
-		// if (!turnstileToken) {
-		// 	error = 'Silakan selesaikan verifikasi keamanan';
-		// 	loading = false;
-		// 	return;
-		// }
+		// Verify Turnstile token first
+		if (!turnstileToken) {
+			error = 'Silakan selesaikan verifikasi keamanan';
+			loading = false;
+			return;
+		}
 
-		// DISABLED for localhost development
-		// try {
-		// 	const verifyRes = await fetch('/api/auth/verify-turnstile', {
-		// 		method: 'POST',
-		// 		headers: { 'Content-Type': 'application/json' },
-		// 		body: JSON.stringify({ token: turnstileToken })
-		// 	});
-		//
-		// 	if (!verifyRes.ok) {
-		// 		error = 'Verifikasi keamanan gagal. Silakan coba lagi.';
-		// 		loading = false;
-		// 		turnstileToken = '';
-		// 		turnstileRef?.reset();
-		// 		return;
-		// 	}
-		// } catch (err) {
-		// 	error = 'Terjadi kesalahan pada verifikasi keamanan';
-		// 	loading = false;
-		// 	turnstileToken = '';
-		// 	turnstileRef?.reset();
-		// 	return;
-		// }
+		try {
+			const verifyRes = await fetch('/api/auth/verify-turnstile', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token: turnstileToken })
+			});
+
+			if (!verifyRes.ok) {
+				error = 'Verifikasi keamanan gagal. Silakan coba lagi.';
+				loading = false;
+				turnstileToken = '';
+				turnstileRef?.reset();
+				return;
+			}
+		} catch (err) {
+			error = 'Terjadi kesalahan pada verifikasi keamanan';
+			loading = false;
+			turnstileToken = '';
+			turnstileRef?.reset();
+			return;
+		}
 
 		try {
 			// 1. Lookup Email jika input bukan email
@@ -222,8 +221,8 @@
 					</a>
 				</div>
 
-				<!-- Turnstile Widget (DISABLED for localhost) -->
-				<!-- <div class="form-control mt-4">
+				<!-- Turnstile Widget -->
+				<div class="form-control mt-4">
 					<Turnstile
 						bind:this={turnstileRef}
 						onVerify={(token) => (turnstileToken = token)}
@@ -235,7 +234,7 @@
 							turnstileToken = '';
 						}}
 					/>
-				</div> -->
+				</div>
 				<div class="form-control mt-6">
 					<button type="submit" class="btn btn-primary" disabled={loading}>
 						{#if loading}
