@@ -1,5 +1,11 @@
 import type { LocalizedString } from './types';
 
+export type Fulfillment = {
+	type: 'text' | 'file' | 'image';
+	content: string;
+	created_at: string;
+};
+
 export type OrderItem = {
 	product: {
 		id: string;
@@ -10,6 +16,7 @@ export type OrderItem = {
 	} | null;
 	amount: number;
 	note?: string;
+	fulfillments?: Fulfillment[];
 };
 
 export type Order = {

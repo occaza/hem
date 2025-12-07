@@ -8,6 +8,80 @@
 		"logout": "Logout",
 		"dashboard": "Dashboard"
 	},
+	"auth": {
+		"forgot_password": {
+			"title": "Forgot Password",
+			"instruction": "Enter your email address. A password reset link will be sent to this email.",
+			"email_label": "Email",
+			"email_placeholder": "name@example.com",
+			"submit_button": "Send Reset Link",
+			"sending": "Sending...",
+			"success_title": "Email Sent!",
+			"success_desc": "Check your email for the reset password link.",
+			"remember_password": "Remember password?",
+			"login_link": "Login",
+			"back_home": "Back to Home",
+			"page_title": "Forgot Password - adverFI"
+		},
+		"login": {
+			"title": "Login",
+			"identifier_label": "Email or Username",
+			"identifier_placeholder": "Email or Username",
+			"password_label": "Password",
+			"password_placeholder": "••••••••",
+			"forgot_password": "Forgot password?",
+			"submit_button": "Login",
+			"loading": "Loading...",
+			"no_account": "Don't have an account?",
+			"register_link": "Register",
+			"back_home": "Back to Home",
+			"page_title": "Login - adverFI",
+			"error": {
+				"invalid_credentials": "Email/Username or password incorrect",
+				"save_session": "Failed to save session",
+				"generic": "Login failed",
+				"user_not_found": "Username not found"
+			}
+		},
+		"register": {
+			"title": "Register",
+			"full_name_label": "Full Name",
+			"full_name_placeholder": "John Doe",
+			"username_label": "Username",
+			"username_placeholder": "johndoe123",
+			"phone_label": "Phone Number",
+			"phone_placeholder": "08123456789",
+			"email_label": "Email",
+			"email_placeholder": "john@example.com",
+			"password_label": "Password",
+			"password_placeholder": "••••••••",
+			"confirm_password_label": "Confirm Password",
+			"submit_button": "Register",
+			"loading": "Loading...",
+			"already_have_account": "Already have an account?",
+			"login_link": "Login",
+			"back_home": "Back to Home",
+			"page_title": "Register - adverFI",
+			"success_title": "Registration Successful!",
+			"redirect_msg": "Redirecting to login in 5 seconds...",
+			"no_email_msg": "Didn't receive email?",
+			"check_spam_msg": "Check spam or junk folder",
+			"or_divider": "OR",
+			"password_min_length": "Minimum 6 characters",
+			"error": {
+				"full_name_required": "Full name is required",
+				"username_required": "Username is required",
+				"username_no_space": "Username generally cannot contain spaces",
+				"phone_required": "Phone number is required",
+				"phone_invalid": "Invalid phone number",
+				"password_mismatch": "Passwords do not match",
+				"password_min_length": "Password must be at least 6 characters",
+				"generic": "Registration failed",
+				"turnstile_required": "Please complete security verification",
+				"turnstile_failed": "Security verification failed. Please try again."
+			}
+		}
+	},
 	"hero": {
 		"badge": "Trusted Digital Platform",
 		"title": "Trusted Platform for Buying and Selling Facebook Accounts",
@@ -135,17 +209,82 @@
 		},
 		"success": {
 			"remove_item": "Item successfully removed"
-		}
+		},
+		"billing_info": "Billing Information",
+		"full_name": "Full Name",
+		"email": "Email",
+		"phone": "WhatsApp / Phone Number",
+		"payment_method": "Payment Method",
+		"login_to_checkout": "Login to Checkout",
+		"checkout_now": "Checkout Now",
+		"guest_disabled": "Guest checkout is disabled for security.",
+		"login_required": "Login Required",
+		"login_prompt": "Please login to complete billing details.",
+		"qris_instant": "QRIS (Instant)",
+		"va": "Virtual Account",
+		"va_desc": "Automatic Bank Transfer"
 	},
 	"account": {
 		"title": "My Account",
+		"menu": {
+			"personal": "Personal Information",
+			"orders": "My Orders",
+			"password": "Password Manager",
+			"logout": "Logout"
+		},
+		"order_list": {
+			"search_placeholder": "Search orders...",
+			"empty": "No Orders Yet",
+			"empty_filter": "No {filter} orders",
+			"empty_search": "No results for \"{query}\"",
+			"explore_btn": "Start Shopping",
+			"items_more": "Show {count} more items",
+			"show_less": "Show less",
+			"note": "Note:",
+			"view_credentials": "View Credentials",
+			"subtotal": "Subtotal",
+			"admin_fee": "Admin Fee",
+			"total_payment": "Total Payment",
+			"pay_now": "Pay Now",
+			"check_status": "Check Status",
+			"cancel": "Cancel",
+			"buy_again": "Buy Again",
+			"credentials_modal": "Account Data / Access",
+			"copy_success": "Copied to clipboard!",
+			"copy_fail": "Failed to copy",
+			"open_file": "Open File / Image",
+			"close": "Close",
+			"sent_at": "Sent:",
+			"cancel_confirm_msg": "Are you sure you want to cancel this order?",
+			"cancel_confirm_title": "Cancel Order?"
+		},
 		"profile": "Profile",
 		"orders": "Orders",
 		"settings": "Settings",
 		"edit_profile": "Edit Profile",
 		"change_password": "Change Password",
 		"my_orders": "My Orders",
-		"order_history": "Order History"
+		"order_history": "Order History",
+		"password_manager": {
+			"title": "Password Manager",
+			"old_password_label": "Old Password",
+			"old_password_placeholder": "••••••••",
+			"new_password_label": "New Password",
+			"new_password_placeholder": "••••••••",
+			"confirm_password_label": "Confirm Password",
+			"confirm_password_placeholder": "••••••••",
+			"update_button": "Update Password",
+			"updating": "Updating...",
+			"error": {
+				"old_required": "Old password is required",
+				"new_required": "New password is required",
+				"same_password": "New password cannot be the same as old password",
+				"mismatch": "Passwords do not match",
+				"min_length": "Password must be at least 6 characters",
+				"generic": "Failed to update password",
+				"error_occurred": "An error occurred"
+			}
+		}
 	},
 	"payment": {
 		"title": "Payment",
@@ -184,20 +323,65 @@
 	},
 	"common": {
 		"save": "Save",
-		"cancel": "Cancel",
-		"delete": "Delete",
-		"edit": "Edit",
-		"close": "Close",
-		"confirm": "Confirm",
-		"loading": "Loading...",
 		"error": "An error occurred",
 		"success": "Success",
-		"yes": "Yes",
-		"no": "No",
-		"back": "Back",
-		"next": "Next",
-		"submit": "Submit",
-		"search": "Search"
+		"status": {
+			"all": "All",
+			"pending": "Pending",
+			"processing": "Processing",
+			"completed": "Completed",
+			"failed": "Failed",
+			"expired": "Expired",
+			"cancelled": "Cancelled"
+		}
+	},
+	"contact": {
+		"title": "Contact Us",
+		"meta_desc": "Contact AdverFI team for questions, support, or partnership. We are ready to help you 24/7.",
+		"email": {
+			"title": "Email",
+			"send_to": "Send email to:",
+			"reply_time": "We will reply within 24 hours"
+		},
+		"whatsapp": {
+			"title": "WhatsApp",
+			"chat_with_us": "Chat with us:",
+			"working_hours": "Monday - Sunday, {hours} UTC+7"
+		},
+		"location": {
+			"title": "Location",
+			"our_office": "Our office:",
+			"region": "Central Java, Indonesia"
+		},
+		"form": {
+			"title": "Send Message",
+			"name": "Full Name",
+			"name_placeholder": "Enter your full name",
+			"email": "Email",
+			"email_placeholder": "name@email.com",
+			"subject": "Subject",
+			"subject_placeholder": "Topic of your message",
+			"message": "Message",
+			"message_placeholder": "Write your message here...",
+			"min_chars": "Minimum 10 characters",
+			"send": "Send Message",
+			"sending": "Sending...",
+			"success": "Message sent! We will contact you shortly.",
+			"error": "Failed to send message",
+			"fill_all": "Please complete all fields",
+			"captcha_error": "Security verification failed",
+			"captcha_prompt": "Please complete security verification"
+		},
+		"faq": {
+			"title": "Frequently Asked Questions",
+			"check_link": "For general questions, please check our <a href=\"/faq\" class=\"link font-semibold\">FAQ</a> first.",
+			"how_to_shop": "How to Shop",
+			"how_to_shop_desc": "Learn how to make purchases on our platform",
+			"payment_method": "Payment Methods",
+			"payment_method_desc": "Information about available payment methods",
+			"refund_policy": "Refund Policy",
+			"refund_policy_desc": "Terms and procedures for refunds"
+		}
 	},
 	"footer": {
 		"description": "Trusted digital account trading platform, safe and fast. The best solution for your digital marketing needs.",

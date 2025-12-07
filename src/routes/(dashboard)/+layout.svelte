@@ -20,6 +20,7 @@
 
 	const user = $derived(data.user);
 	const isSuperAdmin = $derived(user.role === 'superadmin');
+	const processingCount = $derived(data.processingCount || 0);
 
 	const menuItems = [
 		{ href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -94,7 +95,14 @@
 							class:active={$page.url.pathname === item.href}
 						>
 							<span class="text-xl"><item.icon size="20" /> </span>
-							<span>{item.label}</span>
+							<span class="flex flex-1 items-center justify-between">
+								{item.label}
+								{#if item.href === '/orders-processing' && processingCount > 0}
+									<span class="badge badge-sm badge-error font-bold text-white">
+										{processingCount}
+									</span>
+								{/if}
+							</span>
 						</a>
 					</li>
 				{/each}

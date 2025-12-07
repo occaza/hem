@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	// Get user profile
 	const { data: roleData } = await supabaseAdmin
 		.from('user_roles')
-		.select('full_name, phone_number')
+		.select('full_name, phone_number, username')
 		.eq('user_id', user.id)
 		.single();
 
@@ -75,6 +75,33 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		}
 	}
 
+	// Get fulfillments for all orders
+	let fulfillmentsMap = new Map<string, Map<string, any[]>>();
+
+	if (orderIds.length > 0) {
+		const { data: fulfillments } = await supabaseAdmin
+			.from('transaction_fulfillments')
+			.select('order_id, product_id, type, content, created_at')
+			.in('order_id', orderIds)
+			.order('created_at', { ascending: false });
+
+		if (fulfillments) {
+			fulfillments.forEach((f) => {
+				if (!fulfillmentsMap.has(f.order_id)) {
+					fulfillmentsMap.set(f.order_id, new Map());
+				}
+				if (!fulfillmentsMap.get(f.order_id)!.has(f.product_id)) {
+					fulfillmentsMap.get(f.order_id)!.set(f.product_id, []);
+				}
+				fulfillmentsMap.get(f.order_id)!.get(f.product_id)!.push({
+					type: f.type,
+					content: f.content,
+					created_at: f.created_at
+				});
+			});
+		}
+	}
+
 	// Group by order_id
 	const groupedOrders = (transactions || []).reduce((acc: any, transaction: any) => {
 		const orderId = transaction.order_id;
@@ -96,6 +123,9 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		const orderNotes = notesMap.get(orderId);
 		const note = orderNotes ? orderNotes.get(transaction.product_id) : null;
 
+		const orderFulfillments = fulfillmentsMap.get(orderId);
+		const fulfillments = orderFulfillments ? orderFulfillments.get(transaction.product_id) : null;
+
 		acc[orderId].items.push({
 			product: transaction.product
 				? {
@@ -105,7 +135,8 @@ export const load: PageServerLoad = async ({ cookies }) => {
 					}
 				: null,
 			amount: transaction.amount,
-			note: note
+			note: note,
+			fulfillments: acc[orderId].status === 'completed' ? fulfillments || [] : []
 		});
 		acc[orderId].total += transaction.amount;
 		// Ensure total_payment is set correctly if not present in transaction
@@ -124,6 +155,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 			email: user.email,
 			full_name: roleData?.full_name || '',
 			phone_number: roleData?.phone_number || '',
+			username: roleData?.username || '',
 			avatar_url: profileData?.avatar_url || null,
 			bio: profileData?.bio || ''
 		},

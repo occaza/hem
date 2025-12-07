@@ -24,7 +24,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 		// Get user role
 		const { data: roleData } = await supabaseAdmin
 			.from('user_roles')
-			.select('full_name, phone_number')
+			.select('full_name, phone_number, username')
 			.eq('user_id', user.id)
 			.single();
 
@@ -34,6 +34,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 			role: user.role, // Tambah ini
 			full_name: roleData?.full_name || '',
 			phone_number: roleData?.phone_number || '',
+			username: roleData?.username || '',
 			avatar_url: profile?.avatar_url || null,
 			bio: profile?.bio || ''
 		});
@@ -52,16 +53,39 @@ export const PUT: RequestHandler = async ({ request, cookies }) => {
 		}
 
 		const body = await request.json();
-		const { full_name, phone_number, bio, avatar_url } = body;
+		const { full_name, phone_number, bio, avatar_url, username } = body;
 
 		const supabaseAdmin = getSupabaseAdmin();
+
+		// Check if username is taken (if changed)
+		if (username) {
+			// Get current username
+			const { data: currentUser } = await supabaseAdmin
+				.from('user_roles')
+				.select('username')
+				.eq('user_id', user.id)
+				.single();
+
+			if (currentUser?.username !== username) {
+				const { data: existingUser } = await supabaseAdmin
+					.from('user_roles')
+					.select('id')
+					.eq('username', username)
+					.single();
+
+				if (existingUser) {
+					return json({ error: 'Username sudah digunakan' }, { status: 400 });
+				}
+			}
+		}
 
 		// Update user_roles
 		const { error: roleError } = await supabaseAdmin
 			.from('user_roles')
 			.update({
 				full_name: full_name || null,
-				phone_number: phone_number || null
+				phone_number: phone_number || null,
+				username: username || null
 			})
 			.eq('user_id', user.id);
 

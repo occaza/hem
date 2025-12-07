@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { fetchWithCSRF } from '$lib/utils/csrf.utils';
+	import { t } from 'svelte-i18n';
+
 	let email = $state('');
 	let loading = $state(false);
 	let success = $state(false);
@@ -9,7 +12,7 @@
 		error = '';
 
 		try {
-			const res = await fetch('/api/auth/request-reset', {
+			const res = await fetchWithCSRF('/api/auth/request-reset', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email })
@@ -20,10 +23,10 @@
 			if (res.ok) {
 				success = true;
 			} else {
-				error = data.error || 'Gagal mengirim email reset';
+				error = data.error || $t('common.error');
 			}
 		} catch (err) {
-			error = 'Terjadi kesalahan. Silakan coba lagi';
+			error = $t('common.error') + '. ' + $t('contact.form.error');
 		} finally {
 			loading = false;
 		}
@@ -31,13 +34,13 @@
 </script>
 
 <svelte:head>
-	<title>Lupa Password - adverFI</title>
+	<title>{$t('auth.forgot_password.page_title')}</title>
 </svelte:head>
 
 <div class="flex min-h-screen items-center justify-center bg-base-200">
 	<div class="card w-full max-w-md bg-base-100 shadow-xl">
 		<div class="card-body">
-			<h2 class="card-title text-center text-2xl font-bold">Lupa Password</h2>
+			<h2 class="card-title text-center text-2xl font-bold">{$t('auth.forgot_password.title')}</h2>
 
 			{#if success}
 				<div class="alert alert-success">
@@ -55,8 +58,8 @@
 						/>
 					</svg>
 					<div>
-						<div class="font-bold">Email Terkirim!</div>
-						<div class="text-sm">Cek email Anda untuk link reset password.</div>
+						<div class="font-bold">{$t('auth.forgot_password.success_title')}</div>
+						<div class="text-sm">{$t('auth.forgot_password.success_desc')}</div>
 					</div>
 				</div>
 			{:else}
@@ -80,7 +83,7 @@
 				{/if}
 
 				<p class="text-sm text-base-content/70">
-					Masukkan email Anda. Link reset password akan dikirim ke email tersebut.
+					{$t('auth.forgot_password.instruction')}
 				</p>
 
 				<form
@@ -89,14 +92,14 @@
 						handleSubmit();
 					}}
 				>
-					<div class="form-control">
+					<div class="form-control flex flex-col">
 						<label class="label" for="email">
-							<span class="label-text">Email</span>
+							<span class="label-text">{$t('auth.forgot_password.email_label')}</span>
 						</label>
 						<input
 							id="email"
 							type="email"
-							placeholder="nama@example.com"
+							placeholder={$t('auth.forgot_password.email_placeholder')}
 							class="input-bordered input"
 							autocomplete="email"
 							bind:value={email}
@@ -108,9 +111,9 @@
 						<button type="submit" class="btn btn-primary" disabled={loading}>
 							{#if loading}
 								<span class="loading loading-sm loading-spinner"></span>
-								Mengirim...
+								{$t('auth.forgot_password.sending')}
 							{:else}
-								Kirim Link Reset
+								{$t('auth.forgot_password.submit_button')}
 							{/if}
 						</button>
 					</div>
@@ -120,12 +123,12 @@
 			<div class="divider"></div>
 
 			<div class="text-center text-sm">
-				<span class="text-base-content/70">Ingat password?</span>
-				<a href="/login" class="ml-1 link link-primary">Login</a>
+				<span class="text-base-content/70">{$t('auth.forgot_password.remember_password')}</span>
+				<a href="/login" class="ml-1 link link-primary">{$t('auth.forgot_password.login_link')}</a>
 			</div>
 
 			<div class="mt-2 text-center text-sm">
-				<a href="/" class="link">Kembali ke Beranda</a>
+				<a href="/" class="link">{$t('auth.forgot_password.back_home')}</a>
 			</div>
 		</div>
 	</div>

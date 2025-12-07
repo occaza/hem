@@ -3,6 +3,8 @@
 	import { getSupabaseClient } from '$lib/client/supabase';
 	import { Eye, EyeOff } from '@lucide/svelte';
 	import Turnstile from '$lib/components/ui/Turnstile.svelte';
+	import { fetchWithCSRF } from '$lib/utils/csrf.utils';
+	import { t } from 'svelte-i18n';
 
 	let email = $state('');
 	let password = $state('');
@@ -31,7 +33,7 @@
 
 		// Verify Turnstile token first
 		if (!turnstileToken) {
-			error = 'Silakan selesaikan verifikasi keamanan';
+			error = $t('auth.register.error.turnstile_required');
 			loading = false;
 			return;
 		}
@@ -44,14 +46,14 @@
 			});
 
 			if (!verifyRes.ok) {
-				error = 'Verifikasi keamanan gagal. Silakan coba lagi.';
+				error = $t('auth.register.error.turnstile_failed');
 				loading = false;
 				turnstileToken = '';
 				turnstileRef?.reset();
 				return;
 			}
 		} catch (err) {
-			error = 'Terjadi kesalahan pada verifikasi keamanan';
+			error = $t('auth.register.error.turnstile_failed');
 			loading = false;
 			turnstileToken = '';
 			turnstileRef?.reset();
@@ -59,7 +61,7 @@
 		}
 
 		if (!fullName.trim()) {
-			error = 'Nama lengkap harus diisi';
+			error = $t('auth.register.error.full_name_required');
 			loading = false;
 			return;
 		}
@@ -68,43 +70,43 @@
 		fullName = toTitleCase(fullName);
 
 		if (!username.trim()) {
-			error = 'Username harus diisi';
+			error = $t('auth.register.error.username_required');
 			loading = false;
 			return;
 		}
 
 		if (username.includes(' ')) {
-			error = 'Username tidak boleh mengandung spasi';
+			error = $t('auth.register.error.username_no_space');
 			loading = false;
 			return;
 		}
 
 		if (!phoneNumber.trim()) {
-			error = 'Nomor HP harus diisi';
+			error = $t('auth.register.error.phone_required');
 			loading = false;
 			return;
 		}
 
 		if (!/^[0-9+\-\s()]+$/.test(phoneNumber)) {
-			error = 'Nomor HP tidak valid';
+			error = $t('auth.register.error.phone_invalid');
 			loading = false;
 			return;
 		}
 
 		if (password !== confirmPassword) {
-			error = 'Password tidak cocok';
+			error = $t('auth.register.error.password_mismatch');
 			loading = false;
 			return;
 		}
 
 		if (password.length < 6) {
-			error = 'Password minimal 6 karakter';
+			error = $t('auth.register.error.password_min_length');
 			loading = false;
 			return;
 		}
 
 		try {
-			const res = await fetch('/api/auth/register', {
+			const res = await fetchWithCSRF('/api/auth/register', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -119,7 +121,7 @@
 			const data = await res.json();
 
 			if (!res.ok) {
-				error = data.error || 'Registrasi gagal';
+				error = data.error || $t('auth.register.error.generic');
 				return;
 			}
 
@@ -131,7 +133,7 @@
 				goto('/login');
 			}, 5000);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Registrasi gagal';
+			error = err instanceof Error ? err.message : $t('auth.register.error.generic');
 			turnstileToken = '';
 			turnstileRef?.reset();
 		} finally {
@@ -141,13 +143,13 @@
 </script>
 
 <svelte:head>
-	<title>Register - adverFI</title>
+	<title>{$t('auth.register.page_title')}</title>
 </svelte:head>
 
 <div class="flex min-h-screen items-center justify-center bg-base-200 px-4">
 	<div class="card w-full max-w-md bg-base-100 shadow-xl">
 		<div class="card-body space-y-4">
-			<h2 class="card-title text-center text-2xl font-bold">Register</h2>
+			<h2 class="card-title text-center text-2xl font-bold">{$t('auth.register.title')}</h2>
 
 			{#if success}
 				<div class="alert alert-success">
@@ -165,17 +167,17 @@
 						/>
 					</svg>
 					<div>
-						<div class="font-bold">Registrasi Berhasil!</div>
+						<div class="font-bold">{$t('auth.register.success_title')}</div>
 						<div class="text-sm">{successMessage}</div>
 						<div class="mt-2 text-xs text-success-content/70">
-							Redirect ke login dalam 5 detik...
+							{$t('auth.register.redirect_msg')}
 						</div>
 					</div>
 				</div>
 
 				<div class="text-center">
-					<p class="text-sm text-base-content/70">Tidak menerima email?</p>
-					<p class="text-xs text-base-content/50">Cek folder spam atau junk</p>
+					<p class="text-sm text-base-content/70">{$t('auth.register.no_email_msg')}</p>
+					<p class="text-xs text-base-content/50">{$t('auth.register.check_spam_msg')}</p>
 				</div>
 			{:else}
 				{#if error}
@@ -206,12 +208,12 @@
 				>
 					<div class="form-control">
 						<label class="label" for="fullName">
-							<span class="label-text">Nama Lengkap</span>
+							<span class="label-text">{$t('auth.register.full_name_label')}</span>
 						</label>
 						<input
 							id="fullName"
 							type="text"
-							placeholder="John Doe"
+							placeholder={$t('auth.register.full_name_placeholder')}
 							class="input-bordered input w-full"
 							bind:value={fullName}
 							autocomplete="name"
@@ -221,12 +223,12 @@
 
 					<div class="form-control">
 						<label class="label" for="username">
-							<span class="label-text">Username</span>
+							<span class="label-text">{$t('auth.register.username_label')}</span>
 						</label>
 						<input
 							id="username"
 							type="text"
-							placeholder="johndoe123"
+							placeholder={$t('auth.register.username_placeholder')}
 							class="input-bordered input w-full"
 							bind:value={username}
 							autocomplete="username"
@@ -236,12 +238,12 @@
 
 					<div class="form-control">
 						<label class="label" for="phoneNumber">
-							<span class="label-text">Nomor HP</span>
+							<span class="label-text">{$t('auth.register.phone_label')}</span>
 						</label>
 						<input
 							id="phoneNumber"
 							type="tel"
-							placeholder="08123456789"
+							placeholder={$t('auth.register.phone_placeholder')}
 							class="input-bordered input w-full"
 							autocomplete="tel"
 							bind:value={phoneNumber}
@@ -251,12 +253,12 @@
 
 					<div class="form-control">
 						<label class="label" for="email">
-							<span class="label-text">Email</span>
+							<span class="label-text">{$t('auth.register.email_label')}</span>
 						</label>
 						<input
 							id="email"
 							type="email"
-							placeholder="john@example.com"
+							placeholder={$t('auth.register.email_placeholder')}
 							class="input-bordered input w-full"
 							autocomplete="email"
 							bind:value={email}
@@ -266,14 +268,14 @@
 
 					<div class="form-control">
 						<label class="label" for="password">
-							<span class="label-text">Password</span>
+							<span class="label-text">{$t('auth.register.password_label')}</span>
 						</label>
 
 						<div class="relative flex items-center">
 							<input
 								id="password"
 								type={showPassword ? 'text' : 'password'}
-								placeholder="••••••••"
+								placeholder={$t('auth.register.password_placeholder')}
 								class="input-bordered input w-full pr-12"
 								autocomplete="new-password"
 								bind:value={password}
@@ -294,20 +296,20 @@
 						</div>
 
 						<div class="label">
-							<span class="label-text-alt">Minimal 6 karakter</span>
+							<span class="label-text-alt">{$t('auth.register.password_min_length')}</span>
 						</div>
 					</div>
 
 					<div class="form-control">
 						<label class="label" for="confirmPassword">
-							<span class="label-text">Konfirmasi Password</span>
+							<span class="label-text">{$t('auth.register.confirm_password_label')}</span>
 						</label>
 
 						<div class="relative">
 							<input
 								id="confirmPassword"
 								type={showConfirm ? 'text' : 'password'}
-								placeholder="••••••••"
+								placeholder={$t('auth.register.password_placeholder')}
 								class="input-bordered input w-full pr-12"
 								autocomplete="new-password"
 								bind:value={confirmPassword}
@@ -335,7 +337,7 @@
 							onVerify={(token) => (turnstileToken = token)}
 							onError={() => {
 								turnstileToken = '';
-								error = 'Verifikasi keamanan gagal';
+								error = $t('auth.register.error.turnstile_failed');
 							}}
 							onExpire={() => {
 								turnstileToken = '';
@@ -350,23 +352,23 @@
 					>
 						{#if loading}
 							<span class="loading loading-sm loading-spinner"></span>
-							Loading...
+							{$t('auth.register.loading')}
 						{:else}
-							Register
+							{$t('auth.register.submit_button')}
 						{/if}
 					</button>
 				</form>
 
-				<div class="divider">ATAU</div>
+				<div class="divider">{$t('auth.register.or_divider')}</div>
 
 				<div class="text-center text-sm">
-					<span class="text-base-content/70">Sudah punya akun?</span>
-					<a href="/login" class="ml-1 link link-primary">Login</a>
+					<span class="text-base-content/70">{$t('auth.register.already_have_account')}</span>
+					<a href="/login" class="ml-1 link link-primary">{$t('auth.register.login_link')}</a>
 				</div>
 			{/if}
 
 			<div class="text-center text-sm">
-				<a href="/" class="link">Kembali ke Beranda</a>
+				<a href="/" class="link">{$t('auth.register.back_home')}</a>
 			</div>
 		</div>
 	</div>

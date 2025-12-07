@@ -7,6 +7,7 @@ export const appConfig = {
 	address: 'Sukoharjo, Indonesia',
 	phone: '+62 816-1666-202',
 	whatsapp: 'https://wa.me/6281616666202',
+	workingHours: '08:00 - 22:00',
 
 	// Upload Settings
 	maxImageSize: 100 * 1024, // 100KB

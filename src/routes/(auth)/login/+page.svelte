@@ -3,6 +3,7 @@
 	import { getSupabaseClient } from '$lib/client/supabase';
 	import { onMount } from 'svelte';
 	import Turnstile from '$lib/components/ui/Turnstile.svelte';
+	import { t } from 'svelte-i18n';
 
 	let identifier = $state(''); // Email or Username
 	let password = $state('');
@@ -54,7 +55,7 @@
 		// 		headers: { 'Content-Type': 'application/json' },
 		// 		body: JSON.stringify({ token: turnstileToken })
 		// 	});
-
+		//
 		// 	if (!verifyRes.ok) {
 		// 		error = 'Verifikasi keamanan gagal. Silakan coba lagi.';
 		// 		loading = false;
@@ -84,7 +85,7 @@
 				const lookupData = await lookupRes.json();
 
 				if (!lookupRes.ok) {
-					error = lookupData.error || 'Username tidak ditemukan';
+					error = lookupData.error || $t('auth.login.error.user_not_found');
 					loading = false;
 					return;
 				}
@@ -103,7 +104,7 @@
 			if (authError) {
 				error = authError.message;
 				if (error === 'Invalid login credentials') {
-					error = 'Email/Username atau password salah';
+					error = $t('auth.login.error.invalid_credentials');
 				}
 				return;
 			}
@@ -135,11 +136,11 @@
 						goto('/account');
 					}
 				} else {
-					error = 'Gagal menyimpan session';
+					error = $t('auth.login.error.save_session');
 				}
 			}
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Login gagal';
+			error = err instanceof Error ? err.message : $t('auth.login.error.generic');
 			turnstileToken = '';
 			turnstileRef?.reset();
 		} finally {
@@ -149,13 +150,15 @@
 </script>
 
 <svelte:head>
-	<title>Login - adverFI</title>
+	<title>{$t('auth.login.page_title')}</title>
 </svelte:head>
 
 <div class="flex min-h-screen w-full items-center justify-center bg-base-200 px-4 py-8">
 	<div class="card w-full max-w-md bg-base-100 shadow-xl">
 		<div class="card-body">
-			<h2 class="card-title justify-center text-center text-2xl font-bold">Login</h2>
+			<h2 class="card-title justify-center text-center text-2xl font-bold">
+				{$t('auth.login.title')}
+			</h2>
 
 			{#if error}
 				<div class="alert alert-error">
@@ -184,13 +187,13 @@
 			>
 				<div class="form-control flex flex-col gap-2">
 					<label class="label" for="identifier">
-						<span class="label-text">Email atau Username</span>
+						<span class="label-text">{$t('auth.login.identifier_label')}</span>
 					</label>
 					<input
 						id="identifier"
 						name="identifier"
 						type="text"
-						placeholder="Email atau Username"
+						placeholder={$t('auth.login.identifier_placeholder')}
 						class="input-bordered input w-full"
 						autocomplete="username"
 						bind:value={identifier}
@@ -200,13 +203,13 @@
 
 				<div class="form-control mt-4 flex flex-col gap-2">
 					<label class="label" for="password">
-						<span class="label-text">Password</span>
+						<span class="label-text">{$t('auth.login.password_label')}</span>
 					</label>
 					<input
 						id="password"
 						name="password"
 						type="password"
-						placeholder="••••••••"
+						placeholder={$t('auth.login.password_placeholder')}
 						class="input-bordered input w-full"
 						autocomplete="current-password"
 						bind:value={password}
@@ -215,7 +218,7 @@
 				</div>
 				<div class="my-2 label">
 					<a href="/forgot-password" class="label-text-alt link link-primary link-hover">
-						Lupa password?
+						{$t('auth.login.forgot_password')}
 					</a>
 				</div>
 
@@ -237,21 +240,21 @@
 					<button type="submit" class="btn btn-primary" disabled={loading}>
 						{#if loading}
 							<span class="loading loading-sm loading-spinner"></span>
-							Loading...
+							{$t('auth.login.loading')}
 						{:else}
-							Login
+							{$t('auth.login.submit_button')}
 						{/if}
 					</button>
 				</div>
 			</form>
 
 			<div class="text-center text-sm">
-				<span class="text-base-content/70">Belum punya akun?</span>
-				<a href="/register" class="ml-1 link link-primary">Register</a>
+				<span class="text-base-content/70">{$t('auth.login.no_account')}</span>
+				<a href="/register" class="ml-1 link link-primary">{$t('auth.login.register_link')}</a>
 			</div>
 
 			<div class="mt-2 text-center text-sm">
-				<a href="/" class="link">Kembali ke Beranda</a>
+				<a href="/" class="link">{$t('auth.login.back_home')}</a>
 			</div>
 		</div>
 	</div>

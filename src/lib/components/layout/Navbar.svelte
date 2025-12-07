@@ -170,13 +170,13 @@
 	class="dock fixed bottom-0 left-1/2 z-40 -translate-x-1/2 bg-neutral text-neutral-content lg:hidden"
 >
 	<button class:dock-active={isActive('/')} onclick={() => (window.location.href = '/')}>
-		<House class="size-[1.2em]" />
-		<span class="dock-label">{$t('nav.home')}</span>
+		<House class="size-[1.5em]" />
+		<span class="mt-1 text-[10px] font-medium">{$t('nav.home')}</span>
 	</button>
 
 	<button class:dock-active={isActive('/shop')} onclick={() => (window.location.href = '/shop')}>
-		<ShoppingBasket class="size-[1.2em]" />
-		<span class="dock-label">{$t('nav.shop')}</span>
+		<ShoppingBasket class="size-[1.5em]" />
+		<span class="mt-1 text-[10px] font-medium">{$t('nav.shop')}</span>
 	</button>
 
 	<button
@@ -184,11 +184,11 @@
 		onclick={() => (window.location.href = '/cart')}
 		class="relative"
 	>
-		<ShoppingCart class="size-[1.2em]" />
+		<ShoppingCart class="size-[1.5em]" />
 		{#if $cartCount > 0}
-			<span class="absolute -top-1 -right-1 badge badge-xs badge-primary">{$cartCount}</span>
+			<span class="absolute top-1 right-8 badge badge-sm badge-info">{$cartCount}</span>
 		{/if}
-		<span class="dock-label">{$t('nav.cart')}</span>
+		<span class="mt-1 text-[10px] font-medium">{$t('nav.cart')}</span>
 	</button>
 
 	{#if user}
@@ -196,16 +196,16 @@
 			class:dock-active={isActive('/account') || isActive('/profile') || isActive('/my-orders')}
 			onclick={() => (window.location.href = '/account')}
 		>
-			<CircleUserRound class="size-[1.2em]" />
-			<span class="dock-label">{$t('nav.account')}</span>
+			<CircleUserRound class="size-[1.5em]" />
+			<span class="mt-1 text-[10px] font-medium">{$t('nav.account')}</span>
 		</button>
 	{:else}
 		<button
 			class:dock-active={isActive('/login')}
 			onclick={() => (window.location.href = '/login')}
 		>
-			<User class="size-[1.2em]" />
-			<span class="dock-label">{$t('nav.login')}</span>
+			<User class="size-[1.5em]" />
+			<span class="mt-1 text-[10px] font-medium">{$t('nav.login')}</span>
 		</button>
 	{/if}
 </div>

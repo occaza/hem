@@ -1,782 +1,475 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { fade, slide } from 'svelte/transition';
-
+	import { fetchWithCSRF } from '$lib/utils/csrf.utils';
 	import Navbar from '$lib/components/layout/Navbar.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
 	import PageHeader from '$lib/components/layout/PageHeader.svelte';
-	import { cartStore, cartCount } from '$lib/stores/cart.store';
+	import { cartStore } from '$lib/stores/cart.store';
 	import { formatCurrency } from '$lib/utils/format.utils';
-	import { calculateDiscountedPrice } from '$lib/utils/product.utils';
-	import FeaturesSection from '$lib/components/features/shop/FeaturesSection.svelte';
 	import { appliedCoupon } from '$lib/stores/coupon.store';
 	import type { CartItem } from '$lib/types/types';
-	import {
-		Trash2,
-		NotebookPen,
-		PackageOpen,
-		ShoppingCart,
-		Loader2,
-		CreditCard,
-		Wallet,
-		QrCode,
-		Store,
-		ShieldCheck,
-		ChevronRight,
-		ChevronLeft,
-		Building2
-	} from '@lucide/svelte';
-	import { authUser, authLoading } from '$lib/stores/auth.store';
 	import { toast } from '$lib/stores/toast.store';
 	import { confirmClearCart, confirmDelete } from '$lib/utils/swal.utils';
 	import { t, locale } from 'svelte-i18n';
-	import { getLocalizedText } from '$lib/utils/localization.utils';
+	import { authUser, authLoading } from '$lib/stores/auth.store';
 	import { generateOrderId, encodeOrderId } from '$lib/utils/order.utils';
-	import { PAYMENT_METHODS } from '$lib/constants/payment.constants';
+	import { Trash2, Smartphone, CreditCard, Ticket, ShieldCheck, LogIn } from '@lucide/svelte';
 
-	const user = $derived($authUser);
+	$: cart = $cartStore;
+	let selectedItems = new Set<string>();
+	let loading = true;
+	let couponCode = '';
+	let applyingCoupon = false;
 
-	let cart = $state<CartItem[]>([]);
-	let selectedItems = $state<Set<string>>(new Set());
-	let cartLoading = $state(true);
-	let loading = $derived($authLoading || cartLoading);
-	let couponCode = $state('');
-	let applyingCoupon = $state(false);
-	let editingNote = $state<string | null>(null);
-	let tempNotes = $state<Record<string, string>>({});
+	// Billing Details
+	let billingName = '';
+	let billingEmail = '';
+	let billingPhone = '';
 
-	// Checkout State
-	let checkoutStep = $state(0); // 0: Cart, 1: Checkout (Billing + Payment)
-	let processing = $state(false);
-	let billingDetails = $state({
-		fullName: '',
-		email: '',
-		phone: ''
-	});
-	let selectedPaymentMethod = $state('qris');
-	let showVABanks = $state(false);
+	// Payment Method
+	let selectedPayment = 'qris'; // default
 
-	// Get payment methods from constants
-	const qrisMethod = PAYMENT_METHODS.find((m) => m.value === 'qris');
-	const vaBanks = PAYMENT_METHODS.filter((m) => m.value.endsWith('_va'));
+	// Helper to get product name safely
+	function getProductName(item: CartItem): string {
+		if (!item.product) return 'Unknown Product';
+		if (typeof item.product.name === 'string') return item.product.name;
+		// @ts-ignore - LocalizedString handling
+		return item.product.name[$locale ?? 'id'] ?? item.product.name.en ?? 'Unknown Product';
+	}
 
-	$effect(() => {
-		cart = $cartStore;
-	});
+	function getProductPrice(item: CartItem): number {
+		return item.product?.price ?? 0;
+	}
 
-	$effect(() => {
-		if (user) {
-			cartStore.load();
-			// Auto-fill billing details if user is logged in
-			if (checkoutStep === 0) {
-				billingDetails.fullName = user.user_metadata?.full_name || '';
-				billingDetails.email = user.email || '';
-				billingDetails.phone = user.user_metadata?.phone || '';
-			}
+	// derived values
+	$: subtotal = cart.reduce((sum, i) => sum + getProductPrice(i) * i.quantity, 0);
+	$: discount = $appliedCoupon?.discount_amount ?? 0;
+	$: total = Math.max(0, subtotal - discount);
+
+	$: if ($authUser) {
+		// Reload cart for authenticated user
+		cartStore.load();
+
+		// Fetch accurate profile data from API (since it's in user_roles table, not metadata)
+		// Only fetch if fields are empty to avoid overwriting user input
+		if (!billingName || !billingPhone) {
+			fetch('/api/profile')
+				.then((res) => res.json())
+				.then((data) => {
+					// Always set email from authUser as fallback
+					if (!billingEmail) billingEmail = $authUser?.email || data.email || '';
+
+					// Set billing details from profile data
+					if (!billingName && data.full_name) billingName = data.full_name;
+					if (!billingPhone && data.phone_number) billingPhone = data.phone_number;
+				})
+				.catch((err) => console.error('Failed to load profile for billing', err));
 		}
-	});
+	}
 
 	onMount(async () => {
 		await cartStore.load();
-		cartLoading = false;
+		loading = false;
 	});
 
-	const allSelected = $derived(cart.length > 0 && selectedItems.size === cart.length);
-
 	function toggleSelectAll() {
-		if (allSelected) {
-			selectedItems = new Set();
-		} else {
-			selectedItems = new Set(cart.map((item) => item.id));
-		}
+		if (selectedItems.size === cart.length) selectedItems.clear();
+		else selectedItems = new Set(cart.map((i) => i.id));
+		selectedItems = selectedItems;
 	}
 
-	function toggleSelectItem(itemId: string) {
-		const newSet = new Set(selectedItems);
-		if (newSet.has(itemId)) {
-			newSet.delete(itemId);
-		} else {
-			newSet.add(itemId);
-		}
-		selectedItems = newSet;
+	function toggleSelectItem(id: string) {
+		if (selectedItems.has(id)) selectedItems.delete(id);
+		else selectedItems.add(id);
+		selectedItems = selectedItems;
 	}
 
-	async function updateQuantity(item: CartItem, newQuantity: number) {
-		if (newQuantity < 1) return;
-		const success = await cartStore.updateQuantity(item.id, newQuantity);
-		if (!success) {
-			toast.error($t('cart.error.update_quantity'));
+	async function updateQuantity(item: CartItem, qty: number) {
+		if (qty < 1) return;
+		if (item.product && qty > item.product.stock) {
+			toast.error($t('shop.stock') + `: ${item.product.stock}`);
+			return;
 		}
+		const ok = await cartStore.updateQuantity(item.id, qty);
+		if (!ok) toast.error('Failed to update quantity');
 	}
 
 	async function removeItem(item: CartItem) {
-		const confirmed = await confirmDelete('item dari keranjang');
-		if (!confirmed) return;
-
-		const success = await cartStore.removeItem(item.id);
-		if (!success) {
-			toast.error($t('cart.error.remove_item'));
-		} else {
-			selectedItems.delete(item.id);
-			toast.success($t('cart.success.remove_item'));
+		if (await confirmDelete('item')) {
+			const ok = await cartStore.removeItem(item.id);
+			if (!ok) toast.error('Failed to remove item');
+			else {
+				if (selectedItems.has(item.id)) {
+					selectedItems.delete(item.id);
+					selectedItems = selectedItems;
+				}
+			}
 		}
 	}
 
 	async function clearCart() {
-		const confirmed = await confirmClearCart();
-		if (!confirmed) return;
-
-		const success = await cartStore.clear();
-		if (success) {
-			selectedItems = new Set();
+		if (await confirmClearCart()) {
+			await cartStore.clear();
+			selectedItems.clear();
+			selectedItems = selectedItems;
 		}
 	}
 
-	async function handleApplyCoupon() {
-		if (!couponCode.trim()) {
-			toast.error($t('cart.error.enter_coupon'));
-			return;
-		}
+	async function applyCoupon() {
+		if (!couponCode.trim()) return toast.error('Enter coupon code');
+		if (!$authUser) return toast.error('Please login to use coupons');
 
 		applyingCoupon = true;
-
-		let userId = localStorage.getItem('cart_user_id');
-		if (!userId) {
-			userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-			localStorage.setItem('cart_user_id', userId);
-		}
-
 		const success = await appliedCoupon.apply(
 			couponCode.trim().toUpperCase(),
-			subtotalAmount,
-			userId
+			subtotal,
+			$authUser.id
 		);
-
-		if (success) {
-			couponCode = '';
-		}
-
+		if (success) couponCode = '';
 		applyingCoupon = false;
 	}
 
-	function handleRemoveCoupon() {
-		appliedCoupon.remove();
-	}
-
-	function startCheckout() {
-		if (selectedItems.size === 0) {
-			toast.error($t('cart.error.select_product'));
-			return;
-		}
-		checkoutStep = 1;
-		window.scrollTo({ top: 0, behavior: 'smooth' });
-	}
-
-	function prevStep() {
-		if (checkoutStep > 0) {
-			checkoutStep = 0;
-			window.scrollTo({ top: 0, behavior: 'smooth' });
-		}
-	}
-
-	function toggleVABanks() {
-		showVABanks = !showVABanks;
-		if (showVABanks && !vaBanks.some((b) => b.value === selectedPaymentMethod)) {
-			// Don't auto-select, let user choose
-		} else if (!showVABanks && selectedPaymentMethod !== 'qris') {
-			// If closing and a VA was selected, maybe keep it or reset?
-			// Let's keep it selected but hide the list if they click the header again?
-			// Actually, clicking the main VA button should just toggle visibility.
-		}
-	}
-
-	function selectVA(code: string) {
-		selectedPaymentMethod = code;
-	}
-
-	async function confirmPayment() {
-		if (!billingDetails.fullName || !billingDetails.email || !billingDetails.phone) {
-			toast.error('Please fill in all required fields');
+	async function startCheckout() {
+		if (!$authUser) {
+			toast.error('Please login to continue');
+			goto('/login?redirect=/cart');
 			return;
 		}
 
-		if (
-			selectedPaymentMethod !== 'qris' &&
-			!vaBanks.some((b) => b.value === selectedPaymentMethod)
-		) {
-			toast.error('Please select a specific bank for Virtual Account');
-			return;
-		}
+		if (selectedItems.size === 0) return toast.error('Select at least one product');
+		if (!billingName || !billingEmail || !billingPhone)
+			return toast.error('Please complete billing details');
 
-		processing = true;
-		try {
-			// Use order.utils to generate and encode order ID
-			const rawOrderId = generateOrderId();
-			const orderId = encodeOrderId(rawOrderId);
+		// Re-validate selection
+		const items = cart.filter((i) => selectedItems.has(i.id));
 
-			const checkoutItems = cart.filter((item) => selectedItems.has(item.id));
+		const payload = {
+			items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity, note: i.note })),
+			payment_method: selectedPayment,
+			appliedCoupon: $appliedCoupon ?? null,
+			user_id: $authUser.id, // Enforce authenticated user ID
+			customer_name: billingName,
+			customer_email: billingEmail,
+			customer_phone: billingPhone,
+			order_id: encodeOrderId(generateOrderId())
+		};
 
-			const payload = {
-				order_id: orderId,
-				items: checkoutItems.map((item) => ({
-					product_id: item.product?.id || '',
-					quantity: item.quantity,
-					note: item.note
-				})),
-				user_id: user?.id || 'guest',
-				payment_method: selectedPaymentMethod,
-				coupon_code: $appliedCoupon?.coupon.code,
-				discount_amount: discountAmount,
-				billing_details: billingDetails
-			};
+		const res = await fetchWithCSRF('/api/checkout', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload)
+		});
 
-			const res = await fetch('/api/checkout', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(payload)
-			});
-
+		if (res.ok) {
 			const data = await res.json();
+			// Clear checked items from cart store logic ideally, but for now clear store if all selected
+			if (selectedItems.size === cart.length) await cartStore.clear();
+			goto(`/payment/${data.order_id}`);
+		} else {
+			const data = await res.json();
+			const errorMsg = data.error || 'Checkout failed';
 
-			if (res.ok) {
-				cartStore.clear();
-				appliedCoupon.clear();
-				// Redirect to payment page instead of success page
-				goto(`/payment/${data.order_id}`);
+			// Intercept specific min amount error
+			if (
+				typeof errorMsg === 'string' &&
+				(errorMsg.includes('nominal terlalu kecil') || errorMsg.includes('Rp 10.000'))
+			) {
+				toast.error($t('payment.min_amount_warning'), 4000);
 			} else {
-				toast.error(data.error || 'Checkout failed');
+				toast.error(errorMsg);
 			}
-		} catch (error) {
-			console.error(error);
-			toast.error('System error occurred');
-		} finally {
-			processing = false;
 		}
 	}
-
-	async function updateNote(itemId: string) {
-		try {
-			const note = tempNotes[itemId] || '';
-
-			const res = await fetch(`/api/cart/${itemId}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ note })
-			});
-
-			if (res.ok) {
-				await cartStore.load();
-				editingNote = null;
-			} else {
-				const data = await res.json();
-				toast.error($t('cart.error.save_note') + ': ' + (data.error || 'Unknown error'));
-			}
-		} catch (error) {
-			console.error('Update note error:', error);
-			toast.error($t('common.error'));
-		}
-	}
-
-	function startEditNote(item: CartItem) {
-		editingNote = item.id;
-		tempNotes[item.id] = item.note || '';
-	}
-
-	function cancelEditNote() {
-		editingNote = null;
-		tempNotes = {};
-	}
-
-	function getItemSubtotal(item: CartItem): number {
-		if (!item.product) return 0;
-		const price = calculateDiscountedPrice(item.product);
-		return price * item.quantity;
-	}
-
-	const subtotalAmount = $derived(
-		cart
-			.filter((item) => selectedItems.has(item.id))
-			.reduce((sum, item) => sum + getItemSubtotal(item), 0)
-	);
-
-	const discountAmount = $derived($appliedCoupon ? $appliedCoupon.discount_amount : 0);
-	const totalAmount = $derived(subtotalAmount - discountAmount);
 </script>
 
-<svelte:head>
-	<title>{$t('cart.title')} - adverFI</title>
-</svelte:head>
+<Navbar />
+<PageHeader
+	title={$t('cart.title')}
+	breadcrumbs={[{ label: $t('nav.home'), href: '/' }, { label: $t('cart.title') }]}
+/>
 
-<div class="min-h-screen bg-base-200">
-	<Navbar />
-
-	<PageHeader
-		title={checkoutStep === 0 ? $t('cart.title') : 'Checkout'}
-		breadcrumbs={[
-			{ label: $t('nav.home'), href: '/' },
-			{ label: $t('cart.title'), href: '/cart' },
-			...(checkoutStep > 0 ? [{ label: 'Checkout' }] : [])
-		]}
-	/>
-
-	<div class="container mx-auto px-4 py-8">
-		{#if loading}
-			<div class="flex justify-center py-20">
-				<span class="loading loading-lg loading-spinner"></span>
-			</div>
-		{:else if cart.length === 0 && checkoutStep === 0}
-			<div class="mx-auto max-w-2xl">
-				<div class="card bg-base-100 shadow-xl">
-					<div class="card-body items-center py-16 text-center">
-						<div class="mb-6">
-							<PackageOpen size={150} />
-						</div>
-						<h2 class="mb-2 text-2xl font-bold">{$t('cart.empty_title')}</h2>
-						<p class="mb-8 text-base-content/70">{$t('cart.empty_subtitle')}</p>
-						<a href="/shop" class="btn btn-lg btn-primary">
-							<span><ShoppingCart /></span>
-							{$t('cart.start_shopping')}
-						</a>
-					</div>
+{#if $authLoading || loading}
+	<div class="flex min-h-[50vh] items-center justify-center">
+		<span class="loading loading-lg loading-spinner text-primary"></span>
+	</div>
+{:else}
+	<div class="container mx-auto px-4 py-8 lg:py-12">
+		{#if cart.length === 0}
+			<div class="rounded-xl border border-base-200 bg-base-100 py-16 text-center shadow-sm">
+				<div
+					class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-base-200"
+				>
+					<Ticket size={32} class="text-base-content/50" />
 				</div>
+				<h2 class="mb-2 text-2xl font-bold">{$t('cart.empty')}</h2>
+				<p class="mb-6 text-base-content/70">{$t('cart.empty_subtitle')}</p>
+				<a href="/shop" class="btn btn-primary">{$t('cart.start_shopping')}</a>
 			</div>
 		{:else}
 			<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-				<!-- Left Column: Cart Items OR Checkout Form -->
+				<!-- Left Column: Cart Items -->
 				<div class="space-y-6 lg:col-span-2">
-					{#if checkoutStep === 0}
-						<!-- Step 0: Cart Items -->
-						<div class="overflow-x-auto" in:fade={{ duration: 200 }}>
-							<table class="table w-full">
-								<!-- Head -->
-								<thead class="bg-primary/10 text-base-content">
-									<tr>
-										<th class="w-12"></th>
-										<!-- Delete Button -->
-										<th>
-											<div class="flex items-center gap-4">
-												<label>
+					<div class="card border border-base-200 bg-base-100 shadow-sm">
+						<div class="card-body p-0">
+							<div class="overflow-x-auto">
+								<table class="table w-full">
+									<thead>
+										<tr class="bg-base-200/50">
+											<th class="w-10">
+												<input
+													type="checkbox"
+													class="checkbox checkbox-primary"
+													checked={selectedItems.size === cart.length && cart.length > 0}
+													on:change={toggleSelectAll}
+												/>
+											</th>
+											<th>{$t('cart.product')}</th>
+											<th class="text-center">{$t('cart.quantity')}</th>
+											<th class="text-right">{$t('cart.total')}</th>
+											<th class="w-10"></th>
+										</tr>
+									</thead>
+									<tbody>
+										{#each cart as item (item.id)}
+											<tr class="hover:bg-base-50/50 transition-colors">
+												<td>
 													<input
 														type="checkbox"
-														class="checkbox checkbox-sm checkbox-primary"
-														checked={allSelected}
-														onchange={toggleSelectAll}
+														class="checkbox checkbox-primary"
+														checked={selectedItems.has(item.id)}
+														on:change={() => toggleSelectItem(item.id)}
 													/>
-												</label>
-												<span>{$t('cart.product')}</span>
-											</div>
-										</th>
-										<th>{$t('cart.price')}</th>
-										<th>{$t('cart.quantity')}</th>
-										<th>{$t('cart.subtotal')}</th>
-									</tr>
-								</thead>
-								<tbody>
-									{#each cart as item}
-										{#if item.product}
-											<tr class="border-b border-base-200">
-												<!-- Delete Action -->
+												</td>
+												<td>
+													<div class="flex items-center gap-3">
+														{#if item.product?.images?.[0]}
+															<div class="avatar">
+																<div class="mask h-12 w-12 mask-squircle">
+																	<img src={item.product.images[0]} alt={getProductName(item)} />
+																</div>
+															</div>
+														{/if}
+														<div>
+															<div class="line-clamp-1 font-bold">{getProductName(item)}</div>
+															<div class="text-sm opacity-50">
+																{formatCurrency(getProductPrice(item))}
+															</div>
+														</div>
+													</div>
+												</td>
+												<td class="text-center">
+													<div class="join">
+														<button
+															class="btn join-item btn-xs"
+															on:click={() => updateQuantity(item, item.quantity - 1)}>-</button
+														>
+														<input
+															type="number"
+															min="1"
+															class="input input-xs join-item w-12 text-center"
+															value={item.quantity}
+															on:change={(e) => updateQuantity(item, +e.currentTarget.value)}
+														/>
+														<button
+															class="btn join-item btn-xs"
+															on:click={() => updateQuantity(item, item.quantity + 1)}>+</button
+														>
+													</div>
+												</td>
+												<td class="text-right font-medium">
+													{formatCurrency(getProductPrice(item) * item.quantity)}
+												</td>
 												<td>
 													<button
-														class="btn text-base-content/50 btn-ghost btn-xs hover:text-error"
-														onclick={() => removeItem(item)}
+														class="btn text-error btn-ghost btn-xs"
+														on:click={() => removeItem(item)}
 													>
 														<Trash2 size={16} />
 													</button>
 												</td>
-
-												<!-- Product Info -->
-												<td>
-													<div class="flex items-center gap-4">
-														<label>
-															<input
-																type="checkbox"
-																class="checkbox checkbox-sm checkbox-primary"
-																checked={selectedItems.has(item.id)}
-																onchange={() => toggleSelectItem(item.id)}
-															/>
-														</label>
-														<div class="avatar">
-															<div class="h-16 w-16 rounded-lg border border-base-300">
-																<img
-																	src={item.product.images?.[0] ||
-																		'https://via.placeholder.com/200'}
-																	alt={getLocalizedText(item.product.name, $locale)}
-																/>
-															</div>
-														</div>
-														<div>
-															<div class="font-bold">
-																{getLocalizedText(item.product.name, $locale)}
-															</div>
-															<div class="text-xs text-base-content/50">
-																{item.product.categories?.[0]?.name || 'Product'}
-															</div>
-															<!-- Note Section -->
-															<div class="mt-1">
-																{#if editingNote === item.id}
-																	<div class="flex gap-1">
-																		<input
-																			type="text"
-																			class="input-bordered input input-xs w-full max-w-[150px]"
-																			placeholder={$t('cart.note_placeholder')}
-																			bind:value={tempNotes[item.id]}
-																		/>
-																		<button
-																			class="btn btn-square btn-xs btn-primary"
-																			onclick={() => updateNote(item.id)}
-																		>
-																			✓
-																		</button>
-																		<button
-																			class="btn btn-square btn-ghost btn-xs"
-																			onclick={cancelEditNote}
-																		>
-																			✕
-																		</button>
-																	</div>
-																{:else}
-																	<button
-																		class="flex items-center gap-1 text-xs text-base-content/50 hover:text-primary"
-																		onclick={() => startEditNote(item)}
-																	>
-																		<NotebookPen size={12} />
-																		{item.note || $t('cart.add_note')}
-																	</button>
-																{/if}
-															</div>
-														</div>
-													</div>
-												</td>
-
-												<!-- Price -->
-												<td class="font-medium">
-													{#if item.product.discount_percentage}
-														<div class="flex flex-col">
-															<span>{formatCurrency(calculateDiscountedPrice(item.product))}</span>
-															<span class="text-xs text-base-content/50 line-through">
-																{formatCurrency(item.product.price)}
-															</span>
-														</div>
-													{:else}
-														{formatCurrency(item.product.price)}
-													{/if}
-												</td>
-
-												<!-- Quantity -->
-												<td>
-													<div class="join rounded-lg border border-base-300">
-														<button
-															class="btn join-item px-2 btn-ghost btn-sm"
-															onclick={() => updateQuantity(item, item.quantity - 1)}
-															disabled={item.quantity <= 1}
-														>
-															−
-														</button>
-														<input
-															type="text"
-															class="join-item w-10 border-none bg-transparent text-center text-sm focus:outline-none"
-															value={item.quantity}
-															readonly
-														/>
-														<button
-															class="btn join-item px-2 btn-ghost btn-sm"
-															onclick={() => updateQuantity(item, item.quantity + 1)}
-															disabled={item.product && item.quantity >= item.product.stock}
-														>
-															+
-														</button>
-													</div>
-													{#if item.product.stock < item.quantity}
-														<div class="mt-1 text-xs text-error">
-															{$t('shop.stock')}: {item.product.stock}
-														</div>
-													{/if}
-												</td>
-
-												<!-- Subtotal -->
-												<td class="font-bold">
-													{formatCurrency(getItemSubtotal(item))}
-												</td>
 											</tr>
-										{/if}
-									{/each}
-								</tbody>
-							</table>
-						</div>
-
-						<!-- Coupon & Clear Cart -->
-						<div
-							class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-							in:fade
-						>
-							<div class="flex gap-2">
-								<input
-									type="text"
-									placeholder={$t('cart.coupon_placeholder')}
-									class="input-bordered input w-full max-w-xs rounded-full"
-									bind:value={couponCode}
-								/>
-								<button
-									class="btn rounded-full px-8 btn-primary"
-									onclick={handleApplyCoupon}
-									disabled={applyingCoupon}
-								>
-									{#if applyingCoupon}
-										<span class="loading loading-xs loading-spinner"></span>
-									{/if}
-									{$t('cart.apply_coupon')}
-								</button>
+										{/each}
+									</tbody>
+								</table>
 							</div>
-
-							<button
-								class="btn text-base-content/70 btn-ghost hover:text-error"
-								onclick={clearCart}
-							>
+						</div>
+						<div class="flex justify-end border-t border-base-200 p-4">
+							<button class="btn gap-2 text-error btn-ghost btn-sm" on:click={clearCart}>
+								<Trash2 size={16} />
 								{$t('cart.clear_cart')}
 							</button>
 						</div>
-					{:else if checkoutStep === 1}
-						<!-- Step 1: Checkout (Billing + Payment) -->
-						<div in:fade={{ duration: 200 }}>
-							<button
-								class="mb-6 flex items-center gap-2 text-sm font-medium text-base-content/60 hover:text-primary"
-								onclick={prevStep}
-							>
-								<ChevronLeft size={16} />
-								Back to Cart
-							</button>
+					</div>
 
-							<!-- Billing Details -->
-							<div class="card mb-6 border border-base-200 bg-base-100 shadow-sm">
-								<div class="card-body">
-									<h2 class="mb-6 text-xl font-bold text-base-content">Billing Details</h2>
-									<div class="grid gap-6 md:grid-cols-2">
-										<div class="form-control md:col-span-2">
-											<label class="label" for="fullName">
-												<span class="label-text font-medium"
-													>Full Name <span class="text-error">*</span></span
-												>
-											</label>
-											<input
-												type="text"
-												id="fullName"
-												bind:value={billingDetails.fullName}
-												placeholder="Ex. John Doe"
-												class="input-bordered input w-full rounded-xl bg-base-200/50 focus:border-primary focus:bg-base-100"
-											/>
-										</div>
+					<!-- Billing Details (Only if logged in) -->
+					{#if $authUser}
+						<div class="card border border-base-200 bg-base-100 shadow-sm">
+							<div class="card-body">
+								<h3 class="mb-4 card-title flex items-center gap-2 text-lg">
+									<ShieldCheck size={20} class="text-primary" />
+									{$t('cart.billing_info')}
+								</h3>
+								<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+									<div class="form-control flex flex-col gap-2">
+										<label class="label" for="billingName">
+											<span class="label-text">{$t('cart.full_name')}</span>
+										</label>
+										<input
+											id="billingName"
+											type="text"
+											bind:value={billingName}
+											class="input-bordered input w-full"
+											placeholder="Nama Anda"
+										/>
+									</div>
 
-										<div class="form-control">
-											<label class="label" for="email">
-												<span class="label-text font-medium"
-													>Email Address <span class="text-error">*</span></span
-												>
-											</label>
+									<div class="form-control flex flex-col gap-2">
+										<label class="label" for="billingEmail">
+											<span class="label-text">{$t('cart.email')}</span>
+										</label>
+										<input
+											id="billingEmail"
+											type="email"
+											bind:value={billingEmail}
+											class="input-bordered input w-full"
+											placeholder="email@contoh.com"
+										/>
+									</div>
+									<div class="form-control flex flex-col gap-2">
+										<label class="label" for="billingPhone">
+											<span class="label-text">{$t('cart.phone')}</span>
+										</label>
+										<div class="relative">
 											<input
-												type="email"
-												id="email"
-												bind:value={billingDetails.email}
-												placeholder="email@example.com"
-												class="input-bordered input w-full rounded-xl bg-base-200/50 focus:border-primary focus:bg-base-100"
-											/>
-										</div>
-
-										<div class="form-control">
-											<label class="label" for="phone">
-												<span class="label-text font-medium"
-													>Phone Number <span class="text-error">*</span></span
-												>
-											</label>
-											<input
+												id="billingPhone"
 												type="tel"
-												id="phone"
-												bind:value={billingDetails.phone}
-												placeholder="08123456789"
-												class="input-bordered input w-full rounded-xl bg-base-200/50 focus:border-primary focus:bg-base-100"
+												bind:value={billingPhone}
+												class="input-bordered input w-full"
+												placeholder="0812345678"
 											/>
 										</div>
 									</div>
 								</div>
 							</div>
-
-							<!-- Payment Method -->
-							<div class="card border border-base-200 bg-base-100 shadow-sm">
-								<div class="card-body">
-									<h2 class="mb-6 text-xl font-bold text-base-content">Select Payment Method</h2>
-									<div class="space-y-4">
-										<!-- QRIS -->
-										<button
-											class="flex w-full cursor-pointer items-center justify-between rounded-2xl border p-5 transition-all hover:border-primary hover:bg-base-200/30 {selectedPaymentMethod ===
-											'qris'
-												? 'border-primary bg-primary/5 ring-1 ring-primary'
-												: 'border-base-200'}"
-											onclick={() => {
-												selectedPaymentMethod = 'qris';
-												showVABanks = false;
-											}}
-										>
-											<div class="flex items-center gap-4">
-												<div
-													class="flex h-6 w-6 items-center justify-center rounded-full border border-base-300 {selectedPaymentMethod ===
-													'qris'
-														? 'border-primary bg-primary'
-														: 'bg-base-100'}"
-												>
-													{#if selectedPaymentMethod === 'qris'}
-														<div class="h-2.5 w-2.5 rounded-full bg-white"></div>
-													{/if}
-												</div>
-												<div class="text-left">
-													<span class="block font-bold">{qrisMethod?.label || 'QRIS'}</span>
-													<span class="text-sm text-base-content/60">E-Wallet & Mobile Banking</span
-													>
-												</div>
-											</div>
-											{#if qrisMethod?.icon}
-												<img src={qrisMethod.icon} alt="QRIS" class="h-7 w-auto object-contain" />
-											{:else}
-												<QrCode size={28} class="text-base-content/40" />
-											{/if}
-										</button>
-
-										<!-- Virtual Account -->
-										<div
-											class="overflow-hidden rounded-2xl border border-base-200 transition-all {showVABanks ||
-											selectedPaymentMethod.endsWith('_va')
-												? 'border-primary bg-primary/5 ring-1 ring-primary'
-												: ''}"
-										>
-											<button
-												class="flex w-full cursor-pointer items-center justify-between p-5 hover:bg-base-200/30"
-												onclick={toggleVABanks}
-											>
-												<div class="flex items-center gap-4">
-													<div
-														class="flex h-6 w-6 items-center justify-center rounded-full border border-base-300 {selectedPaymentMethod.endsWith(
-															'_va'
-														)
-															? 'border-primary bg-primary'
-															: 'bg-base-100'}"
-													>
-														{#if selectedPaymentMethod.endsWith('_va')}
-															<div class="h-2.5 w-2.5 rounded-full bg-white"></div>
-														{/if}
-													</div>
-													<div class="text-left">
-														<span class="block font-bold">Virtual Account</span>
-														<span class="text-sm text-base-content/60">Bank Transfer & Retail</span>
-													</div>
-												</div>
-												<Store size={28} class="text-base-content/40" />
-											</button>
-
-											{#if showVABanks}
-												<div class="border-t border-base-200 bg-base-100 p-2" transition:slide>
-													<div class="grid gap-2">
-														{#each vaBanks as bank}
-															<button
-																class="flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-base-200 {selectedPaymentMethod ===
-																bank.value
-																	? 'bg-primary/10 text-primary'
-																	: ''}"
-																onclick={() => selectVA(bank.value)}
-															>
-																<img
-																	src={bank.icon}
-																	alt={bank.label}
-																	class="h-6 w-auto object-contain"
-																/>
-																<span class="font-medium">{bank.label}</span>
-																{#if selectedPaymentMethod === bank.value}
-																	<div class="ml-auto text-primary">
-																		<ShieldCheck size={18} />
-																	</div>
-																{/if}
-															</button>
-														{/each}
-													</div>
-												</div>
-											{/if}
-										</div>
-									</div>
-
-									{#if selectedPaymentMethod.endsWith('_va')}
-										<div
-											class="mt-4 flex items-center gap-3 rounded-xl bg-info/10 p-4 text-sm text-info"
-										>
-											<Store size={18} />
-											<span>Minimal pembayaran Rp10.000 untuk Virtual Account.</span>
-										</div>
-									{/if}
-								</div>
+						</div>
+					{:else}
+						<div class="alert alert-warning shadow-sm">
+							<LogIn size={24} />
+							<div>
+								<h3 class="font-bold">{$t('cart.login_required')}</h3>
+								<div class="text-xs">{$t('cart.login_prompt')}</div>
 							</div>
+							<a href="/login?redirect=/cart" class="btn btn-sm">{$t('nav.login')}</a>
 						</div>
 					{/if}
 				</div>
 
-				<!-- Order Summary (Right Column) -->
-				<div class="lg:col-span-1">
-					<div class="card sticky top-24 border border-base-200 bg-base-100">
+				<!-- Right Column: Summary & Payment -->
+				<div class="space-y-6 lg:col-span-1">
+					<div class="card sticky top-24 border border-base-200 bg-base-100 shadow-sm">
 						<div class="card-body">
-							<h2 class="mb-4 card-title text-lg font-bold">{$t('cart.order_summary')}</h2>
+							<h3 class="mb-4 card-title text-lg">{$t('cart.order_summary')}</h3>
 
-							<div class="space-y-3 text-sm">
+							<div class="mb-6 space-y-3">
 								<div class="flex justify-between">
-									<span class="text-base-content/70">{$t('cart.items')}</span>
-									<span class="font-medium">{selectedItems.size}</span>
+									<span class="text-base-content/70">{$t('cart.subtotal')}</span>
+									<span class="font-medium">{formatCurrency(subtotal)}</span>
 								</div>
-								<div class="flex justify-between">
-									<span class="text-base-content/70">{$t('cart.sub_total')}</span>
-									<span class="font-medium">{formatCurrency(subtotalAmount)}</span>
-								</div>
-								<div class="flex justify-between">
-									<span class="text-base-content/70">{$t('cart.fee')}</span>
-									<span class="">{$t('cart.fee_note')}</span>
-								</div>
+
 								{#if $appliedCoupon}
 									<div class="flex justify-between text-success">
-										<span>{$t('cart.coupon_discount')}</span>
-										<span class="font-medium">-{formatCurrency(discountAmount)}</span>
-									</div>
-									<div class="flex justify-end">
-										<button class="text-xs text-error hover:underline" onclick={handleRemoveCoupon}>
-											{$t('cart.remove_coupon')}
-										</button>
+										<span class="flex items-center gap-1">
+											<Ticket size={14} />
+											{$t('cart.coupon')} ({$appliedCoupon.coupon.code})
+										</span>
+										<span>-{formatCurrency(discount)}</span>
 									</div>
 								{/if}
+
+								<div class="divider my-2"></div>
+
+								<div class="flex items-center justify-between text-lg font-bold">
+									<span>{$t('cart.total')}</span>
+									<span class="text-primary">{formatCurrency(total)}</span>
+								</div>
 							</div>
 
-							<div class="divider my-4"></div>
-
-							<div class="flex justify-between text-lg font-bold">
-								<span>{$t('cart.total')}</span>
-								<span>{formatCurrency(totalAmount)}</span>
+							<!-- Coupon Input -->
+							<div class="mb-6 join w-full">
+								<input
+									type="text"
+									class="input-bordered input input-sm join-item w-full"
+									placeholder={$t('cart.coupon_placeholder')}
+									bind:value={couponCode}
+								/>
+								<button
+									class="btn join-item btn-sm btn-primary"
+									disabled={applyingCoupon || !$authUser}
+									on:click={applyCoupon}
+								>
+									{$t('cart.apply')}
+								</button>
 							</div>
 
-							<!-- Dynamic Action Button -->
-							{#if checkoutStep === 0}
-								<button
-									class="btn mt-6 w-full rounded-full btn-primary"
-									onclick={startCheckout}
-									disabled={selectedItems.size === 0}
-								>
-									{$t('cart.checkout')}
-								</button>
-							{:else}
-								<button
-									class="btn mt-6 w-full rounded-full btn-primary"
-									onclick={confirmPayment}
-									disabled={processing}
-								>
-									{#if processing}
-										<Loader2 class="animate-spin" />
-										Processing...
-									{:else}
-										Confirm Payment
-									{/if}
-								</button>
+							<!-- Payment Method Selection -->
+							<div class="form-control mb-6">
+								<label class="label">
+									<span class="label-text flex items-center gap-2 font-bold">
+										<CreditCard size={16} />
+										{$t('cart.payment_method')}
+									</span>
+								</label>
+								<div class="join-vertical join w-full">
+									<label
+										class="btn join-item h-auto justify-start gap-3 border-base-300 bg-base-100 py-3 transition-all hover:bg-base-200 has-[:checked]:border-primary has-[:checked]:bg-primary/10"
+									>
+										<input
+											type="radio"
+											name="payment"
+											value="qris"
+											class="radio radio-sm radio-primary"
+											bind:group={selectedPayment}
+										/>
+										<div class="text-left">
+											<div class="font-bold">{$t('cart.qris_instant')}</div>
+											<div class="text-xs opacity-70">{$t('payment.qris_desc')}</div>
+										</div>
+									</label>
+									<label
+										class="btn join-item h-auto justify-start gap-3 border-base-300 bg-base-100 py-3 transition-all hover:bg-base-200 has-[:checked]:border-primary has-[:checked]:bg-primary/10"
+									>
+										<input
+											type="radio"
+											name="payment"
+											value="bni_va"
+											class="radio radio-sm radio-primary"
+											bind:group={selectedPayment}
+										/>
+										<div class="text-left">
+											<div class="font-bold">{$t('cart.va')}</div>
+											<div class="text-xs opacity-70">{$t('cart.va_desc')}</div>
+										</div>
+									</label>
+								</div>
+							</div>
+
+							<button
+								class="btn w-full shadow-lg transition-all duration-200 btn-lg btn-primary hover:-translate-y-0.5 hover:shadow-xl"
+								disabled={!$authUser || selectedItems.size === 0}
+								on:click={startCheckout}
+							>
+								{#if !$authUser}
+									{$t('cart.login_to_checkout')}
+								{:else}
+									{$t('cart.checkout_now')}
+								{/if}
+							</button>
+
+							{#if !$authUser}
+								<p class="mt-2 text-center text-xs opacity-60">
+									{$t('cart.guest_disabled')}
+								</p>
 							{/if}
 						</div>
 					</div>
@@ -784,11 +477,5 @@
 			</div>
 		{/if}
 	</div>
-
-	<!-- Features Section -->
-	<div class="mt-12">
-		<FeaturesSection />
-	</div>
-
-	<Footer />
-</div>
+{/if}
+<Footer />

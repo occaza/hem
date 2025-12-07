@@ -1,12 +1,40 @@
 import { json } from '@sveltejs/kit';
 import { getSupabaseAdmin } from '$lib/server/supabase';
+import { pakasir } from '$lib/server/pakasir';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
 	const supabaseAdmin = getSupabaseAdmin();
 
 	try {
-		const body = await request.json();
+		// 1. Read Raw Body (for signature verification)
+		const rawBody = await request.text();
+
+		// 2. Verify Signature
+		const signature =
+			request.headers.get('x-pakasir-signature') ||
+			request.headers.get('x-signature') ||
+			request.headers.get('signature');
+
+		if (!signature) {
+			console.error('❌ Webhook missing signature');
+			return json({ received: false, error: 'Missing signature' }, { status: 401 });
+		}
+
+		if (!pakasir.verifySignature(rawBody, signature)) {
+			console.error('❌ Webhook signature verification failed');
+			return json({ received: false, error: 'Invalid signature' }, { status: 403 });
+		}
+
+		// 3. Parse Body
+		let body;
+		try {
+			body = JSON.parse(rawBody);
+		} catch (e) {
+			console.error('❌ Webhook JSON parse error', e);
+			return json({ received: false, error: 'Invalid JSON' }, { status: 400 });
+		}
+
 		const { order_id, amount, status, payment_method, project, completed_at } = body;
 
 		// Log webhook untuk audit trail

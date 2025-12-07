@@ -109,7 +109,7 @@
 		</div>
 
 		<!-- Copyright -->
-		<div class="bg-neutral py-6">
+		<div class="bg-neutral pt-6 pb-24 lg:pb-6">
 			<div
 				class="container mx-auto flex flex-col items-center justify-between gap-4 px-4 md:flex-row"
 			>

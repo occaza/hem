@@ -2,14 +2,17 @@
 	import { User, ShoppingBag, Lock, LogOut } from '@lucide/svelte';
 	import { authUser } from '$lib/stores/auth.store';
 	import { pushState } from '$app/navigation';
+	import { t } from 'svelte-i18n';
 
 	let { activeTab = $bindable() } = $props();
 
+	// Use a derived or function if reactivity is needed, but for static list simpler is fine
+	// or use $t directly in template if we iterate over ids
 	const menuItems = [
-		{ id: 'personal', label: 'Personal Information', icon: User, href: '/account' },
-		{ id: 'orders', label: 'My Orders', icon: ShoppingBag, href: '/account?tab=orders' },
-		{ id: 'password', label: 'Password Manager', icon: Lock, href: '/account?tab=password' },
-		{ id: 'logout', label: 'Logout', icon: LogOut, href: '/logout', action: true }
+		{ id: 'personal', label: 'account.menu.personal', icon: User, href: '/account' },
+		{ id: 'orders', label: 'account.menu.orders', icon: ShoppingBag, href: '/account?tab=orders' },
+		{ id: 'password', label: 'account.menu.password', icon: Lock, href: '/account?tab=password' },
+		{ id: 'logout', label: 'account.menu.logout', icon: LogOut, href: '/logout', action: true }
 	];
 </script>
 
@@ -26,7 +29,7 @@
 					class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-medium text-error transition-colors hover:bg-base-200"
 				>
 					<item.icon size={20} />
-					{item.label}
+					{$t(item.label)}
 				</button>
 			{:else}
 				<a
@@ -46,7 +49,7 @@
 					}}
 				>
 					<item.icon size={20} />
-					{item.label}
+					{$t(item.label)}
 				</a>
 			{/if}
 		{/each}

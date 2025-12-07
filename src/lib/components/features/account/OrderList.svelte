@@ -9,16 +9,19 @@
 		ShoppingBag,
 		ReceiptText,
 		ArrowRight,
-		CreditCard
+		CreditCard,
+		Copy,
+		Key,
+		Loader
 	} from '@lucide/svelte';
 	import { fade, fly } from 'svelte/transition';
 	import { formatCurrency, formatDate } from '$lib/utils/format.utils';
-	import { getStatusBadge, getStatusText } from '$lib/utils/status.utils';
+	import { getStatusBadge } from '$lib/utils/status.utils';
 	import { formatPaymentMethod } from '$lib/utils/payment.utils';
 	import { formatInvoiceNumber } from '$lib/utils/invoice.utils';
 	import { confirmAction } from '$lib/utils/swal.utils';
 	import { toast } from '$lib/stores/toast.store';
-	import { locale } from 'svelte-i18n';
+	import { t, locale } from 'svelte-i18n';
 	import { getLocalizedText } from '$lib/utils/localization.utils';
 
 	import type { Order } from '$lib/types/order.types';
@@ -32,7 +35,9 @@
 
 	const filteredOrders = $derived(
 		orders.filter((o) => {
+			// Status mapping for filter compatibility if needed
 			const matchesFilter = filter === 'all' || o.status === filter;
+
 			const matchesSearch =
 				o.order_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				o.items.some((i) =>
@@ -56,12 +61,15 @@
 		currentPage = 1;
 	});
 
+	// Updated Tabs with missing statuses
 	const orderTabs = [
-		{ id: 'all', label: 'Semua', icon: Package },
-		{ id: 'pending', label: 'Menunggu', icon: Clock },
-		{ id: 'completed', label: 'Selesai', icon: CircleCheck },
-		{ id: 'failed', label: 'Gagal', icon: CircleAlert },
-		{ id: 'cancelled', label: 'Dibatalkan', icon: CircleX }
+		{ id: 'all', label: 'common.status.all', icon: Package },
+		{ id: 'pending', label: 'common.status.pending', icon: Clock },
+		{ id: 'processing', label: 'common.status.processing', icon: Loader },
+		{ id: 'completed', label: 'common.status.completed', icon: CircleCheck },
+		{ id: 'failed', label: 'common.status.failed', icon: CircleAlert },
+		{ id: 'expired', label: 'common.status.expired', icon: CircleX },
+		{ id: 'cancelled', label: 'common.status.cancelled', icon: CircleX }
 	];
 
 	let expandedOrders = $state<Record<string, boolean>>({});
@@ -70,10 +78,19 @@
 		expandedOrders[orderId] = !expandedOrders[orderId];
 	}
 
+	let selectedFulfillments = $state<any[] | null>(null);
+	let fulfillmentModal: HTMLDialogElement;
+
+	function showFulfillments(fulfillments: any[]) {
+		selectedFulfillments = fulfillments;
+		fulfillmentModal?.showModal();
+	}
+
 	async function handleCancelOrder(orderId: string) {
 		const confirmed = await confirmAction(
-			'Apakah Anda yakin ingin membatalkan pesanan ini?',
-			'Batalkan Pesanan?'
+			$t('account.order_list.cancel_confirm_msg') ||
+				'Apakah Anda yakin ingin membatalkan pesanan ini?',
+			$t('account.order_list.cancel_confirm_title') || 'Batalkan Pesanan?'
 		);
 
 		if (!confirmed) return;
@@ -88,14 +105,14 @@
 			const result = await res.json();
 
 			if (res.ok) {
-				toast.success('Pesanan berhasil dibatalkan');
+				toast.success($t('common.success'));
 				window.location.reload();
 			} else {
-				toast.error(result.error || 'Gagal membatalkan pesanan');
+				toast.error(result.error || $t('common.error'));
 			}
 		} catch (error) {
 			console.error('Cancel error:', error);
-			toast.error('Terjadi kesalahan saat membatalkan pesanan');
+			toast.error($t('common.error'));
 		}
 	}
 
@@ -111,48 +128,73 @@
 
 			if (res.ok) {
 				if (result.status === 'expired') {
-					toast.error('Transaksi telah kadaluarsa');
+					toast.error($t('payment.failed'));
 				} else if (result.status === 'completed') {
-					toast.success('Pembayaran berhasil dikonfirmasi!');
+					toast.success($t('payment.success'));
 				} else {
-					toast.info('Status pesanan diperbarui: ' + getStatusText(result.status));
+					toast.info($t('common.status.' + result.status));
 				}
 				window.location.reload();
 			} else {
-				toast.error(result.error || 'Gagal mengecek status');
+				toast.error(result.error || $t('common.error'));
 			}
 		} catch (error) {
 			console.error('Check status error:', error);
-			toast.error('Terjadi kesalahan saat mengecek status');
+			toast.error($t('common.error'));
 		}
+	}
+
+	function copyToClipboard(text: string) {
+		navigator.clipboard
+			.writeText(text)
+			.then(() => {
+				toast.success($t('account.order_list.copy_success'));
+			})
+			.catch(() => {
+				toast.error($t('account.order_list.copy_fail'));
+			});
 	}
 </script>
 
 <div class="space-y-6">
-	<!-- Search and Filter -->
-	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-		<div class="relative w-full md:w-64">
+	<!-- Search and Filter (Stacked) -->
+	<div class="flex flex-col gap-6">
+		<!-- Search -->
+		<div class="relative w-full">
 			<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 				<Search class="h-5 w-5 text-base-content/60" />
 			</div>
 			<input
 				type="text"
 				bind:value={searchQuery}
-				placeholder="Cari pesanan..."
+				placeholder={$t('account.order_list.search_placeholder')}
 				class="input-bordered input w-full pl-10"
 			/>
 		</div>
 
-		<div class="no-scrollbar flex gap-2 overflow-x-auto pb-2 md:pb-0">
-			{#each orderTabs as tab}
-				<button
-					class="btn btn-sm {filter === tab.id ? 'btn-primary' : 'btn-ghost'}"
-					onclick={() => (filter = tab.id)}
-				>
-					<tab.icon size={16} />
-					{tab.label}
-				</button>
-			{/each}
+		<!-- Filter -->
+		<div class="w-full">
+			<!-- Desktop Filter (Tabs, flex-wrap for safety) -->
+			<div class="hidden flex-wrap gap-2 md:flex">
+				{#each orderTabs as tab}
+					<button
+						class="btn text-nowrap btn-sm {filter === tab.id ? 'btn-primary' : 'btn-ghost'}"
+						onclick={() => (filter = tab.id)}
+					>
+						<tab.icon size={16} />
+						{$t(tab.label)}
+					</button>
+				{/each}
+			</div>
+
+			<!-- Mobile Filter (Select) -->
+			<div class="md:hidden">
+				<select class="select-bordered select w-full" bind:value={filter}>
+					{#each orderTabs as tab}
+						<option value={tab.id}>{$t(tab.label)}</option>
+					{/each}
+				</select>
+			</div>
 		</div>
 	</div>
 
@@ -164,22 +206,22 @@
 				</div>
 				<h2 class="mb-2 text-2xl font-bold">
 					{searchQuery
-						? 'Pesanan tidak ditemukan'
+						? $t('account.order_list.empty_search', { values: { query: searchQuery } })
 						: filter === 'all'
-							? 'Belum Ada Pesanan'
-							: `Tidak ada pesanan ${filter}`}
+							? $t('account.order_list.empty')
+							: $t('account.order_list.empty_filter', {
+									values: { filter: $t('common.status.' + filter) }
+								})}
 				</h2>
 				<p class="mb-8 max-w-md text-base-content/60">
-					{searchQuery
-						? `Tidak ada hasil untuk pencarian "${searchQuery}"`
-						: 'Jelajahi katalog kami dan temukan produk digital terbaik untuk kebutuhan Anda.'}
+					{searchQuery ? '' : $t('hero.subtitle')}
 				</p>
 				<a
 					href="/shop"
 					class="btn shadow-lg transition-all btn-primary hover:-translate-y-1 hover:shadow-xl"
 				>
 					<span>🛍️</span>
-					Belanja Sekarang
+					{$t('account.order_list.explore_btn')}
 				</a>
 			</div>
 		</div>
@@ -212,7 +254,7 @@
 
 						<div class="flex items-center gap-3">
 							<span class="badge {getStatusBadge(order.status)} gap-1 font-medium">
-								{getStatusText(order.status)}
+								{$t('common.status.' + order.status)}
 							</span>
 						</div>
 					</div>
@@ -242,7 +284,7 @@
 											</div>
 											<div class="flex items-center gap-2 text-xs text-base-content/70">
 												<span class="badge badge-ghost badge-xs"
-													>{item.product?.quantity || 1} Item</span
+													>{item.product?.quantity || 1} {$t('cart.item')}</span
 												>
 												<span>x {formatCurrency(item.product?.price || 0)}</span>
 											</div>
@@ -250,8 +292,23 @@
 												<div
 													class="mt-1 inline-block rounded border-l-2 border-primary bg-base-200/80 px-2 py-1 text-[10px]"
 												>
-													<span class="font-semibold opacity-70">Catatan:</span>
+													<span class="font-semibold opacity-70"
+														>{$t('account.order_list.note')}</span
+													>
 													{item.note}
+												</div>
+											{/if}
+
+											<!-- Fulfillment Data (Button) -->
+											{#if item.fulfillments && item.fulfillments.length > 0}
+												<div class="mt-2">
+													<button
+														class="btn gap-2 btn-outline btn-xs btn-success"
+														onclick={() => showFulfillments(item.fulfillments || [])}
+													>
+														<Key size={12} />
+														{$t('account.order_list.view_credentials')}
+													</button>
 												</div>
 											{/if}
 										</div>
@@ -264,8 +321,10 @@
 										onclick={() => toggleOrder(order.order_id)}
 									>
 										{expandedOrders[order.order_id]
-											? 'Tampilkan lebih sedikit'
-											: `Tampilkan ${order.items.length - 3} produk lainnya`}
+											? $t('account.order_list.show_less')
+											: $t('account.order_list.items_more', {
+													values: { count: order.items.length - 3 }
+												})}
 									</button>
 								{/if}
 							</div>
@@ -278,19 +337,21 @@
 									<!-- Payment Breakdown -->
 									<div class="mb-4 space-y-2 text-sm">
 										<div class="flex justify-between text-base-content/70">
-											<span>Subtotal</span>
+											<span>{$t('account.order_list.subtotal')}</span>
 											<span>{formatCurrency(order.total)}</span>
 										</div>
 										{#if order.fee}
 											<div class="flex justify-between text-base-content/70">
-												<span>Biaya Admin</span>
+												<span>{$t('account.order_list.admin_fee')}</span>
 												<span>{formatCurrency(order.fee)}</span>
 											</div>
 										{/if}
 										<div class="divider my-2"></div>
 									</div>
 
-									<div class="mb-1 text-sm text-base-content/60">Total Pembayaran</div>
+									<div class="mb-1 text-sm text-base-content/60">
+										{$t('account.order_list.total_payment')}
+									</div>
 									<div class="mb-4 text-2xl font-bold text-primary">
 										{formatCurrency(order.total_payment || order.total)}
 									</div>
@@ -303,13 +364,6 @@
 											<span class="font-semibold">{formatPaymentMethod(order.payment_method)}</span>
 										</div>
 									{/if}
-
-									<!-- {#if order.status === 'completed' && order.completed_at}
-										<div class="mb-4 flex items-center gap-1 text-xs text-success">
-											<CheckCircle size={12} />
-											Dibayar: {formatDate(order.completed_at)}
-										</div>
-									{/if} -->
 								</div>
 
 								<div class="mt-4 flex flex-col gap-2">
@@ -319,7 +373,8 @@
 												href="/payment/{order.order_id}"
 												class="btn w-full shadow-md transition-transform btn-primary group-hover:scale-[1.02] hover:shadow-lg"
 											>
-												Bayar Sekarang <ArrowRight size={16} />
+												{$t('account.order_list.pay_now')}
+												<ArrowRight size={16} />
 											</a>
 										{/if}
 										<div class="grid grid-cols-2 gap-2">
@@ -327,17 +382,19 @@
 												class="btn w-full btn-outline btn-sm"
 												onclick={() => handleCheckStatus(order.order_id)}
 											>
-												Cek Status
+												{$t('account.order_list.check_status')}
 											</button>
 											<button
 												class="btn w-full btn-outline btn-sm btn-error"
 												onclick={() => handleCancelOrder(order.order_id)}
 											>
-												Batalkan
+												{$t('account.order_list.cancel')}
 											</button>
 										</div>
 									{:else if order.status === 'completed'}
-										<a href="/shop" class="btn w-full btn-outline btn-sm"> Beli Lagi </a>
+										<a href="/shop" class="btn w-full btn-outline btn-sm">
+											{$t('account.order_list.buy_again')}
+										</a>
 									{/if}
 								</div>
 							</div>
@@ -373,3 +430,63 @@
 		{/if}
 	{/if}
 </div>
+
+<!-- Fulfillment Modal -->
+<dialog bind:this={fulfillmentModal} class="modal">
+	<div class="modal-box">
+		<form method="dialog">
+			<button class="btn absolute top-2 right-2 btn-circle btn-ghost btn-sm">✕</button>
+		</form>
+		<h3 class="mb-4 flex items-center gap-2 text-lg font-bold">
+			<Key class="text-success" />
+			{$t('account.order_list.credentials_modal')}
+		</h3>
+
+		{#if selectedFulfillments}
+			<div class="space-y-4">
+				{#each selectedFulfillments as fulfillment}
+					<div class="bg-base-50 rounded-lg border border-base-200 p-4">
+						{#if fulfillment.type === 'text'}
+							<div class="space-y-2">
+								<div class="text-xs font-semibold tracking-wide uppercase opacity-70"></div>
+								<div class="group/copy relative">
+									<div
+										class="custom-scrollbar max-h-60 overflow-y-auto rounded-md bg-base-200 p-3 font-mono text-sm break-all whitespace-pre-wrap"
+									>
+										{fulfillment.content}
+									</div>
+									<button
+										class="btn absolute top-1 right-4 btn-square btn-ghost btn-sm"
+										title={$t('shop.share')}
+										onclick={() => copyToClipboard(fulfillment.content)}
+									>
+										<Copy size={16} />
+									</button>
+								</div>
+							</div>
+						{:else if fulfillment.type === 'image' || fulfillment.type === 'file'}
+							<a
+								href={fulfillment.content}
+								target="_blank"
+								class="btn w-full gap-2 btn-sm btn-primary"
+							>
+								<span>📂</span>
+								{$t('account.order_list.open_file')}
+							</a>
+						{/if}
+						<div class="mt-2 text-right text-xs text-base-content/40">
+							{$t('account.order_list.sent_at')}
+							{formatDate(fulfillment.created_at)}
+						</div>
+					</div>
+				{/each}
+			</div>
+		{/if}
+
+		<div class="modal-action">
+			<form method="dialog">
+				<button class="btn">{$t('account.order_list.close')}</button>
+			</form>
+		</div>
+	</div>
+</dialog>

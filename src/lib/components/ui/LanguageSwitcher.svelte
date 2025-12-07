@@ -22,7 +22,7 @@
 		class="btn gap-2 text-neutral-content btn-ghost hover:text-primary"
 	>
 		<!-- <Globe size={20} /> -->
-		<span class="flex hidden items-center gap-2 sm:inline">
+		<span class="hidden items-center gap-2 sm:flex">
 			<img
 				src={currentLanguage.flag}
 				alt={currentLanguage.name}

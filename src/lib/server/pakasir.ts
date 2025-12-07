@@ -1,5 +1,6 @@
 // src/lib/server/pakasir.ts
 import { PAKASIR_SLUG, PAKASIR_API_KEY, IS_PRODUCTION } from '$env/static/private';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 const PAKASIR_BASE = 'https://app.pakasir.com';
 
@@ -247,6 +248,29 @@ export const pakasir = {
 				orderId
 			});
 			throw error;
+		}
+	},
+
+	verifySignature(rawBody: string, signature: string): boolean {
+		const { API_KEY } = getEnv();
+		if (!signature) return false;
+
+		// Assuming HMAC-SHA256 with API_KEY as secret
+		const hmac = createHmac('sha256', API_KEY);
+		const calculatedSignature = hmac.update(rawBody).digest('hex');
+
+		try {
+			const source = Buffer.from(signature);
+			const target = Buffer.from(calculatedSignature);
+
+			if (source.length !== target.length) {
+				return false;
+			}
+
+			return timingSafeEqual(source, target);
+		} catch (error) {
+			console.error('🔥 Signature verification error:', error);
+			return false;
 		}
 	}
 };

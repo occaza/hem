@@ -91,9 +91,11 @@
 	}
 
 	function toggleDropdown() {
-		if (displayAmount >= 10000) {
-			isDropdownOpen = !isDropdownOpen;
+		if (displayAmount < 10000) {
+			toast.error($t('payment.min_amount_warning'), 4000);
+			return;
 		}
+		isDropdownOpen = !isDropdownOpen;
 	}
 
 	function selectMethod(value: string) {
@@ -194,7 +196,6 @@
 			<button
 				class="btn w-full justify-between border-base-300 bg-base-100 font-normal hover:bg-base-200"
 				onclick={toggleDropdown}
-				disabled={displayAmount < 10000}
 			>
 				{#if selectedMethodData}
 					<div class="flex items-center gap-3">

@@ -7,6 +7,9 @@
 	import Turnstile from '$lib/components/ui/Turnstile.svelte';
 	import PageHeader from '$lib/components/layout/PageHeader.svelte';
 
+	import { fetchWithCSRF } from '$lib/utils/csrf.utils';
+	import { t } from 'svelte-i18n';
+
 	let name = $state('');
 	let email = $state('');
 	let subject = $state('');
@@ -19,17 +22,17 @@
 		e.preventDefault();
 
 		if (!name || !email || !subject || !message) {
-			toast.error('Mohon lengkapi semua field');
+			toast.error($t('contact.form.fill_all'));
 			return;
 		}
 
 		if (message.length < 10) {
-			toast.error('Pesan minimal 10 karakter');
+			toast.error($t('contact.form.min_chars'));
 			return;
 		}
 
 		if (!turnstileToken) {
-			toast.error('Silakan selesaikan verifikasi keamanan');
+			toast.error($t('contact.form.captcha_prompt'));
 			return;
 		}
 
@@ -44,14 +47,14 @@
 			});
 
 			if (!verifyRes.ok) {
-				toast.error('Verifikasi keamanan gagal. Silakan coba lagi.');
+				toast.error($t('contact.form.captcha_error'));
 				isSubmitting = false;
 				turnstileToken = '';
 				turnstileRef?.reset();
 				return;
 			}
 
-			const res = await fetch('/api/contact', {
+			const res = await fetchWithCSRF('/api/contact', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ name, email, subject, message })
@@ -60,11 +63,11 @@
 			const data = await res.json();
 
 			if (!res.ok) {
-				toast.error(data.error || 'Gagal mengirim pesan');
+				toast.error(data.error || $t('contact.form.error'));
 				return;
 			}
 
-			toast.success('Pesan berhasil dikirim! Kami akan segera menghubungi Anda.');
+			toast.success($t('contact.form.success'));
 			name = '';
 			email = '';
 			subject = '';
@@ -73,7 +76,7 @@
 			turnstileRef?.reset();
 		} catch (error) {
 			console.error('Submit error:', error);
-			toast.error('Terjadi kesalahan. Silakan coba lagi.');
+			toast.error($t('common.error'));
 			turnstileToken = '';
 			turnstileRef?.reset();
 		} finally {
@@ -83,20 +86,17 @@
 </script>
 
 <svelte:head>
-	<title>Hubungi Kami - AdverFI</title>
-	<meta
-		name="description"
-		content="Hubungi tim AdverFI untuk pertanyaan, dukungan, atau kerjasama. Kami siap membantu Anda 24/7."
-	/>
+	<title>{$t('contact.title')} - AdverFI</title>
+	<meta name="description" content={$t('contact.meta_desc')} />
 </svelte:head>
 
 <Navbar />
 
 <PageHeader
-	title="Hubungi Kami"
+	title={$t('contact.title')}
 	breadcrumbs={[
-		{ label: 'Beranda', href: '/' },
-		{ label: 'Hubungi Kami', href: '/contact' }
+		{ label: $t('nav.home'), href: '/' },
+		{ label: $t('contact.title'), href: '/contact' }
 	]}
 />
 
@@ -115,16 +115,16 @@
 								<div class="rounded-full bg-primary/20 p-3">
 									<Mail size={24} class="text-primary" />
 								</div>
-								<h3 class="text-xl font-bold">Email</h3>
+								<h3 class="text-xl font-bold">{$t('contact.email.title')}</h3>
 							</div>
-							<p class="text-base-content/80">Kirim email ke:</p>
+							<p class="text-base-content/80">{$t('contact.email.send_to')}</p>
 							<a
 								href="mailto:{appConfig.supportEmail}"
 								class="link text-lg font-semibold text-primary"
 							>
 								{appConfig.supportEmail}
 							</a>
-							<p class="mt-2 text-sm text-base-content/60">Kami akan membalas dalam 24 jam</p>
+							<p class="mt-2 text-sm text-base-content/60">{$t('contact.email.reply_time')}</p>
 						</div>
 					</div>
 
@@ -137,9 +137,9 @@
 								<div class="rounded-full bg-success/20 p-3">
 									<Phone size={24} class="text-success" />
 								</div>
-								<h3 class="text-xl font-bold">WhatsApp</h3>
+								<h3 class="text-xl font-bold">{$t('contact.whatsapp.title')}</h3>
 							</div>
-							<p class="text-base-content/80">Chat dengan kami:</p>
+							<p class="text-base-content/80">{$t('contact.whatsapp.chat_with_us')}</p>
 							<a
 								href={appConfig.whatsapp}
 								target="_blank"
@@ -148,7 +148,11 @@
 							>
 								{appConfig.phone}
 							</a>
-							<p class="mt-2 text-sm text-base-content/60">Senin - Minggu, 08:00 - 22:00 WIB</p>
+							<p class="mt-2 text-sm text-base-content/60">
+								{$t('contact.whatsapp.working_hours', {
+									values: { hours: appConfig.workingHours }
+								})}
+							</p>
 						</div>
 					</div>
 
@@ -161,11 +165,11 @@
 								<div class="rounded-full bg-accent/20 p-3">
 									<MapPin size={24} class="text-accent" />
 								</div>
-								<h3 class="text-xl font-bold">Lokasi</h3>
+								<h3 class="text-xl font-bold">{$t('contact.location.title')}</h3>
 							</div>
-							<p class="text-base-content/80">Kantor kami:</p>
+							<p class="text-base-content/80">{$t('contact.location.our_office')}</p>
 							<p class="text-lg font-semibold">{appConfig.address}</p>
-							<p class="mt-2 text-sm text-base-content/60">Jawa Tengah, Indonesia</p>
+							<p class="mt-2 text-sm text-base-content/60">{$t('contact.location.region')}</p>
 						</div>
 					</div>
 				</div>
@@ -174,19 +178,19 @@
 				<div class="lg:col-span-2">
 					<div class="card border border-base-300 bg-base-100 shadow-xl">
 						<div class="card-body">
-							<h2 class="mb-6 card-title text-2xl">Kirim Pesan</h2>
+							<h2 class="mb-6 card-title text-2xl">{$t('contact.form.title')}</h2>
 
 							<form onsubmit={handleSubmit} class="space-y-6">
 								<!-- Name -->
 								<div class="form-control">
 									<label for="name" class="label">
-										<span class="label-text font-semibold">Nama Lengkap</span>
+										<span class="label-text font-semibold">{$t('contact.form.name')}</span>
 									</label>
 									<input
 										id="name"
 										type="text"
 										bind:value={name}
-										placeholder="Masukkan nama lengkap Anda"
+										placeholder={$t('contact.form.name_placeholder')}
 										class="input-bordered input w-full"
 										required
 									/>
@@ -195,13 +199,13 @@
 								<!-- Email -->
 								<div class="form-control">
 									<label for="email" class="label">
-										<span class="label-text font-semibold">Email</span>
+										<span class="label-text font-semibold">{$t('contact.form.email')}</span>
 									</label>
 									<input
 										id="email"
 										type="email"
 										bind:value={email}
-										placeholder="nama@email.com"
+										placeholder={$t('contact.form.email_placeholder')}
 										class="input-bordered input w-full"
 										required
 									/>
@@ -210,13 +214,13 @@
 								<!-- Subject -->
 								<div class="form-control">
 									<label for="subject" class="label">
-										<span class="label-text font-semibold">Subjek</span>
+										<span class="label-text font-semibold">{$t('contact.form.subject')}</span>
 									</label>
 									<input
 										id="subject"
 										type="text"
 										bind:value={subject}
-										placeholder="Topik pesan Anda"
+										placeholder={$t('contact.form.subject_placeholder')}
 										class="input-bordered input w-full"
 										required
 									/>
@@ -225,17 +229,19 @@
 								<!-- Message -->
 								<div class="form-control">
 									<label for="message" class="label">
-										<span class="label-text font-semibold">Pesan</span>
+										<span class="label-text font-semibold">{$t('contact.form.message')}</span>
 									</label>
 									<textarea
 										id="message"
 										bind:value={message}
-										placeholder="Tulis pesan Anda di sini..."
+										placeholder={$t('contact.form.message_placeholder')}
 										class="textarea-bordered textarea h-32 w-full"
 										required
 									></textarea>
 									<label class="label" for="message">
-										<span class="label-text-alt text-base-content/60">Minimal 10 karakter</span>
+										<span class="label-text-alt text-base-content/60"
+											>{$t('contact.form.min_chars')}</span
+										>
 									</label>
 								</div>
 
@@ -246,7 +252,7 @@
 										onVerify={(token) => (turnstileToken = token)}
 										onError={() => {
 											turnstileToken = '';
-											toast.error('Verifikasi keamanan gagal');
+											toast.error($t('contact.form.captcha_error'));
 										}}
 										onExpire={() => {
 											turnstileToken = '';
@@ -262,10 +268,10 @@
 								>
 									{#if isSubmitting}
 										<span class="loading loading-sm loading-spinner"></span>
-										Mengirim...
+										{$t('contact.form.sending')}
 									{:else}
 										<Send size={20} />
-										Kirim Pesan
+										{$t('contact.form.send')}
 									{/if}
 								</button>
 							</form>
@@ -286,11 +292,7 @@
 										d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 									></path>
 								</svg>
-								<span
-									>Untuk pertanyaan umum, silakan cek <a href="/faq" class="link font-semibold"
-										>FAQ</a
-									> kami terlebih dahulu.</span
-								>
+								<span>{@html $t('contact.faq.check_link')}</span>
 							</div>
 						</div>
 					</div>
@@ -299,16 +301,16 @@
 
 			<!-- FAQ Quick Links -->
 			<div class="mt-12">
-				<h2 class="mb-6 text-center text-2xl font-bold">Pertanyaan Umum</h2>
+				<h2 class="mb-6 text-center text-2xl font-bold">{$t('contact.faq.title')}</h2>
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 					<a
 						href="/faq"
 						class="card border border-base-300 bg-base-100 shadow-md transition-all hover:shadow-xl"
 					>
 						<div class="card-body">
-							<h3 class="card-title text-lg">Cara Berbelanja</h3>
+							<h3 class="card-title text-lg">{$t('contact.faq.how_to_shop')}</h3>
 							<p class="text-sm text-base-content/70">
-								Pelajari cara melakukan pembelian di platform kami
+								{$t('contact.faq.how_to_shop_desc')}
 							</p>
 						</div>
 					</a>
@@ -317,9 +319,9 @@
 						class="card border border-base-300 bg-base-100 shadow-md transition-all hover:shadow-xl"
 					>
 						<div class="card-body">
-							<h3 class="card-title text-lg">Metode Pembayaran</h3>
+							<h3 class="card-title text-lg">{$t('contact.faq.payment_method')}</h3>
 							<p class="text-sm text-base-content/70">
-								Informasi tentang metode pembayaran yang tersedia
+								{$t('contact.faq.payment_method_desc')}
 							</p>
 						</div>
 					</a>
@@ -328,8 +330,8 @@
 						class="card border border-base-300 bg-base-100 shadow-md transition-all hover:shadow-xl"
 					>
 						<div class="card-body">
-							<h3 class="card-title text-lg">Kebijakan Refund</h3>
-							<p class="text-sm text-base-content/70">Ketentuan dan prosedur pengembalian dana</p>
+							<h3 class="card-title text-lg">{$t('contact.faq.refund_policy')}</h3>
+							<p class="text-sm text-base-content/70">{$t('contact.faq.refund_policy_desc')}</p>
 						</div>
 					</a>
 				</div>

@@ -88,9 +88,9 @@
 
 		<!-- Hover Actions -->
 		<div
-			class="absolute top-3 right-3 flex translate-x-10 flex-col gap-2 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+			class="absolute top-3 right-3 flex flex-col gap-2 opacity-100 transition-all duration-300 xl:translate-x-10 xl:opacity-0 xl:group-hover:translate-x-0 xl:group-hover:opacity-100"
 		>
-			{#if inStock}
+			{#if inStock && showAddToCart}
 				<button
 					class="btn btn-circle border-none bg-white text-base-content shadow-sm btn-sm hover:bg-primary hover:text-white"
 					onclick={handleAddToCart}

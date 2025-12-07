@@ -3,12 +3,22 @@ import { getSupabaseAdmin } from '$lib/server/supabase';
 import { pakasir, type PaymentMethod } from '$lib/server/pakasir';
 import { calculateDiscountedPrice } from '$lib/utils/product.utils';
 import { sendOrderPendingEmail, sendAdminNewOrderEmail } from '$lib/server/email';
+import { rateLimiters, getRateLimitErrorMessage } from '$lib/server/rate-limiter';
+import { validateCSRFToken, extractCSRFToken, parseCSRFCookie } from '$lib/server/csrf';
 
 import type { RequestHandler } from './$types';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 	try {
+		// CSRF Protection
 		const body = await request.json();
+		const csrfToken = extractCSRFToken(request, body);
+		const csrfCookie = parseCSRFCookie(cookies.get('csrf_token'));
+
+		if (!validateCSRFToken(csrfToken, csrfCookie?.token, csrfCookie?.createdAt || 0)) {
+			return json({ error: 'Invalid CSRF token' }, { status: 403 });
+		}
+
 		let {
 			items,
 			product_id,
@@ -18,7 +28,10 @@ export const POST: RequestHandler = async ({ request }) => {
 			quantity = 1,
 			note,
 			coupon_code,
-			discount_amount = 0
+			discount_amount = 0,
+			customer_name,
+			customer_email,
+			customer_phone
 		} = body;
 
 		// 1. Normalize Items (Support Single & Multi Item)
@@ -36,6 +49,25 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		if (!user_id || typeof user_id !== 'string') {
 			return json({ error: 'User ID required' }, { status: 400 });
+		}
+
+		// Rate Limiting: 5 requests per 15 menit per user
+		const rateLimitKey = `checkout:${user_id}`;
+		const rateLimit = rateLimiters.checkout.check(rateLimitKey);
+
+		if (!rateLimit.allowed) {
+			return json(
+				{ error: getRateLimitErrorMessage(rateLimit) },
+				{
+					status: 429,
+					headers: {
+						'X-RateLimit-Limit': rateLimit.limit.toString(),
+						'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+						'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString(),
+						'Retry-After': (rateLimit.retryAfter || 0).toString()
+					}
+				}
+			);
 		}
 
 		const supabaseAdmin = getSupabaseAdmin();
@@ -84,7 +116,6 @@ export const POST: RequestHandler = async ({ request }) => {
 		// Apply coupon discount if provided
 		let couponDiscount = 0;
 		if (coupon_code && discount_amount > 0) {
-			// Validate coupon exists and is valid
 			const { data: coupon, error: couponError } = await supabaseAdmin
 				.from('coupons')
 				.select('*')
@@ -94,32 +125,21 @@ export const POST: RequestHandler = async ({ request }) => {
 			if (couponError || !coupon) {
 				return json({ error: 'Invalid coupon code' }, { status: 400 });
 			}
-
-			if (!coupon.is_active) {
-				return json({ error: 'Coupon is not active' }, { status: 400 });
-			}
-
-			if (coupon.valid_until && new Date(coupon.valid_until) < new Date()) {
+			if (!coupon.is_active) return json({ error: 'Coupon is not active' }, { status: 400 });
+			if (coupon.valid_until && new Date(coupon.valid_until) < new Date())
 				return json({ error: 'Coupon has expired' }, { status: 400 });
-			}
-
-			if (coupon.min_purchase > 0 && totalAmount < coupon.min_purchase) {
+			if (coupon.min_purchase > 0 && totalAmount < coupon.min_purchase)
 				return json({ error: `Minimum purchase ${coupon.min_purchase} required` }, { status: 400 });
-			}
-
-			if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit) {
+			if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit)
 				return json({ error: 'Coupon usage limit reached' }, { status: 400 });
-			}
 
 			couponDiscount = Math.round(discount_amount);
 			totalAmount = Math.max(0, totalAmount - couponDiscount);
 
 			// Adjust item amounts proportionally
 			if (processedItems.length === 1) {
-				// For single item, just subtract the full discount
 				processedItems[0].itemTotal = Math.max(0, processedItems[0].itemTotal - couponDiscount);
 			} else {
-				// For multiple items, distribute discount proportionally
 				const subtotalBeforeDiscount = processedItems.reduce(
 					(sum, item) => sum + item.itemTotal,
 					0
@@ -136,27 +156,28 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ error: 'Invalid total amount' }, { status: 400 });
 		}
 
-		// 4. Get User Info
-		const { data: userData, error: userError } =
-			await supabaseAdmin.auth.admin.getUserById(user_id);
-
+		// 4. Get User Info AND Determine Final Customer Details
+		const { data: userData } = await supabaseAdmin.auth.admin.getUserById(user_id);
 		const userMetadata = userData?.user?.user_metadata;
-		const customerName = userMetadata?.full_name || userMetadata?.name || 'Customer';
-		const customerEmail = userData?.user?.email || 'customer@example.com';
 
-		// 5. INSERT TRANSACTIONS FIRST (Pending state, empty payment info)
-		// This prevents race condition where webhook arrives before insert finishes
+		// Priority: Request Body > User Profile > Default
+		// Note: user_id is passed, so IF the user exists, we use their profile as fallback.
+		const finalCustomerName =
+			customer_name || userMetadata?.full_name || userMetadata?.name || 'Customer';
+		const finalCustomerEmail = customer_email || userData?.user?.email || 'customer@example.com';
+
+		// 5. INSERT TRANSACTIONS FIRST
 		const transactionInserts = processedItems.map((item) => ({
 			order_id,
 			product_id: item.product_id,
 			amount: item.itemTotal,
 			status: 'pending',
 			user_id,
-			payment_method: payment_method, // Use requested method initially
-			payment_number: '-', // Placeholder
-			fee: 0, // Placeholder
-			total_payment: 0, // Placeholder
-			expired_at: null // Placeholder
+			payment_method: payment_method,
+			payment_number: '-',
+			fee: 0,
+			total_payment: 0,
+			expired_at: null
 		}));
 
 		const { error: insertError } = await supabaseAdmin
@@ -168,7 +189,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ error: 'Failed to create transaction records' }, { status: 500 });
 		}
 
-		// 6. Insert Notes (Bulk)
+		// 6. Insert Notes
 		const noteInserts = processedItems
 			.filter((item) => item.note && item.note.trim())
 			.map((item) => ({
@@ -181,9 +202,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			await supabaseAdmin.from('transaction_notes').insert(noteInserts);
 		}
 
-		// 6.5. Save coupon usage if applied
+		// 6.5. Save coupon usage
 		if (coupon_code && couponDiscount > 0) {
-			// Save to coupon_usages table
 			await supabaseAdmin.from('coupon_usages').insert({
 				order_id,
 				coupon_id: (
@@ -198,7 +218,6 @@ export const POST: RequestHandler = async ({ request }) => {
 				used_at: new Date().toISOString()
 			});
 
-			// Increment coupon usage count
 			const { data: currentCoupon } = await supabaseAdmin
 				.from('coupons')
 				.select('usage_count')
@@ -214,26 +233,17 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		// 7. Create Payment (Pakasir)
-		console.log('Creating payment via Pakasir:', {
-			order_id,
-			amount: totalAmount,
-			payment_method,
-			items_count: items.length
-		});
-
 		let payment;
 		try {
 			payment = await pakasir.createTransaction(
 				order_id,
 				totalAmount,
 				payment_method as PaymentMethod,
-				customerName,
-				customerEmail
+				finalCustomerName,
+				finalCustomerEmail
 			);
 		} catch (paymentError) {
 			console.error('Pakasir creation failed:', paymentError);
-			// If payment creation fails, we should probably mark transactions as failed or delete them?
-			// For now, let's mark as failed
 			await supabaseAdmin
 				.from('transactions')
 				.update({ status: 'failed', error_message: 'Payment gateway error' })
@@ -242,7 +252,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			throw paymentError;
 		}
 
-		// 8. UPDATE TRANSACTIONS with real payment info
+		// 8. UPDATE TRANSACTIONS
 		const { error: updateError } = await supabaseAdmin
 			.from('transactions')
 			.update({
@@ -256,7 +266,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		if (updateError) {
 			console.error('Failed to update transaction payment info:', updateError);
-			// Non-critical error, user still gets payment info from response/email
 		}
 
 		// 9. Send Email Notifications
@@ -269,8 +278,8 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		Promise.all([
 			sendOrderPendingEmail({
-				to: customerEmail,
-				customerName,
+				to: finalCustomerEmail,
+				customerName: finalCustomerName,
 				orderId: order_id,
 				items: emailItems,
 				totalPayment: payment.total_payment,
@@ -283,7 +292,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			}),
 			sendAdminNewOrderEmail({
 				orderId: order_id,
-				customerName,
+				customerName: finalCustomerName,
 				productName: `${items.length} Items`,
 				quantity: items.reduce((acc: number, item: any) => acc + item.quantity, 0),
 				totalPayment: payment.total_payment,
@@ -291,15 +300,24 @@ export const POST: RequestHandler = async ({ request }) => {
 			})
 		]).catch((err) => console.error('Error sending emails:', err));
 
-		return json({
-			order_id: payment.order_id,
-			amount: payment.amount,
-			fee: payment.fee,
-			total_payment: payment.total_payment,
-			payment_method: payment.payment_method,
-			payment_number: payment.payment_number,
-			expired_at: payment.expired_at
-		});
+		return json(
+			{
+				order_id: payment.order_id,
+				amount: payment.amount,
+				fee: payment.fee,
+				total_payment: payment.total_payment,
+				payment_method: payment.payment_method,
+				payment_number: payment.payment_number,
+				expired_at: payment.expired_at
+			},
+			{
+				headers: {
+					'X-RateLimit-Limit': rateLimit.limit.toString(),
+					'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+					'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
+				}
+			}
+		);
 	} catch (error) {
 		console.error('Checkout error:', error);
 		return json(

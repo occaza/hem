@@ -42,6 +42,7 @@
 		"@supabase/storage-js": "^2.80.0",
 		"@supabase/supabase-js": "^2.80.0",
 		"daisyui": "^5.4.7",
+		"embla-carousel-svelte": "^8.6.0",
 		"qrcode": "^1.5.4",
 		"resend": "^6.5.2",
 		"svelte-i18n": "^4.0.1",

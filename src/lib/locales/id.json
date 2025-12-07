@@ -8,6 +8,80 @@
 		"logout": "Keluar",
 		"dashboard": "Dashboard"
 	},
+	"auth": {
+		"forgot_password": {
+			"title": "Lupa Password",
+			"instruction": "Masukkan email Anda. Link reset password akan dikirim ke email tersebut.",
+			"email_label": "Email",
+			"email_placeholder": "nama@example.com",
+			"submit_button": "Kirim Link Reset",
+			"sending": "Mengirim...",
+			"success_title": "Email Terkirim!",
+			"success_desc": "Cek email Anda untuk link reset password.",
+			"remember_password": "Ingat password?",
+			"login_link": "Masuk",
+			"back_home": "Kembali ke Beranda",
+			"page_title": "Lupa Password - adverFI"
+		},
+		"login": {
+			"title": "Masuk",
+			"identifier_label": "Email atau Username",
+			"identifier_placeholder": "Email atau Username",
+			"password_label": "Password",
+			"password_placeholder": "••••••••",
+			"forgot_password": "Lupa password?",
+			"submit_button": "Masuk",
+			"loading": "Memuat...",
+			"no_account": "Belum punya akun?",
+			"register_link": "Daftar",
+			"back_home": "Kembali ke Beranda",
+			"page_title": "Masuk - adverFI",
+			"error": {
+				"invalid_credentials": "Email/Username atau password salah",
+				"save_session": "Gagal menyimpan sesi",
+				"generic": "Gagal masuk",
+				"user_not_found": "Username tidak ditemukan"
+			}
+		},
+		"register": {
+			"title": "Daftar",
+			"full_name_label": "Nama Lengkap",
+			"full_name_placeholder": "John Doe",
+			"username_label": "Username",
+			"username_placeholder": "johndoe123",
+			"phone_label": "Nomor HP",
+			"phone_placeholder": "08123456789",
+			"email_label": "Email",
+			"email_placeholder": "john@example.com",
+			"password_label": "Password",
+			"password_placeholder": "••••••••",
+			"confirm_password_label": "Konfirmasi Password",
+			"submit_button": "Daftar",
+			"loading": "Memuat...",
+			"already_have_account": "Sudah punya akun?",
+			"login_link": "Masuk",
+			"back_home": "Kembali ke Beranda",
+			"page_title": "Daftar - adverFI",
+			"success_title": "Registrasi Berhasil!",
+			"redirect_msg": "Dialihkan ke login dalam 5 detik...",
+			"no_email_msg": "Tidak menerima email?",
+			"check_spam_msg": "Cek folder spam atau junk",
+			"or_divider": "ATAU",
+			"password_min_length": "Minimal 6 karakter",
+			"error": {
+				"full_name_required": "Nama lengkap harus diisi",
+				"username_required": "Username harus diisi",
+				"username_no_space": "Username tidak boleh mengandung spasi",
+				"phone_required": "Nomor HP harus diisi",
+				"phone_invalid": "Nomor HP tidak valid",
+				"password_mismatch": "Password tidak cocok",
+				"password_min_length": "Password minimal 6 karakter",
+				"generic": "Registrasi gagal",
+				"turnstile_required": "Silakan selesaikan verifikasi keamanan",
+				"turnstile_failed": "Verifikasi keamanan gagal. Silakan coba lagi."
+			}
+		}
+	},
 	"hero": {
 		"badge": "Platform Digital Terpercaya",
 		"title": "Platform Terpercaya untuk Jual Beli Akun Facebook",
@@ -135,17 +209,82 @@
 		},
 		"success": {
 			"remove_item": "Item berhasil dihapus"
-		}
+		},
+		"billing_info": "Informasi Pemesan",
+		"full_name": "Nama Lengkap",
+		"email": "Email",
+		"phone": "WhatsApp / No. HP",
+		"payment_method": "Metode Pembayaran",
+		"login_to_checkout": "Login untuk Checkout",
+		"checkout_now": "Checkout Sekarang",
+		"guest_disabled": "Guest checkout dinonaktifkan demi keamanan.",
+		"login_required": "Login Diperlukan",
+		"login_prompt": "Silakan login untuk melengkapi data pemesanan.",
+		"qris_instant": "QRIS (Instant)",
+		"va": "Virtual Account",
+		"va_desc": "Bank Transfer Otomatis"
 	},
 	"account": {
 		"title": "Akun Saya",
+		"menu": {
+			"personal": "Informasi Pribadi",
+			"orders": "Pesanan Saya",
+			"password": "Ubah Password",
+			"logout": "Keluar"
+		},
+		"order_list": {
+			"search_placeholder": "Cari pesanan...",
+			"empty": "Belum Ada Pesanan",
+			"empty_filter": "Tidak ada pesanan {filter}",
+			"empty_search": "Tidak ada hasil untuk \"{query}\"",
+			"explore_btn": "Belanja Sekarang",
+			"items_more": "Tampilkan {count} produk lainnya",
+			"show_less": "Tampilkan lebih sedikit",
+			"note": "Catatan:",
+			"view_credentials": "Lihat Data",
+			"subtotal": "Subtotal",
+			"admin_fee": "Biaya Admin",
+			"total_payment": "Total Pembayaran",
+			"pay_now": "Bayar Sekarang",
+			"check_status": "Cek Status",
+			"cancel": "Batalkan",
+			"buy_again": "Beli Lagi",
+			"credentials_modal": "Data Pembelian",
+			"copy_success": "Disalin ke clipboard!",
+			"copy_fail": "Gagal menyalin",
+			"open_file": "Buka File / Gambar",
+			"close": "Tutup",
+			"sent_at": "Dikirim:",
+			"cancel_confirm_msg": "Apakah Anda yakin ingin membatalkan pesanan ini?",
+			"cancel_confirm_title": "Batalkan Pesanan?"
+		},
 		"profile": "Profil",
 		"orders": "Pesanan",
 		"settings": "Pengaturan",
 		"edit_profile": "Edit Profil",
 		"change_password": "Ubah Password",
 		"my_orders": "Pesanan Saya",
-		"order_history": "Riwayat Pesanan"
+		"order_history": "Riwayat Pesanan",
+		"password_manager": {
+			"title": "Password Manager",
+			"old_password_label": "Password Lama",
+			"old_password_placeholder": "••••••••",
+			"new_password_label": "Password Baru",
+			"new_password_placeholder": "••••••••",
+			"confirm_password_label": "Konfirmasi Password",
+			"confirm_password_placeholder": "••••••••",
+			"update_button": "Update Password",
+			"updating": "Updating...",
+			"error": {
+				"old_required": "Password lama harus diisi",
+				"new_required": "Password baru harus diisi",
+				"same_password": "Password baru tidak boleh sama dengan password lama",
+				"mismatch": "Password tidak cocok",
+				"min_length": "Password minimal 6 karakter",
+				"generic": "Gagal update password",
+				"error_occurred": "Terjadi kesalahan"
+			}
+		}
 	},
 	"payment": {
 		"title": "Pembayaran",
@@ -184,20 +323,65 @@
 	},
 	"common": {
 		"save": "Simpan",
-		"cancel": "Batal",
-		"delete": "Hapus",
-		"edit": "Edit",
-		"close": "Tutup",
-		"confirm": "Konfirmasi",
-		"loading": "Memuat...",
 		"error": "Terjadi kesalahan",
 		"success": "Berhasil",
-		"yes": "Ya",
-		"no": "Tidak",
-		"back": "Kembali",
-		"next": "Lanjut",
-		"submit": "Kirim",
-		"search": "Cari"
+		"status": {
+			"all": "Semua",
+			"pending": "Menunggu",
+			"processing": "Diproses",
+			"completed": "Selesai",
+			"failed": "Gagal",
+			"expired": "Kadaluarsa",
+			"cancelled": "Dibatalkan"
+		}
+	},
+	"contact": {
+		"title": "Hubungi Kami",
+		"meta_desc": "Hubungi tim AdverFI untuk pertanyaan, dukungan, atau kerjasama. Kami siap membantu Anda 24/7.",
+		"email": {
+			"title": "Email",
+			"send_to": "Kirim email ke:",
+			"reply_time": "Kami akan membalas dalam 24 jam"
+		},
+		"whatsapp": {
+			"title": "WhatsApp",
+			"chat_with_us": "Chat dengan kami:",
+			"working_hours": "Senin - Minggu, {hours} WIB"
+		},
+		"location": {
+			"title": "Lokasi",
+			"our_office": "Kantor kami:",
+			"region": "Jawa Tengah, Indonesia"
+		},
+		"form": {
+			"title": "Kirim Pesan",
+			"name": "Nama Lengkap",
+			"name_placeholder": "Masukkan nama lengkap Anda",
+			"email": "Email",
+			"email_placeholder": "nama@email.com",
+			"subject": "Subjek",
+			"subject_placeholder": "Topik pesan Anda",
+			"message": "Pesan",
+			"message_placeholder": "Tulis pesan Anda di sini...",
+			"min_chars": "Minimal 10 karakter",
+			"send": "Kirim Pesan",
+			"sending": "Mengirim...",
+			"success": "Pesan berhasil dikirim! Kami akan segera menghubungi Anda.",
+			"error": "Gagal mengirim pesan",
+			"fill_all": "Mohon lengkapi semua field",
+			"captcha_error": "Verifikasi keamanan gagal",
+			"captcha_prompt": "Silakan selesaikan verifikasi keamanan"
+		},
+		"faq": {
+			"title": "Pertanyaan Umum",
+			"check_link": "Untuk pertanyaan umum, silakan cek <a href=\"/faq\" class=\"link font-semibold\">FAQ</a> kami terlebih dahulu.",
+			"how_to_shop": "Cara Berbelanja",
+			"how_to_shop_desc": "Pelajari cara melakukan pembelian di platform kami",
+			"payment_method": "Metode Pembayaran",
+			"payment_method_desc": "Informasi tentang metode pembayaran yang tersedia",
+			"refund_policy": "Kebijakan Refund",
+			"refund_policy_desc": "Ketentuan dan prosedur pengembalian dana"
+		}
 	},
 	"footer": {
 		"description": "Platform jual beli akun digital terpercaya, aman, dan cepat. Solusi terbaik untuk kebutuhan digital marketing Anda.",

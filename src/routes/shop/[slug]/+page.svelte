@@ -24,10 +24,12 @@
 	import { t, locale } from 'svelte-i18n';
 	import { Tag, ChevronLeft, ChevronRight } from '@lucide/svelte';
 	import { getLocalizedText } from '$lib/utils/localization.utils';
+	import emblaCarouselSvelte from 'embla-carousel-svelte';
 
 	let product = $state<Product | null>(null);
 	let loading = $state(true);
 	let selectedImage = $state(0);
+	let emblaApi = $state<any>(null); // Embla API instance
 	let quantity = $state(1);
 	let addingToCart = $state(false);
 	let activeTab = $state<'detail' | 'faq'>('detail');
@@ -239,16 +241,27 @@
 		}
 	}
 
-	function nextImage() {
-		if (product && product.images && product.images.length > 1) {
-			selectedImage = (selectedImage + 1) % product.images.length;
+	function onInit(event: CustomEvent) {
+		emblaApi = event.detail;
+		emblaApi.on('select', () => {
+			selectedImage = emblaApi.selectedScrollSnap();
+		});
+	}
+
+	function scrollToImage(index: number) {
+		if (emblaApi) {
+			emblaApi.scrollTo(index);
+		} else {
+			selectedImage = index;
 		}
 	}
 
+	function nextImage() {
+		if (emblaApi) emblaApi.scrollNext();
+	}
+
 	function prevImage() {
-		if (product && product.images && product.images.length > 1) {
-			selectedImage = (selectedImage - 1 + product.images.length) % product.images.length;
-		}
+		if (emblaApi) emblaApi.scrollPrev();
 	}
 </script>
 
@@ -294,21 +307,41 @@
 			]}
 		/>
 
-		<div class="container mx-auto px-4 py-12">
+		<div class="container mx-auto max-w-5xl px-4 py-12">
 			<div class="grid grid-cols-1 gap-12 lg:grid-cols-2">
 				<!-- Left Column: Images -->
-				<div class="mx-auto max-w-lg space-y-4">
-					<!-- Main Image -->
+				<div class="mx-auto max-w-sm space-y-4">
+					<!-- Main Image (Carousel) -->
 					<div
 						class="group relative overflow-hidden rounded-xl border border-neutral-300 bg-base-100"
+						use:emblaCarouselSvelte={{ options: { loop: true }, plugins: [] }}
+						onemblaInit={onInit}
 					>
-						<img
-							src={product.images?.[selectedImage] || 'https://placehold.co/600x600?text=No+Image'}
-							alt={getLocalizedText(product.name, $locale)}
-							class="aspect-square w-full object-contain p-1 transition-transform duration-500 hover:scale-101"
-						/>
+						<div class="flex">
+							{#if product.images && product.images.length > 0}
+								{#each product.images as image, i}
+									<div class="min-w-0 flex-[0_0_100%]">
+										<img
+											src={image}
+											alt={`${getLocalizedText(product.name, $locale)} ${i + 1}`}
+											class="aspect-square w-full object-contain p-1"
+										/>
+									</div>
+								{/each}
+							{:else}
+								<div class="min-w-0 flex-[0_0_100%]">
+									<img
+										src="https://placehold.co/600x600?text=No+Image"
+										alt="Product placeholder"
+										class="aspect-square w-full object-contain p-1"
+									/>
+								</div>
+							{/if}
+						</div>
 						{#if product.discount_percentage}
-							<div class="absolute top-4 left-4 badge gap-1 p-3 font-bold text-white badge-error">
+							<div
+								class="absolute top-4 left-4 z-10 badge gap-1 p-3 font-bold text-white badge-error"
+							>
 								<Tag size={14} />
 								{product.discount_percentage}% OFF
 							</div>
@@ -316,14 +349,14 @@
 
 						{#if product.images && product.images.length > 1}
 							<button
-								class="btn absolute top-1/2 left-2 btn-circle -translate-y-1/2 bg-base-100/80 opacity-0 shadow-md transition-opacity btn-sm group-hover:opacity-100 hover:bg-base-100"
+								class="btn absolute top-1/2 left-2 z-10 btn-circle -translate-y-1/2 bg-base-100/80 shadow-md transition-opacity btn-sm hover:bg-base-100 lg:opacity-0 lg:group-hover:opacity-100"
 								onclick={prevImage}
 								aria-label="Previous image"
 							>
 								<ChevronLeft size={20} />
 							</button>
 							<button
-								class="btn absolute top-1/2 right-2 btn-circle -translate-y-1/2 bg-base-100/80 opacity-0 shadow-md transition-opacity btn-sm group-hover:opacity-100 hover:bg-base-100"
+								class="btn absolute top-1/2 right-2 z-10 btn-circle -translate-y-1/2 bg-base-100/80 shadow-md transition-opacity btn-sm hover:bg-base-100 lg:opacity-0 lg:group-hover:opacity-100"
 								onclick={nextImage}
 								aria-label="Next image"
 							>
@@ -337,7 +370,7 @@
 						<div class="grid grid-cols-4 gap-4">
 							{#each product.images as image, index}
 								<button
-									onclick={() => (selectedImage = index)}
+									onclick={() => scrollToImage(index)}
 									class="overflow-hidden rounded-xl border-2 transition-all hover:border-primary"
 									class:border-primary={selectedImage === index}
 									class:border-transparent={selectedImage !== index}
@@ -367,11 +400,15 @@
 						<div class="mt-2 flex items-start justify-between gap-4">
 							<h1 class="text-3xl font-bold">{getLocalizedText(product.name, $locale)}</h1>
 							{#if inStock}
-								<div class="badge gap-1 badge-outline p-3 font-medium badge-success">
+								<div
+									class="badge shrink-0 gap-1 badge-outline p-3 font-medium whitespace-nowrap badge-success"
+								>
 									{$t('shop.in_stock')}
 								</div>
 							{:else}
-								<div class="badge gap-1 badge-outline p-3 font-medium badge-error">
+								<div
+									class="badge shrink-0 gap-1 badge-outline p-3 font-medium whitespace-nowrap badge-error"
+								>
 									{$t('shop.out_of_stock')}
 								</div>
 							{/if}
@@ -410,7 +447,7 @@
 							></textarea>
 						</div>
 
-						<div class="flex flex-wrap items-center gap-4">
+						<div class="flex flex-wrap items-center gap-3">
 							<!-- Quantity -->
 							<div class="flex items-center rounded-full border border-base-300 bg-base-100">
 								<button
@@ -463,26 +500,6 @@
 									{$t('shop.out_of_stock')}
 								</button>
 							{/if}
-
-							<button
-								class="btn btn-circle border border-base-300 btn-ghost hover:border-primary hover:text-primary"
-								aria-label="Add to wishlist"
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									class="h-6 w-6"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-									/>
-								</svg>
-							</button>
 						</div>
 					</div>
 
@@ -541,6 +558,8 @@
 							</div>
 						</div>
 					</div>
+
+					<div class="divider"></div>
 				</div>
 			</div>
 

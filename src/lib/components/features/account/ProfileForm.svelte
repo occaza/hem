@@ -8,6 +8,7 @@
 
 	let profile = $state({
 		full_name: data.user.full_name || '',
+		username: data.user.username || '',
 		email: data.user.email || '',
 		phone_number: data.user.phone_number || '',
 		avatar_url: data.user.avatar_url || '',
@@ -163,6 +164,19 @@
 						class="input-bordered input w-full focus:input-primary"
 						bind:value={profile.phone_number}
 						placeholder="+62..."
+					/>
+				</div>
+
+				<div class="form-control">
+					<label class="label" for="username">
+						<span class="label-text font-medium">Username *</span>
+					</label>
+					<input
+						id="username"
+						type="text"
+						class="input-bordered input w-full focus:input-primary"
+						bind:value={profile.username}
+						placeholder="username"
 					/>
 				</div>
 			</div>
